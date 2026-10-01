@@ -8,8 +8,10 @@ separately self-hosted process. Managed hosting is in development.
 
 Astro + TypeScript builds static HTML. Cloudflare Workers Static Assets serves
 the files; no server-side JavaScript or site database is needed. Pagefind generates
-browser-local search. The only client scripts provide search, code copying and
-benchmark chart controls. Fonts and images are served locally.
+browser-local search. Application scripts provide search, code copying,
+benchmark chart controls and announcement pause/play. Fonts and images are
+served locally. Cloudflare's existing zone-level Web Analytics injects its beacon;
+the CSP permits only its specific script/collection hosts alongside local code.
 
 This follows [Cloudflare's static Astro deployment guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/astro/).
 [Static asset requests are free and unlimited under current Cloudflare billing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/);
