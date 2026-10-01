@@ -3,7 +3,7 @@
 use serde::Deserialize;
 use std::{collections::HashSet, net::SocketAddr, path::PathBuf};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub version: u32,
@@ -13,7 +13,7 @@ pub struct Config {
     pub namespaces: Vec<Namespace>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Server {
     pub bind: SocketAddr,
@@ -22,7 +22,7 @@ pub struct Server {
     pub request_timeout_seconds: u64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Storage {
     pub data_dir: PathBuf,
@@ -30,7 +30,7 @@ pub struct Storage {
     pub cleanup_batch_entries: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Auth {
     pub mode: AuthMode,
@@ -38,14 +38,14 @@ pub struct Auth {
     pub principals: Vec<Principal>,
 }
 
-#[derive(Debug, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AuthMode {
     Disabled,
     ApiKey,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Principal {
     pub name: String,
@@ -54,7 +54,7 @@ pub struct Principal {
     pub operations: Vec<Operation>,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Operation {
     Get,
@@ -64,24 +64,34 @@ pub enum Operation {
     Stats,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Namespace {
     pub name: String,
+    #[serde(default)]
+    pub purpose: Purpose,
     pub mode: StorageMode,
     pub retention: Retention,
     pub admission: Admission,
     pub capacity: Capacity,
 }
 
-#[derive(Debug, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Purpose {
+    #[default]
+    Records,
+    Checkpoints,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StorageMode {
     Memory,
     Durable,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Retention {
     pub require_ttl: bool,
@@ -89,7 +99,7 @@ pub struct Retention {
     pub max_ttl_seconds: Option<u64>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Admission {
     pub value_kind: ValueKind,
@@ -97,7 +107,7 @@ pub struct Admission {
     pub max_value_bytes: u64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ValueKind {
     Bytes,
@@ -105,7 +115,7 @@ pub enum ValueKind {
     Json,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Capacity {
     pub max_entries: u64,
@@ -113,7 +123,7 @@ pub struct Capacity {
     pub on_full: OnFull,
 }
 
-#[derive(Debug, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum OnFull {
     Reject,
@@ -228,6 +238,14 @@ impl Config {
 
 impl Namespace {
     fn validate(&self, max_body: u64) -> Result<(), String> {
+        if self.purpose == Purpose::Checkpoints
+            && (self.mode != StorageMode::Durable
+                || self.retention.require_ttl
+                || self.retention.default_ttl_seconds.is_some()
+                || self.retention.max_ttl_seconds.is_some())
+        {
+            return Err("checkpoint namespaces must be durable without TTL".into());
+        }
         let prefix = format!("namespace '{}'", self.name);
         for (name, value) in [
             ("max_key_bytes", u64::from(self.admission.max_key_bytes)),

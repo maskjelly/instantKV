@@ -1,3 +1,10 @@
-//! Deployment configuration. Storage and request processing are not implemented yet.
+//! Policy-controlled agent memory with transactional durable checkpoints.
 
+pub mod clock;
 pub mod config;
+pub mod error;
+pub mod model;
+pub mod store;
+
+pub use error::{Error, Result};
+pub use store::Engine;

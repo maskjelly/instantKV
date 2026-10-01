@@ -46,6 +46,7 @@ on_full = "reject"
 
 [[namespaces]]
 name = "checkpoints"
+purpose = "checkpoints"
 mode = "durable"
 
 [namespaces.retention]
