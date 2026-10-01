@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Monolith identity: an original split chrome K, graphite/silver palette and minimal typography.
+- Redesigned logo, wordmark and all four architecture diagrams with editable source pairs.
+- Documented the theme and updated README visuals to the latest design brief.
+
 ## 0.1.1 — 2026-10-01
 
 - Shared read-only mother knowledge and private cloud-agent namespaces via per-namespace grants.

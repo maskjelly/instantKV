@@ -128,3 +128,16 @@ three-run benchmark reports retain their own measured commit and conditions.
 
 [The request audit](request-audit.md) checks every prompt and distinguishes
 implemented sharing from future replication/consolidation/quality metrics.
+
+## 11 — Monolith visual identity
+
+The latest minimal metallic brief supersedes the classic desktop theme. Monolith
+uses an original split chrome K, graphite/silver palette, Space Grotesk, square
+surfaces and fine connectors. The wordmark, icon and four diagrams were rendered
+and visually inspected; matching Tesseract sources retain editable text/shapes
+and licensed fonts. The transparent SVG shares the mark's geometry and reflections.
+
+The README, asset index, theme rules, changelog and request audit follow this
+direction. Implemented and future behavior remain explicitly labeled. This
+checkpoint changes artwork/documentation and leaves the published 0.1.1 runtime
+verification target intact.

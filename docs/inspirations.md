@@ -20,9 +20,9 @@ fault-injection and actual runtime integration still needed.
 
 ## Visual direction
 
-The identity uses an original memory-disk icon: three parked knowledge slots and
-a stepped pixel K. Square beveled windows, navy title bars, teal desktop and
-VT323 lettering follow the early Windows/Linux desktop brief. The architecture,
-swarm topology, compaction handoff and future consolidation proposal use the same
-visual language and explicitly label what is implemented.
+Monolith is the original identity: three chrome planes form a split K, paired
+with graphite surfaces, silver text, fine borders and Space Grotesk typography.
+The latest minimal metallic brief supersedes the earlier desktop theme. The
+architecture, swarm topology, compaction handoff and future consolidation proposal
+share this visual language and explicitly label what is implemented.
 Editable shapes/text and licensed embedded type live in [assets](assets/README.md).

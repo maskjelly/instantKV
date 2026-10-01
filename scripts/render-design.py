@@ -1,175 +1,231 @@
 #!/usr/bin/env python3
-"""Author editable classic-desktop artwork with native Tesseract text and shapes."""
+"""Author Monolith: editable metal identity and minimal memory diagrams."""
 import argparse
 import json
 from pathlib import Path
 import subprocess
+
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / 'docs/assets'
 WORK = ROOT / '.tesseract-work'
 parser = argparse.ArgumentParser()
 parser.add_argument('--tsrct', required=True, help='Pinned Tesseract 0.3.0 executable')
-CLI = str(Path(parser.parse_args().tsrct).resolve())
-def run(*args):
-    subprocess.run([CLI, *map(str, args)], check=True, cwd=ROOT)
+parser.add_argument('--only', nargs='+', help='Optional asset names to render')
+args = parser.parse_args()
+NAMES = ['brand','logo','swarm','architecture','lifecycle','distributed']
+if args.only and any(name not in NAMES for name in args.only):
+    parser.error('--only accepts: '+', '.join(NAMES))
+CLI = str(Path(args.tsrct).resolve())
+BG, PANEL, LINE = '#0B0D10', '#12161B', '#303640'
+TEXT, MUTED, SILVER = '#EDF0F5', '#9EA7B5', '#C6CEDB'
+PLANES = [
+    [(0,8),(28,8),(28,120),(0,120)],
+    [(38,56),(83,8),(116,8),(64,66)],
+    [(38,76),(64,68),(116,120),(83,120)],
+]
+STOPS = [(0,'#778292'),(.15,'#E0E5EF'),(.38,'#A3AEBC'),(.49,'#F6F7FD'),
+         (.54,'#808B9D'),(.78,'#D3DCE9'),(1,'#8A94A6')]
+
+def run(*parts):
+    subprocess.run([CLI,*map(str,parts)],check=True,cwd=ROOT)
 def color(value):
-    return [int(value[i:i+2], 16)/255 for i in (1, 3, 5)] + [1]
-NAVY, DESKTOP, GRAY = '#000080', '#008080', '#C0C0C0'
-INK, WHITE, DARK, YELLOW = '#101010', '#FFFFFF', '#808080', '#FFFF80'
-PIXELS = [(8,6),(8,7),(8,8),(8,9),(8,10),(8,11),(8,12),(8,13),
-          (9,9),(10,8),(11,7),(12,6),(10,10),(11,11),(12,12),(13,13)]
+    return [int(value[i:i+2],16)/255 for i in (1,3,5)]+[1]
+def metal(t):
+    for (a,ca),(b,cb) in zip(STOPS,STOPS[1:]):
+        if a <= t <= b:
+            mix=(t-a)/(b-a)
+            return '#'+''.join(f'{round(int(ca[i:i+2],16)*(1-mix)+int(cb[i:i+2],16)*mix):02x}' for i in (1,3,5))
+    return STOPS[-1][1]
+def clip(points, boundary, above):
+    result=[]
+    previous=points[-1]
+    for current in points:
+        inside=lambda p: p[1]>=boundary if above else p[1]<=boundary
+        if inside(previous)!=inside(current):
+            t=(boundary-previous[1])/(current[1]-previous[1])
+            result.append((previous[0]+t*(current[0]-previous[0]),boundary))
+        if inside(current): result.append(current)
+        previous=current
+    return result
+
 class Board:
-    def __init__(self, name, width, height):
-        self.path = ASSETS / f'{name}.tsrct'
-        if not self.path.exists(): run('project','create','--project',self.path)
-        run('project','import-font','--project',self.path,'--file',ASSETS/'fonts/VT323-Regular.ttf')
-        self.layout = WORK/f'{name}.json'
-        run('project','checkout','--project',self.path,'--output',self.layout)
-        self.doc = json.loads(self.layout.read_text())
-        self.doc['dimensions'] = {'width':width,'height':height}
-        self.doc['composition']['layers'] = []
-        self.id = 0
-    def layer(self, kind, name, x, y, payload):
-        self.id += 1
-        self.doc['composition']['layers'].insert(0, {
+    def __init__(self,name,width,height):
+        self.name,self.width,self.height=name,width,height
+        self.path=ASSETS/f'{name}.tsrct'
+        self.layout=WORK/f'{name}.json'
+        if args.only and name not in args.only:
+            self.doc={'composition':{'layers':[]}}
+        else:
+            if not self.path.exists(): run('project','create','--project',self.path)
+            run('project','import-font','--project',self.path,'--file',ASSETS/'fonts/SpaceGrotesk.ttf')
+            run('project','checkout','--project',self.path,'--output',self.layout)
+            self.doc=json.loads(self.layout.read_text())
+        self.doc['dimensions']={'width':width,'height':height}
+        self.doc['composition']['layers']=[]
+        self.id=0
+        self.rect('Graphite background',0,0,width,height,BG)
+    def layer(self,kind,name,x,y,payload):
+        self.id+=1
+        self.doc['composition']['layers'].insert(0,{
             'type':kind,'id':self.id,'name':name,'blendMode':'normal',
             'activeRange':{'start':0,'duration':3000},
-            'transform':{'anchorPoint':[0,0],'position':[x,y],'scale':[100,100],'rotation':0,'opacity':100}, **payload})
-    def rect(self, name, x, y, w, h, fill):
+            'transform':{'anchorPoint':[0,0],'position':[x,y],'scale':[100,100],'rotation':0,'opacity':100},**payload})
+    def rect(self,name,x,y,w,h,fill):
         self.layer('Rect',name,x,y,{'rect':{'size':[w,h],'fillColor':color(fill),'roundness':0}})
-    def text(self, name, text, x, y, size=30, fill=INK):
-        self.layer('Text',name,x,y,{'sourceText':{'text':text,'fontFamily':'VT323','fontStyle':'Regular',
-            'fontSize':size,'fillColor':color(fill),'strokeWidth':0,'justification':'left','leading':size*1.18}})
-    def bevel(self, name, x, y, w, h, fill=GRAY, inset=False):
-        top,bottom = (DARK,WHITE) if inset else (WHITE,INK)
-        self.rect(name,x,y,w,h,fill)
-        self.rect(name+' top',x,y,w,3,top); self.rect(name+' left',x,y,3,h,top)
-        self.rect(name+' bottom',x,y+h-3,w,3,bottom); self.rect(name+' right',x+w-3,y,3,h,bottom)
-    def window(self, title, x, y, w, h, bar=NAVY):
-        self.rect(title+' shadow',x+7,y+7,w,h,'#004C4C')
-        self.bevel(title+' frame',x,y,w,h)
-        self.rect(title+' title bar',x+7,y+7,w-14,38,bar)
-        self.text(title+' title',title,x+18,y+36,30,WHITE)
-        self.bevel(title+' close',x+w-40,y+13,27,25)
-        self.text(title+' close glyph','x',x+w-33,y+33,25)
-    def arrow(self, name, x1, y1, x2, y2, fill=NAVY):
-        if y1 == y2:
-            sign = 1 if x2 > x1 else -1
-            self.rect(name,min(x1,x2),y1-2,abs(x2-x1),4,fill)
-            for step in range(5): self.rect(name+str(step),x2-sign*(step+1)*3,y2-2-step*2,3,4+step*4,fill)
+    def text(self,name,text,x,y,size=28,fill=TEXT,weight=400):
+        self.layer('Text',name,x,y,{'sourceText':{
+            'text':text,'fontFamily':'Space Grotesk Light','fontStyle':'Regular',
+            'fontSize':size,'fontVariations':{'id':self.id+1,'axes':{'wght':weight}},
+            'fillColor':color(fill),'strokeWidth':0,'justification':'left','leading':size*1.3}})
+    def polygon(self,name,points,fill):
+        commands=[{'type':'moveTo' if i==0 else 'lineTo','x':x,'y':y} for i,(x,y) in enumerate(points)]+[{'type':'close'}]
+        self.layer('Shape',name,0,0,{'shape':{'path':{'commands':commands},'fills':[
+            {'paint':{'type':'solid','color':color(fill)},'fillRule':'nonZeroWinding','blendMode':'normal','opacity':100}]}})
+    def panel(self,title,x,y,w,h,details=(),size=28):
+        self.rect(title+' boundary',x,y,w,h,LINE)
+        self.rect(title+' surface',x+1,y+1,w-2,h-2,PANEL)
+        self.text(title+' heading',title,x+26,y+48,30,weight=500)
+        for i,line in enumerate(details): self.text(title+f' detail {i}',line,x+26,y+100+i*39,size,MUTED)
+    def arrow(self,name,x1,y1,x2,y2):
+        if y1==y2:
+            sign=1 if x2>x1 else -1
+            self.rect(name,min(x1,x2),y1-1,abs(x2-x1),2,SILVER)
+            self.polygon(name+' head',[(x2,y2),(x2-sign*10,y2-5),(x2-sign*10,y2+5)],SILVER)
         else:
-            sign = 1 if y2 > y1 else -1
-            self.rect(name,x1-2,min(y1,y2),4,abs(y2-y1),fill)
-            for step in range(5): self.rect(name+str(step),x2-2-step*2,y2-sign*(step+1)*3,4+step*4,3,fill)
-    def mark(self, x, y, scale=1):
-        u = 8*scale
-        self.bevel('Memory disk',x,y,16*u,16*u,NAVY)
-        self.rect('Disk top label',x+2*u,y+u,12*u,3*u,'#4080C0')
-        for i in range(3): self.bevel(f'Knowledge slot {i}',x+2*u,y+(6+3*i)*u,4*u,2*u,YELLOW)
-        for px,py in PIXELS: self.rect(f'K pixel {px}:{py}',x+px*u,y+py*u,u,u,WHITE)
+            sign=1 if y2>y1 else -1
+            self.rect(name,x1-1,min(y1,y2),2,abs(y2-y1),SILVER)
+            self.polygon(name+' head',[(x2,y2),(x2-5,y2-sign*10),(x2+5,y2-sign*10)],SILVER)
+    def mark(self,x,y,scale):
+        # Chrome is restricted to the logo. Clipped native planes remain editable.
+        for plane,points in enumerate(PLANES):
+            for strip in range(64):
+                part=clip(points,strip*2,True)
+                if part: part=clip(part,(strip+1)*2,False)
+                if len(part)>=3:
+                    self.polygon(f'Chrome plane {plane} / reflection {strip}',
+                                 [(x+px*scale,y+py*scale) for px,py in part],metal((strip+.5)/64))
+    def header(self,title,status,subtitle):
+        self.text('Diagram status',status,72,65,18,MUTED,500)
+        self.text('Diagram title',title,72,147,58,weight=500)
+        self.text('Diagram subtitle',subtitle,72,197,26,MUTED)
+    def footer(self,text):
+        self.rect('Footer rule',72,self.height-75,self.width-144,1,LINE)
+        self.text('Footer',text,72,self.height-34,22,MUTED)
     def save(self):
+        if args.only and self.name not in args.only: return
         self.layout.write_text(json.dumps(self.doc,indent=2)+'\n')
         run('project','commit','--project',self.path,'--file',self.layout)
         run('preview','--project',self.path,'--time','1','--output',self.path.with_suffix('.png'))
-def desktop(name, width, height, title, status):
-    b = Board(name,width,height)
-    b.rect('Desktop',0,0,width,height,DESKTOP)
-    b.text('Heading',title,42,66,52,WHITE)
-    b.text('Status',status,44,107,28,YELLOW)
-    b.bevel('Status bar',28,height-54,width-56,32,GRAY,True)
-    return b
+
 WORK.mkdir(exist_ok=True)
-b = desktop('brand',1200,400,'instantKV / Memory Manager','KNOWLEDGE FOR REMOTE CLOUD AGENTS')
-b.window('Memory Manager',32,128,1136,206)
-b.mark(59,184,.95)
-b.text('Wordmark','instantKV',217,265,102,NAVY)
-b.text('Tagline','A mother base.\nA private memory for every agent.',627,219,30)
-b.text('Lifecycle','PARK > COMPACT > RESTORE > CONTINUE',627,308,26,NAVY)
-b.text('Status label','Rust / self-hosted / HTTP + CLI + MCP / single node',45,369,24)
+b=Board('brand',1200,400)
+b.mark(64,102,1.28)
+b.text('Wordmark','instantKV',274,223,108,weight=500)
+b.text('Tagline','Memory for cloud agents.',280,280,30,MUTED)
+b.rect('Brand rule',64,336,1072,1,LINE)
+b.text('Brand descriptor','SHARED KNOWLEDGE  /  PRIVATE AGENTS  /  DURABLE CONTEXT',64,371,18,MUTED,500)
 b.save()
-b = Board('logo',512,512)
-b.rect('Icon canvas',0,0,512,512,GRAY); b.mark(64,64,3); b.save()
-b = desktop('swarm',1600,1040,'One mother base. Independent cloud agents.',
-            'WORKING TODAY: SHARED READS + PRIVATE WRITES / ONE SERVER')
-b.window('Mother knowledge / namespace: mother',350,152,900,195)
-b.text('Mother copy','Project facts / verified decisions / source references',383,234,34)
-b.text('Mother policy','Operator writes. Every scoped agent reads the same live base.',383,286,29)
-for label,x,ns in [('Agent Alpha',50,'alpha'),('Agent Beta',840,'beta')]:
-    b.arrow(label+' read',x+350,470,x+350,364,YELLOW)
-    b.text(label+' shared label','READ mother',x+391,417,30,WHITE)
-    b.window(label+' / remote worker',x,478,710,167)
-    b.text(label+' workflow','Recall shared facts. Work independently.',x+25,563,31)
-    b.text(label+' credential',f'One scoped token: mother read + {ns} write',x+25,607,29,NAVY)
-    b.arrow(label+' private write',x+355,654,x+355,709,YELLOW)
-    b.window('Private '+ns+' knowledge + checkpoints',x,720,710,184)
-    b.text(label+' private data','Own findings / capsule / next action',x+25,807,32)
-    b.text(label+' boundaries','Sibling access: DENIED / mother write: DENIED',x+25,858,28,NAVY)
-b.text('Repeat pattern','Add namespaces + grants per agent. No physical fork or replica is created yet.',52,958,31,WHITE)
-b.text('Status label','Mother = shared knowledge namespace / private scope = enforced by token grants',44,1011,26)
+b=Board('logo',512,512)
+b.mark(70,51,3.2)
 b.save()
-b = desktop('architecture',1600,1110,'How instantKV stores agent memory',
-            'IMPLEMENTED / SINGLE NODE / ACKNOWLEDGE DURABLE WRITES AFTER COMMIT')
-for title,x,w in [('Remote agents',44,340),('HTTP / CLI / MCP',453,330),('Policy + engine',852,704)]: b.window(title,x,155,w,200)
-b.text('Agent detail','Mother + own scope\nSave before compact\nRestore before work',67,240,30)
-b.text('Transport detail','Typed tools\nExact key recall\nScoped bearer token',476,240,30)
-b.text('Policy detail','Per-namespace grants / size limits / revisions\nQuotas / TTL policy / bounded blocking work\nRust + Tokio + Axum',877,240,30)
-b.arrow('Clients',391,260,443,260,YELLOW); b.arrow('Engine',791,260,842,260,YELLOW)
-b.arrow('Durable path',1160,364,1160,429,YELLOW)
-b.window('Durable / redb',852,440,704,190)
-b.text('Durable detail','Mother + private knowledge + checkpoints\nOne database file / survives process restart\nImmediate transaction durability',877,520,30)
-b.window('Disposable scratch / RAM',44,440,704,190)
-b.text('Scratch detail','Optional per-namespace cache / TTL + FIFO\nIndexed, bounded expiry cleanup\nEmpty after process restart',69,520,30)
-b.rect('RAM branch',396,392,765,4,YELLOW); b.arrow('RAM down',396,392,396,429,YELLOW)
-b.window('Storage schema / format v1',44,695,1512,290)
-b.text('Record label','records_v1',70,788,36,NAVY)
-b.text('Record fields','(namespace, key) -> header + bytes\nrevision / written_at / expires_at / order\nusage_v1: entries + bytes + high-water\nexpiry_v1: ordered deadlines',70,832,27)
-b.rect('Schema divider',647,762,3,195,DARK)
-b.text('Capsule label','Checkpoint: one transaction',675,788,36,NAVY)
-b.text('Capsule fields','__checkpoint/id: immutable capsule + references\n__latest/agent/session: checkpoint ID\n+ namespace usage counters\nAll commit together. Retry with identical ID + payload.',675,832,27)
-b.text('Status label','Namespaces isolate agents. agent_id and session_id are labels, not permission boundaries.',44,1081,26)
+
+b=Board('swarm',1600,1090)
+b.header('One base. Independent agents.','SWARM MEMORY / IMPLEMENTED / SINGLE NODE',
+         'Shared project knowledge. A private workspace for every worker.')
+b.panel('Mother knowledge',350,255,900,175,
+        ['Shared facts, decisions and source references.','Operator writes. Scoped agents read.'])
+for name,x,namespace in [('Alpha',72,'alpha'),('Beta',878,'beta')]:
+    middle=x+325
+    b.arrow(name+' mother read',middle,497,middle,441)
+    b.text(name+' read label','READ MOTHER',middle+30,482,21,MUTED,500)
+    b.panel('Agent '+name,x,508,650,160,
+            ['Remote worker / scoped credential','Recall shared facts. Work independently.'])
+    b.arrow(name+' private write',middle,677,middle,741)
+    b.text(name+' write label','WRITE OWN SCOPE',middle+30,715,21,MUTED,500)
+    b.panel('Private knowledge + checkpoints',x,754,650,165,
+            [namespace+' + '+namespace+'_checkpoints','Sibling access denied. Mother writes denied.'],26)
+b.text('Repeatable scopes','Repeat the namespace-and-grant pattern for each new agent.',72,969,28)
+b.footer('One server, no physical replicas. Namespace grants isolate access; agent/session labels do not.')
 b.save()
-b = desktop('lifecycle',1600,730,'Compaction handoff: save once, resume with context',
-            'WORKING TODAY / YOUR AGENT RUNTIME CHOOSES WHEN TO SAVE AND RESTORE')
-for i,(title,lines) in enumerate([
-    ('1. PARK','Reusable facts\nMother references\nPrivate findings'),
-    ('2. CHECKPOINT','Goal + constraints\nDecisions + tasks\nNext action + refs'),
-    ('3. COMPACT','Wait for save ACK\nKeep locator outside\nthe prompt context'),
-    ('4. RESTORE','Recover small capsule\nFetch details by key\nContinue the task')]):
-    x = 42+i*395
-    b.window(title,x,177,331,240); b.text(title+' detail',lines,x+22,277,30)
-    if i<3: b.arrow(title+' next',x+342,302,x+382,302,YELLOW)
-b.window('Locator / durable runtime session metadata',42,477,1516,145)
-b.text('Locator copy','server URL + checkpoint namespace + checkpoint ID  (or agent / session for latest)',66,560,32)
-b.text('Locator secret note','Credential comes from the agent secret store. Keep tokens out of knowledge and capsules.',66,600,27,NAVY)
-b.text('Status label','Restore budget limits the complete response. Missing, stale and forbidden references stay visible.',44,701,25)
+
+b=Board('architecture',1600,1200)
+b.header('How memory is stored.','STORAGE ENGINE / IMPLEMENTED / SINGLE NODE',
+         'Rust + Tokio + Axum. Durable writes are acknowledged after commit.')
+b.panel('Agents',72,256,350,180,['Shared + private memory','Save / restore'],24)
+b.panel('HTTP / CLI / MCP',474,256,350,180,['Typed tools. Exact keys.','Scoped bearer token'],24)
+b.panel('Policy + engine',876,256,652,180,
+        ['Grants / revisions / quotas','Size limits / bounded blocking work'],28)
+b.arrow('Client transport',432,344,464,344)
+b.arrow('Shared policy',834,344,866,344)
+b.arrow('Durable branch',1202,446,1202,536)
+b.rect('Scratch branch',402,482,800,2,SILVER)
+b.arrow('Scratch down',402,482,402,536)
+b.panel('Scratch / RAM',72,548,660,202,
+        ['Optional working cache / TTL + FIFO','Bounded, indexed expiry cleanup','Empty after process restart.'],27)
+b.panel('Knowledge + checkpoints / redb',868,548,660,202,
+        ['Mother + private namespaces','One database file. Immediate durability.','Retained across process restart.'],27)
+b.rect('Schema boundary',72,815,1456,271,LINE)
+b.rect('Schema surface',73,816,1454,269,PANEL)
+b.text('Records heading','records_v1',99,865,30,weight=500)
+for i,line in enumerate(['(namespace, key) -> header + bytes','revision / time / expiry / insertion order',
+                          'usage_v1: entries, bytes, revision','expiry_v1: ordered deadlines','metadata_v1: format, mode, purpose']):
+    b.text('Record schema '+str(i),line,99,912+i*32,25,MUTED)
+b.rect('Schema divider',762,842,1,215,LINE)
+b.text('Checkpoint heading','Checkpoint / one transaction',788,865,30,weight=500)
+for i,line in enumerate(['__checkpoint/id -> capsule + references','__latest/agent/session -> checkpoint ID',
+                          '+ namespace usage counters','Immutable bundle. Conditional latest pointer.','All commit together, or none do.']):
+    b.text('Checkpoint schema '+str(i),line,788,912+i*32,25,MUTED)
+b.footer('Exact recall. Bounded restores. One database writer. No unbounded request queue.')
 b.save()
-b = desktop('distributed',1600,1140,'The mothership grows after every completed run',
-            'FUTURE PROPOSAL / REPLICATION + AUTOMATIC CONSOLIDATION ARE NOT IMPLEMENTED')
-b.window('Mothership / canonical knowledge',350,153,900,165,'#805000')
-b.text('Canonical copy','Versioned facts + provenance + conflict history',383,239,34)
-b.text('Canonical detail','Publish a baseline manifest for the next swarm run.',383,285,29)
-for x,label in [(50,'Worker A'),(855,'Worker B')]:
-    b.arrow(label+' baseline',x+350,326,x+350,412,YELLOW)
-    b.text(label+' fork label','VERSIONED BASELINE',x+385,382,26,WHITE)
-    b.window(label+' / independent node',x,425,695,173,'#805000')
-    b.text(label+' copy','Local KV: baseline + private overlay',x+25,513,32)
-    b.text(label+' copy2','Work / checkpoint / reconnect / continue',x+25,563,29)
-    b.arrow(label+' delta',x+350,607,x+350,713,YELLOW)
-    b.text(label+' completion','RUN COMPLETE: DELTA + SOURCES',x+383,670,25,WHITE)
-b.window('Consolidation / durable run-completion jobs',50,725,1500,198,'#805000')
-b.text('Consolidation steps','1. Import idempotently   2. Deduplicate   3. Validate source + permissions',78,812,32)
-b.text('Consolidation steps2','4. Surface conflicts    5. Review / approve    6. Publish with revision checks',78,861,32)
-b.text('Consolidation loop','Published baseline returns to the mothership; the next swarm starts from that version.',78,899,26,NAVY)
-b.rect('Publication route out',1558,880,22,4,YELLOW)
-b.arrow('Publication route up',1580,880,1580,237,YELLOW)
-b.arrow('Publication to mothership',1580,237,1260,237,YELLOW)
-b.text('Publication label','PUBLISH vNext',1280,202,28,WHITE)
-b.window('Knowledge meter / proposed quality metrics',50,974,1500,83,'#805000')
-b.text('Meter text','Validated facts / source coverage / freshness / unresolved conflicts / recall success',78,1041,28)
-b.text('Status label','No silent last-writer-wins merge. Summaries retain provenance. Rejected candidates stay outside canon.',44,1111,25)
+
+b=Board('lifecycle',1600,730)
+b.header('Save. Compact. Resume.','COMPACTION HANDOFF / IMPLEMENTED',
+         'The runtime chooses when to save and restore. The server keeps the memory.')
+for i,(title,details) in enumerate([
+    ('01 / Park',['Facts + sources','Exact key recall']),
+    ('02 / Checkpoint',['Goal + constraints','Decisions + tasks','Next action + refs']),
+    ('03 / Compact',['Wait for durable ACK','Keep locator outside','compacted context']),
+    ('04 / Restore',['Small capsule first','Fetch facts by key','Continue the task'])]):
+    x=72+i*380
+    b.panel(title,x,262,315,250,details,25)
+    if i<3: b.arrow(title+' next',x+328,387,x+366,387)
+b.rect('Locator boundary',72,559,1456,82,LINE)
+b.rect('Locator surface',73,560,1454,80,PANEL)
+b.text('Locator label','RUNTIME SESSION LOCATOR',98,607,16,MUTED,500)
+b.text('Locator value','server / namespace / checkpoint ID',440,610,28)
+b.footer('Persist the locator outside prompt text. Restore the capsule, then fetch references on demand.')
 b.save()
-svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" role="img" aria-labelledby="title"><title id="title">instantKV memory disk</title><path fill="#000080" d="M0 0h128v128H0z"/><path fill="#4080c0" d="M16 8h96v24H16z"/>'
-svg += ''.join(f'<rect x="16" y="{48+i*24}" width="32" height="16" fill="#ffff80"/>' for i in range(3))
-svg += ''.join(f'<rect x="{x*8}" y="{y*8}" width="8" height="8" fill="#fff"/>' for x,y in PIXELS)
-(ASSETS/'logo.svg').write_text(svg+'</svg>\n')
-print('Rendered brand, logo, swarm, architecture, lifecycle and distributed proposal.')
+
+b=Board('distributed',1600,1200)
+b.header('A distributed mothership.','DISTRIBUTED MEMORY / FUTURE PROPOSAL',
+         'Replication and automatic run-completion consolidation are not implemented.')
+b.panel('Canonical mother knowledge',350,242,900,160,
+        ['Versioned facts, sources and conflict history.','Baseline manifests seed the next swarm.'],27)
+for name,x in [('Worker A',72),('Worker B',878)]:
+    middle=x+325
+    b.arrow(name+' baseline',middle,413,middle,514)
+    b.text(name+' seed label','VERSIONED BASELINE',middle+30,471,21,MUTED,500)
+    b.panel(name+' / independent node',x,527,650,171,
+            ['Local baseline + private overlay','Work independently. Checkpoint locally.'],27)
+    b.arrow(name+' completion',middle,709,middle,775)
+    b.text(name+' completion label','SHAREABLE RUN DELTA',middle+30,752,21,MUTED,500)
+b.panel('Consolidation / durable completion jobs',72,786,1456,168,
+        ['Import -> deduplicate -> validate provenance',
+         'Review conflicts -> publish with revision checks'],28)
+b.rect('Publication out',1538,912,22,2,SILVER)
+b.arrow('Publication up',1560,912,1560,321)
+b.arrow('Publication to canon',1560,321,1267,321)
+b.text('Publication label','PUBLISH NEXT',1290,281,21,MUTED,500)
+b.rect('Meter boundary',72,998,1456,95,LINE)
+b.rect('Meter surface',73,999,1454,93,PANEL)
+b.text('Meter heading','KNOWLEDGE METER / PROPOSED',98,1051,20,MUTED,500)
+b.text('Meter metrics','Facts / sources / freshness / conflicts / recall',605,1052,26)
+b.footer('No silent last-writer-wins merge. Accepted facts retain sources; rejected candidates stay outside canon.')
+b.save()
+
+svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title"><title id="title">instantKV Monolith: split chrome K</title><defs><linearGradient id="chrome" x1="0" y1="0" x2="0" y2="128" gradientUnits="userSpaceOnUse">'
+svg+=''.join(f'<stop offset="{position}" stop-color="{value}"/>' for position,value in STOPS)
+svg+='</linearGradient></defs><g fill="url(#chrome)">'
+svg+=''.join('<path d="'+' '.join(('M' if i==0 else 'L')+f'{x} {y}' for i,(x,y) in enumerate(plane))+'Z"/>' for plane in PLANES)
+(ASSETS/'logo.svg').write_text(svg+'</g></svg>\n')
+print('Rendered Monolith: '+', '.join(args.only or NAMES)+'.')

@@ -1,9 +1,9 @@
-<p align="center"><img src="docs/assets/brand.png" width="900" alt="instantKV pixel memory-disk logo in a classic desktop window: knowledge for remote cloud agents"></p>
+<p align="center"><img src="docs/assets/brand.png" width="900" alt="instantKV Monolith identity: a split chrome K on graphite, memory for cloud agents"></p>
 
 <p align="center">
 <a href="https://github.com/maskjelly/instantKV/actions/workflows/ci.yml"><img src="https://github.com/maskjelly/instantKV/actions/workflows/ci.yml/badge.svg" alt="Rust checks"></a>
-<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-000080?style=flat-square" alt="MIT license"></a>
-<img src="https://img.shields.io/badge/Rust-1.98%2B-000080?style=flat-square" alt="Rust 1.98 or later">
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-606873?style=flat-square" alt="MIT license"></a>
+<img src="https://img.shields.io/badge/Rust-1.98%2B-606873?style=flat-square" alt="Rust 1.98 or later">
 </p>
 
 # instantKV
@@ -164,5 +164,5 @@ remain with the inference runtime.
 · [Changelog](CHANGELOG.md) · [Verified checkpoints](docs/checkpoints.md)
 · [Session request audit](docs/request-audit.md)
 
-MIT licensed. Original pixel logo, four diagrams and matching editable sources:
+MIT licensed. Original Monolith identity, four diagrams and matching editable sources:
 [docs/assets](docs/assets/README.md).
