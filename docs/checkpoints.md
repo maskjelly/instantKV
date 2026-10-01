@@ -165,3 +165,28 @@ Chromium checks cover 1440px/390px layouts, chart controls, search/no-result sta
 verified clipboard contents, mobile docs navigation, announcement pause, reduced
 motion and custom 404. External script bundles resolve the CSP issue caught by
 browser QA. Publication and live HTTPS verification are recorded separately below.
+
+## 13 — Public domain and live site verification
+
+`https://instantkv.com` is published on Cloudflare Workers Static Assets. The
+deployment from `bbbd22b` is version `6b551971-aeba-44ce-9a3a-d29ac83b7c44`;
+[website CI passed](https://github.com/maskjelly/instantKV/actions/runs/36890922820).
+The apex Custom Domain is attached, authoritative/public DNS resolves to
+Cloudflare, and Rove fetched the homepage through normal DNS with valid HTTPS.
+The optional `www` hostname has an externally managed DNS conflict and was
+excluded. Publishing the apex succeeded without changing that record.
+
+Live Chromium checks passed at 1440px/390px: homepage, quick start, feature/HTTP
+and contributor docs, benchmarks, images and overflow checks. Throughput/p50/p99
+controls, search/no-result state, verified clipboard contents, mobile docs menu,
+announcement pause/play, reduced motion and custom 404 work. Live QA also caught
+Cloudflare's automatically injected analytics beacon; the CSP now permits its
+documented hosts. Final live checks report zero JavaScript/CSP errors and verify
+machine-readable docs, raw benchmark downloads and sitemap responses.
+
+GitHub's repository homepage points to the site. Documentation/benchmark pages
+require no account. The memory node remains self-hosted; managed hosting is
+explicitly in development, with no promised date or price. Deployment is manual
+through the checked-in command; automatic Workers Builds integration still needs
+the account's separate Builds permission/Git connection. No interactive OAuth
+credentials were copied into GitHub secrets.
