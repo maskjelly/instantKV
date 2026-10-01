@@ -1,0 +1,81 @@
+# Agent memory policy. The current CLI validates it; no server runs yet.
+version = 1
+
+[server]
+bind = "127.0.0.1:8080"
+max_request_body_bytes = 1048576 # 1 MiB; raw value body, no base64 envelope
+max_in_flight_requests = 256
+request_timeout_seconds = 10
+
+[storage]
+data_dir = "./data" # Relative to the process working directory
+cleanup_interval_seconds = 1
+cleanup_batch_entries = 1000
+
+[auth]
+mode = "api_key"
+
+[[auth.principals]]
+name = "app"
+token_env = "INSTANTKV_APP_TOKEN" # Secret value must not be stored in this file
+namespaces = ["knowledge", "checkpoints", "scratch"]
+operations = ["get", "put", "delete", "list", "stats"]
+
+[[auth.principals]]
+name = "reader"
+token_env = "INSTANTKV_READER_TOKEN"
+namespaces = ["knowledge"]
+operations = ["get", "list"]
+
+[[namespaces]]
+name = "knowledge"
+mode = "durable"
+
+[namespaces.retention]
+require_ttl = false # No default TTL: knowledge stays until explicitly deleted
+
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 1048576
+
+[namespaces.capacity]
+max_entries = 100000
+max_total_bytes = 1073741824 # 1 GiB of key + value bytes; not a disk/RSS limit
+on_full = "reject"
+
+[[namespaces]]
+name = "checkpoints"
+mode = "durable"
+
+[namespaces.retention]
+require_ttl = false # Restore state must survive compaction and restart
+
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 1048576
+
+[namespaces.capacity]
+max_entries = 10000
+max_total_bytes = 268435456 # 256 MiB; reject instead of silently losing a checkpoint
+on_full = "reject"
+
+[[namespaces]]
+name = "scratch"
+mode = "memory" # Disposable intermediate work
+
+[namespaces.retention]
+require_ttl = true
+default_ttl_seconds = 3600
+max_ttl_seconds = 86400
+
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 65536
+
+[namespaces.capacity]
+max_entries = 10000
+max_total_bytes = 67108864
+on_full = "evict_oldest"

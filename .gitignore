@@ -1,0 +1,8 @@
+/target/
+/data/
+.env
+.env.*
+!.env.example
+*.redb
+*.redb.*
+.DS_Store
