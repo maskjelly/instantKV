@@ -107,3 +107,24 @@ checkpoint `b8f768b`. The swarm has its own volume and loopback port 8096. A fre
 offline swarm backup restored `alpha-first-handoff` from `alpha_checkpoints` in an
 isolated volume. This exposed the restore helper's single-agent namespace default;
 it now accepts an optional namespace, and CI verifies both profiles' backup drills.
+
+## 10 — Verified 0.1.1 release and request audit
+
+Release target `ec29901` passed [all Linux, macOS and Docker CI jobs](https://github.com/maskjelly/instantKV/actions/runs/36878075700),
+including 28 tests, both demos, three config profiles, schema/script checks and
+both single-agent and private-agent backup drills. Checksummed Linux static-musl
+and Apple Silicon macOS archives record that exact commit in BUILD.txt.
+[0.1.1 is published as an early prerelease](https://github.com/maskjelly/instantKV/releases/tag/v0.1.1).
+The published installer downloaded and checksum-verified both platform packages;
+their installed binaries passed `demo --swarm` on macOS and Rove Linux.
+
+Both Rove instances now run the release binary: original profile on loopback
+8095 and mother/private swarm on 8096. The old `rove-first-checkpoint` and its
+knowledge reference survived upgrade; `alpha-first-handoff` remains restorable.
+Scoped Alpha MCP discovered seven tools, read mother, parked private knowledge,
+saved/restored its capsule, and received 403 for mother writes and sibling access.
+A 2,000-request Alpha GET smoke run completed with zero errors; the earlier
+three-run benchmark reports retain their own measured commit and conditions.
+
+[The request audit](request-audit.md) checks every prompt and distinguishes
+implemented sharing from future replication/consolidation/quality metrics.

@@ -162,6 +162,7 @@ remain with the inference runtime.
 
 [Development guide](CONTRIBUTING.md) · [Security reports](SECURITY.md)
 · [Changelog](CHANGELOG.md) · [Verified checkpoints](docs/checkpoints.md)
+· [Session request audit](docs/request-audit.md)
 
 MIT licensed. Original pixel logo, four diagrams and matching editable sources:
 [docs/assets](docs/assets/README.md).

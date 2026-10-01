@@ -9,8 +9,10 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo build --workspace --release --locked
 ./target/release/instantkv demo
+./target/release/instantkv demo --swarm
 ./target/release/instantkv check-config --config config/instantkv.example.toml
 ./target/release/instantkv check-config --config config/local-cache.toml
+./target/release/instantkv check-config --config config/swarm.toml
 ```
 
 ## Source map
