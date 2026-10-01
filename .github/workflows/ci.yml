@@ -63,7 +63,7 @@ jobs:
           tar -xzf dist/instantkv-linux-x86_64.tar.gz -C dist instantkv
           printf 'INSTANTKV_PORT=8095\n' > .env
           INSTANTKV_BUILD_SOURCE=prebuilt ./scripts/quickstart.sh | tee /tmp/instantkv-setup.log
-          rg -q 'Ready at http://127.0.0.1:8095' /tmp/instantkv-setup.log
+          grep -Fq 'Ready at http://127.0.0.1:8095' /tmp/instantkv-setup.log
           ./scripts/kv.sh demo
           ./scripts/kv.sh demo --swarm
           ./scripts/kv.sh put knowledge ci/probe --value '{"retained":true}'

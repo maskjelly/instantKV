@@ -78,3 +78,25 @@ Fixed the ready address when a custom host port is supplied through `.env`;
 CI now checks that case. Installer downloads show progress and have bounded
 timeouts. Added SSH MCP instructions; the usable VPS checkout is
 `/srv/instantkv/app`, separate from the retained benchmark state.
+# 0.1.1 cloud-agent and visual verification
+
+Runtime checkpoint `b8f768b`: 28 local tests, formatting, strict Clippy, both HTTP
+demos and all three configuration profiles pass. The new test proves shared
+mother reads, private writes, forbidden sibling/mother operations, rejected
+out-of-scope checkpoint references, and forbidden reference status during restore.
+Linux and macOS native CI checks also passed. Its container job stopped at the
+new port-output assertion because `rg` is absent from the runner; the assertion
+now uses portable `grep`. Full container validation is rerun after this fix.
+
+Visual checkpoint `b76bca4`: original square pixel memory-disk logo, classic
+desktop wordmark, four PNG diagrams and matching editable sources are published.
+The deployed GitHub README was inspected in a real Chromium browser: all eight
+images including badges loaded; a 390px mobile viewport had no horizontal
+overflow. All local document links and image paths resolve. Future distributed
+replication and consolidation are visibly marked as proposals.
+
+Rove's published 0.1.0 instance separately passed a real seven-tool MCP session
+over SSH: park, get, checkpoint and restore with an available knowledge reference.
+Its saved `rove-first-checkpoint` was then restored from a fresh offline backup
+into an isolated volume before upgrading. Server credentials and backup contents
+are private and are never committed.
