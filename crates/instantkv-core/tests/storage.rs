@@ -219,6 +219,73 @@ fn revisions_prevent_delete_recreate_aba() {
 }
 
 #[test]
+fn expired_reinsert_outside_cleanup_batch_is_a_new_fifo_entry() {
+    let (_dir, mut config, clock) = setup();
+    config.storage.cleanup_batch_entries = 1;
+    config.namespaces[2].capacity.max_entries = 3;
+    let engine = Engine::with_clock(config, clock.clone()).unwrap();
+    for key in ["a", "b"] {
+        engine
+            .put("scratch", key, b"1".to_vec(), Some(1), Condition::Any)
+            .unwrap();
+    }
+    engine
+        .put("scratch", "c", b"1".to_vec(), Some(20), Condition::Any)
+        .unwrap();
+    clock.advance(1000);
+    // The bounded sweep removes a, leaving the expired b for replacement.
+    engine
+        .put("scratch", "b", b"2".to_vec(), Some(20), Condition::Absent)
+        .unwrap();
+    for key in ["d", "e"] {
+        engine
+            .put("scratch", key, b"1".to_vec(), Some(20), Condition::Any)
+            .unwrap();
+    }
+    assert!(matches!(engine.get("scratch", "c"), Err(Error::NotFound)));
+    assert_eq!(engine.get("scratch", "b").unwrap().value, b"2");
+    assert_eq!(engine.usage("scratch").unwrap().entries, 3);
+}
+
+#[test]
+fn pruning_old_checkpoints_reclaims_quota_and_protects_latest() {
+    let (_dir, config, clock) = setup();
+    let engine = Engine::with_clock(config.clone(), clock.clone()).unwrap();
+    let first = engine
+        .checkpoint("checkpoints", &checkpoint("cp-1", None))
+        .unwrap();
+    assert!(matches!(
+        engine.delete_checkpoint("checkpoints", "cp-1"),
+        Err(Error::Conflict)
+    ));
+    let second = engine
+        .checkpoint(
+            "checkpoints",
+            &checkpoint("cp-2", Some(first.latest_revision)),
+        )
+        .unwrap();
+    let before = engine.usage("checkpoints").unwrap();
+    engine.delete_checkpoint("checkpoints", "cp-1").unwrap();
+    let after = engine.usage("checkpoints").unwrap();
+    assert_eq!(after.entries, before.entries - 1);
+    assert!(after.bytes < before.bytes);
+    assert_eq!(after.revision, before.revision);
+    assert!(matches!(
+        engine.restore("checkpoints", "cp-1", 32768, None),
+        Err(Error::NotFound)
+    ));
+    drop(engine);
+    let reopened = Engine::with_clock(config, clock).unwrap();
+    assert_eq!(
+        reopened
+            .restore_latest("checkpoints", "demo-agent", "task-1", 32768, None)
+            .unwrap()
+            .latest_revision,
+        second.latest_revision
+    );
+}
+
+#[test]
 fn checkpoint_is_atomic_when_pointer_would_exceed_quota() {
     let (_dir, mut config, clock) = setup();
     config.namespaces[1].capacity.max_entries = 1;

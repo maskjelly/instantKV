@@ -1,4 +1,4 @@
-# Agent memory policy. The current CLI validates it; no server runs yet.
+# Agent memory policy. Initialize credentials with `instantkv init`.
 version = 1
 
 [server]

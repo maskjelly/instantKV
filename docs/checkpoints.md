@@ -37,3 +37,10 @@ Six MCP stdio tools using the official Rust SDK, JSON/binary-safe recall, typed
 checkpoint schemas, and agent setup instructions. Twenty-three tests passed;
 the MCP integration test negotiates protocol, discovers tools, parks knowledge,
 saves/restores a checkpoint through authenticated HTTP, and verifies visible tool errors.
+
+## 5 — Checkpoint retention
+
+Added atomic deletion of old checkpoints through HTTP, CLI, and MCP. The current
+latest checkpoint is protected from deletion. Fixed FIFO order when an expired
+entry outside the cleanup batch is recreated. Twenty-five tests and strict Clippy
+passed; pruning also verifies quota reclamation and restore after reopening.

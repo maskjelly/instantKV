@@ -66,10 +66,19 @@ pub struct ListMemory {
 }
 
 #[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct SaveCheckpoint {
     #[serde(default = "checkpoints")]
     pub namespace: String,
     pub checkpoint: CheckpointRequest,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct DeleteCheckpoint {
+    #[serde(default = "checkpoints")]
+    pub namespace: String,
+    pub checkpoint_id: String,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -169,6 +178,21 @@ impl MemoryTools {
             self.client
                 .checkpoint(&input.namespace, &input.checkpoint)
                 .await,
+        )
+    }
+
+    #[tool(
+        description = "Reclaim an old checkpoint after a newer one is saved. The current latest checkpoint cannot be deleted. Deleted IDs lose their retry history; always generate new IDs."
+    )]
+    async fn memory_delete_checkpoint(
+        &self,
+        Parameters(input): Parameters<DeleteCheckpoint>,
+    ) -> CallToolResult {
+        result(
+            self.client
+                .delete_checkpoint(&input.namespace, &input.checkpoint_id)
+                .await
+                .map(|_| json!({"deleted":true})),
         )
     }
 

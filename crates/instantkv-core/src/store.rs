@@ -220,7 +220,7 @@ impl Engine {
                 revision: usage.revision,
                 written_at_ms: now,
                 expires_at_ms: expires,
-                inserted: old
+                inserted: live
                     .as_ref()
                     .map_or(usage.revision, |record| record.inserted),
             };
@@ -507,6 +507,39 @@ impl Engine {
         }
         txn.commit().map_err(storage)?;
         Ok(receipt)
+    }
+
+    /// Reclaim an old immutable bundle. The session's latest bundle is protected.
+    pub fn delete_checkpoint(&self, namespace: &str, id: &str) -> Result<()> {
+        self.checkpoint_namespace(namespace)?;
+        validate_id(id)?;
+        let key = format!("__checkpoint/{id}");
+        let encoded = composite(namespace, &key);
+        let txn = self.database()?.begin_write().map_err(storage)?;
+        {
+            let mut records = txn.open_table(RECORDS).map_err(storage)?;
+            let mut counters = txn.open_table(USAGE).map_err(storage)?;
+            let record = read_write(&records, &encoded)?.ok_or(Error::NotFound)?;
+            let request: CheckpointRequest =
+                serde_json::from_slice(&record.value).map_err(storage)?;
+            let latest = composite(
+                namespace,
+                &format!("__latest/{}/{}", request.agent_id, request.session_id),
+            );
+            let pointer =
+                read_write(&records, &latest)?.ok_or_else(|| storage("missing latest pointer"))?;
+            if pointer.value == id.as_bytes() {
+                return Err(Error::Conflict);
+            }
+            let mut usage = load_usage(&counters, namespace)?;
+            subtract(&mut usage, &key, &record)?;
+            records.remove(encoded.as_str()).map_err(storage)?;
+            counters
+                .insert(namespace, encode_usage(&usage).as_slice())
+                .map_err(storage)?;
+        }
+        txn.commit().map_err(storage)?;
+        Ok(())
     }
 
     fn checkpoint_namespace(&self, namespace: &str) -> Result<&Namespace> {

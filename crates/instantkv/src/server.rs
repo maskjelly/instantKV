@@ -117,7 +117,10 @@ pub fn router(app: App) -> Router {
         )
         .route("/v1/namespaces/{ns}/stats", get(stats))
         .route("/v1/namespaces/{ns}/checkpoints", post(checkpoint))
-        .route("/v1/namespaces/{ns}/checkpoints/{id}", get(restore))
+        .route(
+            "/v1/namespaces/{ns}/checkpoints/{id}",
+            get(restore).delete(delete_checkpoint),
+        )
         .route(
             "/v1/namespaces/{ns}/sessions/{agent}/{session}/latest",
             get(latest),
@@ -360,6 +363,20 @@ async fn checkpoint(
     Ok(Json(
         blocking(&app, permit, move |engine| engine.checkpoint(&ns, &request)).await?,
     ))
+}
+
+async fn delete_checkpoint(
+    State(app): State<App>,
+    Extension(permit): Extension<Permit>,
+    Path((ns, id)): Path<(String, String)>,
+    headers: HeaderMap,
+) -> Result<StatusCode, ApiError> {
+    app.authorize(&headers, Some(&ns), Operation::Delete)?;
+    blocking(&app, permit, move |engine| {
+        engine.delete_checkpoint(&ns, &id)
+    })
+    .await?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 #[derive(Deserialize)]

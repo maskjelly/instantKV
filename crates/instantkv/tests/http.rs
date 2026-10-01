@@ -233,6 +233,46 @@ async fn checkpoint_and_restore_preserve_required_context() {
     assert!(
         server
             .client
+            .delete_checkpoint("checkpoints", "cp-http")
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("409")
+    );
+    let mut next = request.clone();
+    next.id = "cp-http-next".into();
+    next.expected_latest_revision = Some(receipt.latest_revision);
+    server
+        .client
+        .checkpoint("checkpoints", &next)
+        .await
+        .unwrap();
+    let reader = Client::new(&server.base, Some(READER_TOKEN.into())).unwrap();
+    assert!(
+        reader
+            .delete_checkpoint("checkpoints", "cp-http")
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    server
+        .client
+        .delete_checkpoint("checkpoints", "cp-http")
+        .await
+        .unwrap();
+    assert!(
+        server
+            .client
+            .restore("checkpoints", "cp-http", 32768)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("404")
+    );
+    assert!(
+        server
+            .client
             .put(
                 "checkpoints",
                 "__latest/agent/session",
@@ -335,7 +375,7 @@ async fn mcp_stdio_tools_save_and_restore_through_authenticated_http() {
         json!({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}),
     )
     .await;
-    assert_eq!(tools["tools"].as_array().unwrap().len(), 6);
+    assert_eq!(tools["tools"].as_array().unwrap().len(), 7);
     let saved = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"memory_put","arguments":{"key":"mcp/decision","value":{"content":"Keep memory durable"}}}})).await;
     assert_eq!(saved["isError"], false);
     let got = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"memory_get","arguments":{"key":"mcp/decision"}}})).await;

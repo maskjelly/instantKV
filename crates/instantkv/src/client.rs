@@ -193,6 +193,18 @@ impl Client {
         .await
         .context("invalid checkpoint response")
     }
+    pub async fn delete_checkpoint(&self, namespace: &str, id: &str) -> Result<()> {
+        Self::checked(
+            self.request(
+                reqwest::Method::DELETE,
+                &["v1", "namespaces", namespace, "checkpoints", id],
+            )?
+            .send()
+            .await?,
+        )
+        .await?;
+        Ok(())
+    }
     pub async fn restore(&self, namespace: &str, id: &str, budget: usize) -> Result<Restore> {
         Self::checked(
             self.request(

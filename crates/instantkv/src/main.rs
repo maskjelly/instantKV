@@ -99,6 +99,12 @@ enum Command {
         #[arg(long)]
         file: PathBuf,
     },
+    /// Delete an old checkpoint; refuses to delete a session's latest checkpoint.
+    DeleteCheckpoint {
+        #[arg(long, default_value = "checkpoints")]
+        namespace: String,
+        id: String,
+    },
     /// Restore by stable checkpoint ID or by agent/session's latest checkpoint.
     Restore {
         #[arg(long, default_value = "checkpoints")]
@@ -256,6 +262,11 @@ async fn run(cli: Cli) -> Result<()> {
                     let request: CheckpointRequest = serde_json::from_slice(&fs::read(file)?)
                         .context("invalid checkpoint JSON")?;
                     print_json(&client.checkpoint(&namespace, &request).await?)
+                }
+                Command::DeleteCheckpoint { namespace, id } => {
+                    client.delete_checkpoint(&namespace, &id).await?;
+                    println!("Deleted checkpoint");
+                    Ok(())
                 }
                 Command::Restore {
                     namespace,

@@ -5,8 +5,10 @@ resolver = "3"
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.98"
 publish = false
 license = "MIT"
+repository = "https://github.com/maskjelly/instantKV"
 
 [workspace.dependencies]
 clap = { version = "4", features = ["derive"] }
@@ -29,7 +31,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 schemars = "1"
 rmcp = { version = "3", default-features = false, features = ["server", "macros", "transport-io"] }
 base64 = "0.22"
-
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
