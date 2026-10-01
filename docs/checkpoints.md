@@ -141,3 +141,9 @@ The README, asset index, theme rules, changelog and request audit follow this
 direction. Implemented and future behavior remain explicitly labeled. This
 checkpoint changes artwork/documentation and leaves the published 0.1.1 runtime
 verification target intact.
+
+Visual checkpoint `84310a6` is committed and pushed. The deployed GitHub README
+was inspected in Chromium at 1440px and 390px: all eight images loaded with the
+new asset dimensions; the mobile page width stayed at 390px. Local Markdown
+links, PNG/source archive dimensions, renderer syntax and `git diff --check`
+also passed.
