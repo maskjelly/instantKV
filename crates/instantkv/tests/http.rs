@@ -284,3 +284,75 @@ fn server_refuses_missing_short_and_duplicate_secrets() {
         .is_err()
     );
 }
+
+#[tokio::test]
+async fn mcp_stdio_tools_save_and_restore_through_authenticated_http() {
+    use serde_json::{Value, json};
+    use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+    let server = start(config()).await;
+    let mut child = tokio::process::Command::new(env!("CARGO_BIN_EXE_instantkv"))
+        .args(["--url", &server.base, "mcp"])
+        .env("INSTANTKV_TOKEN", APP_TOKEN)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .kill_on_drop(true)
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    let mut output = BufReader::new(child.stdout.take().unwrap()).lines();
+    async fn call(
+        input: &mut tokio::process::ChildStdin,
+        output: &mut tokio::io::Lines<BufReader<tokio::process::ChildStdout>>,
+        value: Value,
+    ) -> Value {
+        input
+            .write_all(format!("{value}\n").as_bytes())
+            .await
+            .unwrap();
+        loop {
+            let line = tokio::time::timeout(std::time::Duration::from_secs(10), output.next_line())
+                .await
+                .unwrap()
+                .unwrap()
+                .unwrap();
+            let response: Value = serde_json::from_str(&line).unwrap();
+            if response["id"] == value["id"] {
+                assert!(response.get("error").is_none(), "{response}");
+                return response["result"].clone();
+            }
+        }
+    }
+    let init = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"instantkv-test","version":"1"}}})).await;
+    assert_eq!(init["serverInfo"]["name"], "instantkv");
+    input
+        .write_all(b"{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}\n")
+        .await
+        .unwrap();
+    let tools = call(
+        &mut input,
+        &mut output,
+        json!({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}),
+    )
+    .await;
+    assert_eq!(tools["tools"].as_array().unwrap().len(), 6);
+    let saved = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"memory_put","arguments":{"key":"mcp/decision","value":{"content":"Keep memory durable"}}}})).await;
+    assert_eq!(saved["isError"], false);
+    let got = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"memory_get","arguments":{"key":"mcp/decision"}}})).await;
+    assert_eq!(
+        got["structuredContent"]["value"]["content"],
+        "Keep memory durable"
+    );
+    let checkpoint = json!({"id":"mcp-checkpoint","agent_id":"mcp-agent","session_id":"mcp-session","expected_latest_revision":null,"capsule":{"goal":"Ship","summary":"Decision saved","constraints":["No secrets"],"decisions":[],"open_tasks":[],"next_action":"Continue"},"references":[]});
+    let saved = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"memory_checkpoint","arguments":{"checkpoint":checkpoint}}})).await;
+    assert_eq!(saved["isError"], false);
+    let restored = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"memory_restore","arguments":{"agent_id":"mcp-agent","session_id":"mcp-session"}}})).await;
+    assert_eq!(
+        restored["structuredContent"]["capsule"]["constraints"][0],
+        "No secrets"
+    );
+    let missing = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"memory_get","arguments":{"key":"missing"}}})).await;
+    assert_eq!(missing["isError"], true);
+    child.kill().await.unwrap();
+    child.wait().await.unwrap();
+}

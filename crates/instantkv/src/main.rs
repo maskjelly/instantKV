@@ -114,6 +114,10 @@ enum Command {
     },
     /// Run a self-contained HTTP save/compaction/restart/restore demonstration.
     Demo,
+    /// Expose memory tools over MCP stdio; all operations use the authenticated HTTP API.
+    Mcp,
+    /// Print the checkpoint JSON Schema for editors and agent integrations.
+    Schema,
     /// Measure real HTTP latency and throughput, with durable writes kept durable.
     Bench {
         #[arg(long, default_value = "scratch")]
@@ -177,6 +181,7 @@ async fn run(cli: Cli) -> Result<()> {
             server::serve(parsed, &cli.secrets_file).await
         }
         Command::Demo => workflows::demo().await,
+        Command::Schema => print_json(&schemars::schema_for!(CheckpointRequest)),
         command => {
             let secrets = read_secrets(&cli.secrets_file)?;
             let token = std::env::var("INSTANTKV_TOKEN")
@@ -185,6 +190,7 @@ async fn run(cli: Cli) -> Result<()> {
                 .or_else(|| secrets.get("INSTANTKV_APP_TOKEN").cloned());
             let client = Client::new(&cli.url, token)?;
             match command {
+                Command::Mcp => instantkv::mcp::serve(client).await,
                 Command::Doctor { config, offline } => {
                     let parsed = load_config(&config)?;
                     instantkv::auth::Auth::load(&parsed, &secrets)?;

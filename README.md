@@ -10,7 +10,8 @@ whether it survives restart.
 
 **Working Rust memory server and CLI.** Durable storage, atomic checkpoints,
 scratch eviction, TTL, scoped authentication, HTTP, a real restart demo, and a
-benchmark client are implemented. MCP and container deployment are in progress.
+benchmark client, and MCP stdio tools are implemented. Container deployment is
+being verified on Linux. See [agent integration](docs/agents.md).
 
 ## The agent workflow
 
