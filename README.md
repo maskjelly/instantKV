@@ -8,6 +8,9 @@
 
 # instantKV
 
+[Website](https://instantkv.com) · [Start guide](https://instantkv.com/docs/quickstart/)
+· [Benchmarks](https://instantkv.com/benchmarks/) · [Documentation](https://instantkv.com/docs/)
+
 **A mother knowledge base for cloud agents. A private memory for every worker.**
 
 Remote agents need somewhere to keep project facts, decisions, and unfinished

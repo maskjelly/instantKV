@@ -1,0 +1,41 @@
+---
+import Base from '../../layouts/Base.astro';
+import { docs } from '../../lib/docs';
+---
+
+<Base
+  title="Documentation"
+  description="Set up instantKV, connect agents, use every implemented feature and contribute to the Rust memory service."
+>
+  <main id="main" class="container section" data-pagefind-body>
+    <div class="page-intro">
+      <span class="eyebrow">Documentation / single-node 0.1.1</span>
+      <h1>
+        Run it.
+        <br />
+        Build with it.
+      </h1>
+      <p>
+        Start with a self-hosted node. Connect your agents, protect their
+        namespaces and make memory survive the next compaction.
+      </p>
+      <div class="button-row">
+        <a class="button button-primary" href="/docs/quickstart/">
+          Quick start →
+        </a>
+        <a class="button" href="/search/">
+          Search docs
+        </a>
+      </div>
+    </div>
+    <div class="docs-cards">
+      {docs.map((doc) => (
+        <a class="docs-card" href={`/docs/${doc.slug}/`}>
+          <span class="eyebrow">{doc.group}</span>
+          <h2 style="margin-top:14px">{doc.title} ↗</h2>
+          <p>{doc.description}</p>
+        </a>
+      ))}
+    </div>
+  </main>
+</Base>

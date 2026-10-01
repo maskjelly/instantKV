@@ -1,0 +1,73 @@
+---
+import { repository } from '../lib/docs';
+const path = Astro.url.pathname;
+---
+
+<a class="skip-link" href="#main">
+  Skip to content
+</a>
+<div class="announcement" aria-label="Hosting update">
+  <div class="announcement-track">
+    <span>
+      MANAGED HOSTING IS IN DEVELOPMENT. SELF-HOST TODAY.{' '}
+      <span class="announcement-dot">◆</span> YOUR NODE. YOUR KNOWLEDGE.
+    </span>
+    <span aria-hidden="true">
+      MANAGED HOSTING IS IN DEVELOPMENT. SELF-HOST TODAY.{' '}
+      <span class="announcement-dot">◆</span> YOUR NODE. YOUR KNOWLEDGE.
+    </span>
+  </div>
+  <button
+    class="announcement-pause"
+    type="button"
+    aria-label="Pause hosting announcement"
+    aria-pressed="false"
+  >
+    Pause
+  </button>
+</div>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand-link" href="/" aria-label="instantKV home">
+      <img src="/assets/logo.svg" width="30" height="30" alt="" />
+      instant<span>KV</span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a
+        href="/docs/quickstart/"
+        aria-current={path.startsWith('/docs/') ? 'page' : undefined}
+      >
+        Docs
+      </a>
+      <a
+        href="/benchmarks/"
+        aria-current={path.startsWith('/benchmarks/') ? 'page' : undefined}
+      >
+        Benchmarks
+      </a>
+      <a class="nav-secondary" href="/docs/contributing/">
+        Contribute
+      </a>
+      <a class="github-link" href={repository}>
+        GitHub <span aria-hidden="true">↗</span>
+      </a>
+    </nav>
+  </div>
+</header>
+<script>
+  const pause = document.querySelector<HTMLButtonElement>(
+    '.announcement-pause',
+  )!;
+  pause.addEventListener('click', () => {
+    const paused = pause.getAttribute('aria-pressed') !== 'true';
+    pause.setAttribute('aria-pressed', String(paused));
+    pause.textContent = paused ? 'Play' : 'Pause';
+    pause.setAttribute(
+      'aria-label',
+      paused ? 'Play hosting announcement' : 'Pause hosting announcement',
+    );
+    document.querySelector<HTMLElement>(
+      '.announcement-track',
+    )!.style.animationPlayState = paused ? 'paused' : '';
+  });
+</script>

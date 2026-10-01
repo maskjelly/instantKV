@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://instantkv.com/sitemap-index.xml

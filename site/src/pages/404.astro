@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Page not found"
+  description="This page does not exist. Browse the instantKV documentation or return to the homepage."
+>
+  <main id="main" class="container not-found">
+    <span class="eyebrow">404 / Not in this namespace</span>
+    <h1>That key is missing.</h1>
+    <p>Find the guide you need in the documentation index.</p>
+    <div class="button-row">
+      <a class="button button-primary" href="/docs/">
+        Browse docs →
+      </a>
+      <a class="button" href="/">
+        Home
+      </a>
+    </div>
+  </main>
+</Base>

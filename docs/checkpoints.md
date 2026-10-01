@@ -147,3 +147,21 @@ was inspected in Chromium at 1440px and 390px: all eight images loaded with the
 new asset dimensions; the mobile page width stayed at 390px. Local Markdown
 links, PNG/source archive dimensions, renderer syntax and `git diff --check`
 also passed.
+
+## 12 — Cloudflare website and public documentation
+
+Built an Astro/TypeScript static site in `site/` using the Monolith identity.
+The homepage targets self-hosted cloud agents; a pausable scrolling banner states
+that managed hosting is in development. The site renders existing repository
+Markdown directly and adds feature, CLI, HTTP and website-operation guides.
+The benchmark page computes medians/totals from all 15 original reports, retains
+their measured revision/conditions and provides throughput/latency controls and
+raw downloads. Pagefind search is browser-local; `llms.txt` and `llms-full.txt`
+provide machine-readable documentation.
+
+Local validation: strict Astro checks, 26-page build, all local rendered links,
+anchors/assets, benchmark report totals, search index and Wrangler dry-run pass.
+Chromium checks cover 1440px/390px layouts, chart controls, search/no-result state,
+verified clipboard contents, mobile docs navigation, announcement pause, reduced
+motion and custom 404. External script bundles resolve the CSP issue caught by
+browser QA. Publication and live HTTPS verification are recorded separately below.

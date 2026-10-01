@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+public/assets/
+public/benchmark-data/
+public/examples/
+public/llms*.txt
+package-lock.json

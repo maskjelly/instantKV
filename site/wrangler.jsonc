@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "instantkv-site",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "force-trailing-slash",
+  },
+  "env": {
+    "production": {
+      "name": "instantkv-site",
+      "routes": [
+        { "pattern": "instantkv.com", "custom_domain": true },
+        { "pattern": "www.instantkv.com", "custom_domain": true },
+      ],
+    },
+  },
+}

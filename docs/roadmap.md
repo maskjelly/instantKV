@@ -17,6 +17,7 @@
 - [x] Checksummed Linux/macOS binaries and hardened Docker quick-start.
 - [x] Offline backup and isolated restore drill.
 - [x] Three VPS benchmark runs per workload with raw reports and environment.
+- [x] Static Cloudflare website with setup, feature, contributor and benchmark pages.
 
 Deployment and measured results are recorded in [operations](operations.md),
 [benchmarks](benchmarks.md) and [verification checkpoints](checkpoints.md).
@@ -31,6 +32,17 @@ Deployment and measured results are recorded in [operations](operations.md),
 | Storage operations | Online backup/export, migration tooling and larger database recovery tests |
 | Performance | Longer repeated runs across key counts, payloads, TTL backlogs, disk/RSS growth and concurrency |
 | Observability | Latency histograms, expiry lag, rejection counters and storage health probes |
+
+## Managed hosting is in development
+
+Managed hosting means we run the memory node and you connect your agents directly.
+Self-hosting is available today; a public managed endpoint is not available yet.
+There is no announced launch date or hosted pricing. The website is documentation
+and benchmark infrastructure, separate from the future memory service.
+
+Before launch: scoped credential provisioning, persistent tenant isolation,
+resource budgets, verified backup/recovery, TLS, operational monitoring and the
+failure-injection gates above. The open-source self-hosted service stays available.
 
 ## Distributed mothership direction
 

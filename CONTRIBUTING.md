@@ -40,3 +40,15 @@ Artwork is optional tooling, not a build dependency. To regenerate with Tesserac
 Use a clear commit message (`feat`, `fix`, `docs`, `test`, `chore`); a PR should
 state the problem, resulting behavior, validation and any material limitation.
 Run [container quick-start](docs/quickstart.md) for deployment changes.
+
+## Website and documentation
+
+Edit Markdown in `docs/` or this contributor guide; the website renders those
+same sources. Add navigation entries in `site/src/lib/docs.ts` for a new guide.
+For site work, use Node 22.12+ and run `npm ci`, `npm run check`, `npm run build`
+and `npm run verify` from `site/`. Verify mobile layout, search, code copying and
+benchmark controls before deploying. See [website operations](docs/website.md).
+
+Benchmark claims must come from checked-in raw reports with their measured
+revision and conditions. Managed hosting and distributed functionality remain
+explicitly labeled as in development or proposals.

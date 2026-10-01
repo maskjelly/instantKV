@@ -1,0 +1,87 @@
+---
+import Header from '../components/Header.astro';
+import { repository } from '../lib/docs';
+import '../styles/global.css';
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title === 'instantKV' ? 'instantKV — memory your agents keep' : `${title} · instantKV`}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0B0D10" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
+    <link
+      rel="preload"
+      href="/assets/fonts/SpaceGrotesk.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content={
+        title === 'instantKV'
+          ? 'instantKV — memory your agents keep'
+          : `${title} · instantKV`
+      }
+    />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta
+      property="og:image"
+      content="https://instantkv.com/assets/brand.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <Header />
+    <slot />
+    <footer class="site-footer container">
+      <a class="brand-link" href="/">
+        <img src="/assets/logo.svg" width="24" height="24" alt="" />
+        instant<span>KV</span>
+      </a>
+      <p>Memory infrastructure. Yours to run.</p>
+      <nav aria-label="Footer">
+        <a href={repository}>Source ↗</a>
+        <a href="/docs/security/">Security</a>
+        <a href="/llms.txt">For agents</a>
+        <a href={`${repository}/blob/main/LICENSE`}>MIT</a>
+      </nav>
+    </footer>
+    <script>
+      document.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
+        const code = pre.querySelector('code');
+        if (!code) return;
+        const button = document.createElement('button');
+        button.className = 'copy-code';
+        button.textContent = 'Copy';
+        button.type = 'button';
+        button.setAttribute('aria-label', 'Copy code');
+        button.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(code.textContent || '');
+            button.textContent = 'Copied';
+          } catch {
+            button.textContent = 'Select to copy';
+          }
+          setTimeout(() => {
+            button.textContent = 'Copy';
+          }, 2000);
+        });
+        pre.append(button);
+      });
+    </script>
+  </body>
+</html>

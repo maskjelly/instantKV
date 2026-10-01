@@ -13,3 +13,12 @@
 /dist/
 /benchmark-results/
 ._*
+/site/node_modules/
+/site/dist/
+/site/.astro/
+/site/.wrangler/
+/site/public/assets/
+/site/public/benchmark-data/
+/site/public/examples/
+/site/public/llms.txt
+/site/public/llms-full.txt

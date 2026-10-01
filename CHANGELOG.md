@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Public Astro documentation site on Cloudflare Static Assets: setup, feature/CLI/HTTP references, contributor guides and browser-local search.
+- Interactive benchmark page computed from all 15 raw reports, with source revision and measurement conditions.
+- Managed-hosting development banner; self-hosted runtime remains separate from the website.
 - Monolith identity: an original split chrome K, graphite/silver palette and minimal typography.
 - Redesigned logo, wordmark and all four architecture diagrams with editable source pairs.
 - Documented the theme and updated README visuals to the latest design brief.

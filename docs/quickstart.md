@@ -108,7 +108,7 @@ methodology are in [benchmarks](benchmarks.md).
 Keep the server bound to loopback and use an SSH tunnel:
 
 ```sh
-ssh -N -L 8080:127.0.0.1:8095 rove
+ssh -N -L 8080:127.0.0.1:8095 your-vps
 ```
 
 Point the client at the tunnel and supply a credentials file obtained securely
