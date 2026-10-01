@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 700" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="700" viewBox="0 0 1120 700" role="img" aria-labelledby="title desc">
   <title id="title">instantKV live demo architecture</title>
   <desc id="desc">Separate browser writer and reader call a Cloudflare Worker. A private Workers VPC service and encrypted QUIC tunnel route fixed operations to a demo coordinator. The coordinator uses real Rust HTTP writes and reads against RAM cache and durable redb storage. No browser-local value cache or public origin endpoint.</desc>
   <defs>
