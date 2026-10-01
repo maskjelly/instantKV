@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-if [[ $# != 2 || "$1" != /* || ! -f "$1/state.tar" ]]; then
-  printf '%s\n' 'Usage: scripts/restore-drill.sh /absolute/backup-directory checkpoint-id' >&2
+if [[ $# -lt 2 || $# -gt 3 || "$1" != /* || ! -f "$1/state.tar" ]]; then
+  printf '%s\n' 'Usage: scripts/restore-drill.sh /absolute/backup-directory checkpoint-id [namespace]' >&2
   exit 1
 fi
 backup_dir="$1"
 checkpoint_id="$2"
+checkpoint_namespace="${3:-checkpoints}"
 image="${INSTANTKV_IMAGE:-instantkv:local}"
 drill_name="instantkv-drill-$(date +%s)-$RANDOM"
 volume_name="$drill_name-memory"
@@ -25,7 +26,7 @@ docker run -d --name "$drill_name" --read-only --cap-drop ALL \
   "$image" serve --bind 127.0.0.1:8080 >/dev/null
 for attempt in {1..50}; do
   if docker exec "$drill_name" instantkv doctor >/dev/null 2>&1; then
-    docker exec "$drill_name" instantkv restore --id "$checkpoint_id"
+    docker exec "$drill_name" instantkv restore --namespace "$checkpoint_namespace" --id "$checkpoint_id"
     printf '%s\n' 'PASS: known checkpoint restored from an offline backup in an isolated volume.'
     exit 0
   fi

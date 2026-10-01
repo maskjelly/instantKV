@@ -78,3 +78,5 @@ jobs:
           ./scripts/kv.sh put mother ci/shared --value '{"baseline":true}'
           ./scripts/kv.sh checkpoint --namespace alpha_checkpoints < examples/swarm-checkpoint.json
           ./scripts/kv.sh restore --namespace alpha_checkpoints --agent alpha --session run-1
+          ./scripts/backup.sh /tmp/instantkv-swarm-backup
+          ./scripts/restore-drill.sh /tmp/instantkv-swarm-backup alpha-first-handoff alpha_checkpoints

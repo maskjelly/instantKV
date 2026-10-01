@@ -54,11 +54,15 @@ Verify a known checkpoint in a separate temporary volume:
 
 ```sh
 ./scripts/restore-drill.sh /absolute/private/instantkv-backup YOUR_SAVED_CHECKPOINT
+# Swarm: specify the private checkpoint namespace.
+./scripts/restore-drill.sh /absolute/private/instantkv-backup alpha-first-handoff alpha_checkpoints
 ```
 
 The helper extracts into a new volume, sets ownership for UID 10001, starts an
 isolated loopback-only container, checks health, restores the checkpoint, and
 removes its temporary container/volume. The archive and live instance are retained.
+The optional third argument selects a checkpoint namespace; it defaults to
+`checkpoints` for the single-agent profile.
 A missing or unreadable checkpoint fails the drill. Use the same binary version;
 keep the original backup until verification passes. Never open one data file with
 two processes.

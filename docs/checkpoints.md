@@ -78,7 +78,7 @@ Fixed the ready address when a custom host port is supplied through `.env`;
 CI now checks that case. Installer downloads show progress and have bounded
 timeouts. Added SSH MCP instructions; the usable VPS checkout is
 `/srv/instantkv/app`, separate from the retained benchmark state.
-# 0.1.1 cloud-agent and visual verification
+## 9 — Cloud agents and classic desktop identity
 
 Runtime checkpoint `b8f768b`: 28 local tests, formatting, strict Clippy, both HTTP
 demos and all three configuration profiles pass. The new test proves shared
@@ -100,3 +100,10 @@ over SSH: park, get, checkpoint and restore with an available knowledge referenc
 Its saved `rove-first-checkpoint` was then restored from a fresh offline backup
 into an isolated volume before upgrading. Server credentials and backup contents
 are private and are never committed.
+
+Rove also passed the 0.1.1 swarm init, doctor, two-agent demo, mother knowledge
+recall, private checkpoint save and restore using the Linux artifact from runtime
+checkpoint `b8f768b`. The swarm has its own volume and loopback port 8096. A fresh
+offline swarm backup restored `alpha-first-handoff` from `alpha_checkpoints` in an
+isolated volume. This exposed the restore helper's single-agent namespace default;
+it now accepts an optional namespace, and CI verifies both profiles' backup drills.

@@ -7,7 +7,7 @@ instantkv demo --swarm
 # Docker: ./scripts/kv.sh demo --swarm
 ```
 
-Verified on the local macOS release build:
+Verified on the local macOS release build and Rove's Linux Docker instance:
 
 ```text
 01  MOTHER    both cloud agents recall the same shared baseline
