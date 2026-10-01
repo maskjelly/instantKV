@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 700" role="img" aria-labelledby="title desc">
+  <title id="title">instantKV live demo architecture</title>
+  <desc id="desc">Separate browser writer and reader call a Cloudflare Worker. A private Workers VPC service and encrypted QUIC tunnel route fixed operations to a demo coordinator. The coordinator uses real Rust HTTP writes and reads against RAM cache and durable redb storage. No browser-local value cache or public origin endpoint.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7" fill="#c6cedb"/></marker>
+    <style>
+      text { font-family: 'Space Grotesk', Arial, sans-serif; fill: #edf0f5; }
+      .label { font-size: 12px; letter-spacing: 1.2px; fill: #9ea7b5; }
+      .heading { font-size: 25px; }
+      .body { font-size: 16px; fill: #9ea7b5; }
+      .panel { fill: #12161b; stroke: #303640; }
+      .link { fill: none; stroke: #c6cedb; stroke-width: 1.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <path fill="#0b0d10" d="M0 0H1120V700H0Z"/>
+  <text x="40" y="48" class="label">LIVE DEMO / IMPLEMENTED / SYNTHETIC DATA</text>
+  <text x="40" y="106" font-size="44">Real writes. Independent reads.</text>
+  <text x="40" y="147" class="body">Cloudflare serves the interface. instantKV stores and returns the actual records.</text>
+  <rect x="40" y="202" width="295" height="168" class="panel"/>
+  <text x="60" y="241" class="heading">Writer + reader</text>
+  <text x="60" y="278" class="body">Browser or a separate tab</text>
+  <text x="60" y="308" class="body">POST /api/demo/* over HTTPS</text>
+  <text x="60" y="338" class="body">Only a session locator is shared.</text>
+  <rect x="395" y="202" width="295" height="168" class="panel"/>
+  <text x="415" y="241" class="heading">Cloudflare Worker</text>
+  <text x="415" y="278" class="body">Static assets + bounded API</text>
+  <text x="415" y="308" class="body">Origin check + rate limit</text>
+  <text x="415" y="338" class="body">Credentials remain server-side.</text>
+  <rect x="750" y="202" width="330" height="168" class="panel"/>
+  <text x="770" y="241" class="heading">Private connectivity</text>
+  <text x="770" y="278" class="body">Workers VPC service binding</text>
+  <text x="770" y="308" class="body">Encrypted QUIC tunnel to Rove</text>
+  <text x="770" y="338" class="body">Fixed loopback target. No public URL.</text>
+  <path d="M345 286H385" class="link"/><path d="M700 286H740" class="link"/>
+  <path d="M915 380V427" class="link"/>
+  <text x="930" y="410" class="label">PRIVATE HTTP</text>
+  <rect x="750" y="438" width="330" height="168" class="panel"/>
+  <text x="770" y="477" class="heading">Demo coordinator</text>
+  <text x="770" y="514" class="body">Generate synthetic agent records</text>
+  <text x="770" y="544" class="body">512 / batch · 16 HTTP requests</text>
+  <text x="770" y="574" class="body">Measure acknowledgements + latency.</text>
+  <rect x="395" y="438" width="295" height="168" class="panel"/>
+  <text x="415" y="477" class="heading">instantKV / Rust</text>
+  <text x="415" y="514" class="body">Unchanged HTTP record API</text>
+  <text x="415" y="544" class="body">Scoped token + namespace quotas</text>
+  <text x="415" y="574" class="body">GET returns stored JSON + revision.</text>
+  <rect x="40" y="438" width="295" height="168" class="panel"/>
+  <text x="60" y="477" class="heading">Real storage</text>
+  <text x="60" y="514" class="body">Cache → bounded RAM + FIFO</text>
+  <text x="60" y="544" class="body">Durable → redb immediate commit</text>
+  <text x="60" y="574" class="body">Demo records expire after 15 minutes.</text>
+  <path d="M740 522H700" class="link"/><path d="M385 522H345" class="link"/>
+  <path d="M40 646H1080" stroke="#303640"/>
+  <text x="40" y="678" class="body">Responses return along the same path. Browser round-trip and backend HTTP timings are reported separately.</text>
+</svg>

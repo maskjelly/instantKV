@@ -190,3 +190,47 @@ explicitly in development, with no promised date or price. Deployment is manual
 through the checked-in command; automatic Workers Builds integration still needs
 the account's separate Builds permission/Git connection. No interactive OAuth
 credentials were copied into GitHub secrets.
+
+## 14 — Standard terminology and verified 0.1.2 release
+
+Runtime checkpoint `6eceb8b` changes the fresh swarm namespace to `shared` and
+uses shared knowledge base/private agent namespace terminology. Existing namespace
+names remain valid; persisted namespaces are not silently renamed. Documentation,
+GitHub description, website and all four editable architecture diagrams follow
+the same vocabulary.
+
+[Release CI passed](https://github.com/maskjelly/instantKV/actions/runs/36893404728):
+28 invariant tests, strict Clippy/formatting, Linux/macOS demos, Docker setup,
+restart and backup drills. Checksummed [0.1.2 prerelease artifacts](https://github.com/maskjelly/instantKV/releases/tag/v0.1.2)
+record the exact runtime source commit. The published installer and swarm demo
+passed on macOS and Rove Linux. Existing 0.1.1 agent volumes were preserved;
+the isolated public demonstration uses 0.1.2.
+
+## 15 — Live Cloudflare memory demonstration
+
+Website/runtime integration checkpoint `17c2bf3` is committed and pushed;
+[website CI](https://github.com/maskjelly/instantKV/actions/runs/36897862088) and
+[Rust/Docker CI](https://github.com/maskjelly/instantKV/actions/runs/36897862154)
+passed. Cloudflare deployment `2565000a-fd33-4ee9-9fb9-ae6703f6c4ff` serves
+[the public demo](https://instantkv.com/demo/). The Worker reaches an isolated
+Rust container through a private Workers VPC service and QUIC Tunnel. The
+coordinator generates bounded synthetic batches and reuses backend HTTP connections;
+every acknowledged value is actually stored and fetched through instantKV.
+
+Real HTTPS Chromium verification wrote 100,000 cache records (68.25 MiB) and
+10,000 immediate-durable records (6.82 MiB), with zero failed API requests or
+browser errors in both runs. Exact first/middle/last cache reads, pause/resume,
+writer-context clearing, independent-tab recall and 390px mobile layout passed.
+Durable record 9,999 was exactly verified after clearing context. Homepage,
+quick start, benchmark page, live-demo documentation and search also passed.
+[Raw reports and measurement boundaries](live-demo.md#recorded-live-verification)
+keep these single public demonstrations separate from controlled benchmarks.
+
+Seven coordinator/proxy tests cover exact integrity, credentials, body/route
+limits, partial failure/retry, connection reuse, response bounds and redirect
+rejection. Static checks/build verify 28 HTML pages, 22 documentation guides,
+rendered links/assets, search and the original 15 benchmark reports. The new
+editable SVG explains the public and private storage path in the README and
+guide. Upstash, Turso and Valkey were reviewed before the demo design; Monolith
+retains its own identity. Demo data expires after 15 minutes. Managed hosting
+and distributed consolidation remain future work.

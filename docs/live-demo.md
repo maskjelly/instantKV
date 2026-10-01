@@ -9,6 +9,8 @@ Rust service rather than receiving a copy of the writer's context.
 
 ## Actual storage path
 
+![Live demo architecture: Cloudflare Worker, private VPC tunnel, coordinator, Rust and bounded RAM/redb](assets/live-demo.svg)
+
 ```text
 Browser writer / independent reader
   │ HTTPS · same-origin /api/demo/*
@@ -50,6 +52,25 @@ scoped-worker isolation and checkpoint/restart demonstration is
 [the CLI swarm demo](demo.md). Use the [controlled benchmark page](benchmarks.md)
 for the separate three-run, hardware-recorded measurements; public demo timings
 vary with geography, shared-host load and concurrent visitors.
+
+## Recorded live verification
+
+On 2026-10-01, the deployed browser demo wrote **100,000 cache records / 68.25 MiB**
+with zero failed API requests and zero JavaScript/CSP errors. First, middle and
+last exact reads, pause/resume, context clearing, independent-tab recall and
+390px mobile layout passed. [Raw cache verification report](demo-results/2026-10-01-cloudflare-cache.json).
+
+Durable mode also wrote **10,000 records / 6.82 MiB** with zero failed API requests
+and zero browser errors. After clearing local context, record 9,999 was retrieved
+and exactly verified. [Raw durable verification report](demo-results/2026-10-01-cloudflare-durable.json).
+
+| Public demo run | Records | Payload | End-to-end rate | Backend HTTP PUT p50 / p99 |
+|---|---:|---:|---:|---:|
+| RAM cache | 100,000 | 68.25 MiB | 854 records/s | 5.78 / 88.61 ms |
+| Immediate durable storage | 10,000 | 6.82 MiB | 330 records/s | 26.36 / 127.60 ms |
+
+These are individual public demonstration runs on a shared VPS with explicit CPU limits;
+the controlled three-run benchmark dataset remains separate.
 
 ## Resource and data boundaries
 

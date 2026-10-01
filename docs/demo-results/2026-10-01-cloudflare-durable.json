@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-01T17:23:41.606Z",
+  "site": "https://instantkv.com/demo/",
+  "site_commit": "17c2bf3",
+  "runtime_version": "0.1.2",
+  "runtime_commit": "6eceb8bdd2450cc9977d0fd3c4b3627a9bf0a032",
+  "cloudflare_version": "2565000a-fd33-4ee9-9fb9-ae6703f6c4ff",
+  "records": 10000,
+  "mode": "durable",
+  "payload_mib": "6.82",
+  "end_to_end_records_per_second": "330",
+  "backend_http_p50_ms": "26.36",
+  "backend_http_p99_ms": "127.60",
+  "read_browser": "154.5 ms",
+  "read_backend": "1.72 ms",
+  "failed_browser_requests": 0,
+  "browser_errors": [],
+  "checks": ["cleared writer context", "record 9999 exact read"],
+  "limits": {
+    "engine_cpus": 1,
+    "gateway_cpus": 0.5,
+    "engine_memory_mib": 512,
+    "gateway_memory_mib": 192
+  },
+  "note": "One public synthetic-data demo run via Cloudflare VPC; immediate redb durability, 15-minute TTL, shared VPS. Not a capacity benchmark."
+}

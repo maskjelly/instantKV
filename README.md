@@ -63,6 +63,17 @@ original profile. [Quick setup and binary install →](docs/quickstart.md)
 
 ## See it work
 
+[**Open the live memory demo →**](https://instantkv.com/demo/)
+Write up to 100,000 temporary cache records or 10,000 durable records. Clear the
+writer's local context, retrieve an exact key in the separate reader, or open the
+reader in a new tab. Real Rust storage, acknowledged progress, payload size,
+throughput, latency percentiles and a live request trace. No account needed.
+
+<img src="docs/assets/live-demo.svg" width="1100" alt="Live demo request flow: browser writer and reader, Cloudflare Worker, private VPC and QUIC tunnel, isolated coordinator, Rust HTTP API and real RAM or durable redb storage">
+
+[Demo architecture and measurement boundaries](docs/live-demo.md).
+For durable compaction handoffs and restart verification:
+
 ```sh
 instantkv demo --swarm
 # Or: ./scripts/kv.sh demo --swarm

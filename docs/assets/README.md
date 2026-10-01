@@ -11,6 +11,7 @@ Original instantKV artwork, MIT licensed with the repository.
 | [Repository brand PNG](brand.png) | 1200 × 400 | [brand.tsrct](brand.tsrct) |
 | [Logo PNG](logo.png) | 512 × 512 | [logo.tsrct](logo.tsrct) |
 | [Transparent logo SVG](logo.svg) | scalable | Native SVG paths |
+| [Live demo architecture SVG](live-demo.svg) | 1120 × 700 | Native SVG shapes, connectors and text |
 
 **Monolith** is the project's original minimal metal theme. Three separated metal
 planes form a K; the gap keeps the silhouette distinct at small sizes. Chrome
@@ -18,8 +19,8 @@ reflections belong to the mark. Diagrams use flat graphite surfaces, silver text
 fine borders, square geometry and generous space.
 
 This direction follows the latest design brief and supersedes the earlier retro
-desktop theme. These are repository graphics and diagrams; they do not imply a
-shipped graphical application.
+desktop theme. The public website uses this identity. The live-demo diagram
+describes its browser interface and real storage path.
 
 Tesseract compositions contain editable native shapes and text. Active type is
 [Space Grotesk](https://github.com/floriankarsten/space-grotesk), embedded with
