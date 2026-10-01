@@ -7,14 +7,60 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Install Rust tools
-        run: rustup toolchain install stable --profile minimal --component rustfmt --component clippy
-      - run: cargo +stable fmt --all -- --check
-      - run: cargo +stable clippy --workspace --all-targets --locked -- -D warnings
-      - run: cargo +stable test --workspace --locked
-      - run: cargo +stable build --workspace --release --locked
-      - run: cargo +stable run -p instantkv --locked -- check-config --config config/instantkv.example.toml
-      - run: cargo +stable run -p instantkv --locked -- check-config --config config/local-cache.toml
+        run: rustup toolchain install 1.98 --profile minimal --component rustfmt --component clippy
+      - run: cargo +1.98 fmt --all -- --check
+      - run: cargo +1.98 clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo +1.98 test --workspace --locked
+      - run: cargo +1.98 build --workspace --release --locked
+      - run: ./target/release/instantkv demo
+      - run: ./target/release/instantkv check-config --config config/instantkv.example.toml
+      - run: ./target/release/instantkv check-config --config config/local-cache.toml
+      - name: Verify generated schema and scripts
+        run: |
+          ./target/release/instantkv schema > /tmp/checkpoint.schema.json
+          diff -u examples/checkpoint.schema.json /tmp/checkpoint.schema.json
+          bash -n scripts/*.sh
+      - name: Build portable Linux binary
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y musl-tools
+          rustup target add --toolchain 1.98 x86_64-unknown-linux-musl
+          cargo +1.98 build --release --locked --target x86_64-unknown-linux-musl -p instantkv
+          ./target/x86_64-unknown-linux-musl/release/instantkv demo
+      - name: Package verified binary
+        run: bash scripts/package-release.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: instantkv-${{ runner.os }}-${{ runner.arch }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+  container:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: instantkv-Linux-X64
+          path: dist
+      - name: Container quick-start and restart demo
+        run: |
+          tar -xzf dist/instantkv-linux-x86_64.tar.gz -C dist instantkv
+          INSTANTKV_BUILD_SOURCE=prebuilt ./scripts/quickstart.sh
+          ./scripts/kv.sh demo
+          ./scripts/kv.sh put knowledge ci/probe --value '{"retained":true}'
+          docker compose restart instantkv
+          docker compose up -d --wait
+          ./scripts/kv.sh get knowledge ci/probe

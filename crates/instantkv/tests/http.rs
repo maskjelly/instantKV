@@ -132,6 +132,20 @@ async fn credentials_and_namespace_grants_are_enforced() {
     );
     let reader = Client::new(&server.base, Some(READER_TOKEN.into())).unwrap();
     assert!(reader.get("knowledge", "key").await.is_ok());
+    // Key suffixes must not be confused with control endpoints by the auth gate.
+    server
+        .client
+        .put(
+            "knowledge",
+            "project/stats",
+            b"1".to_vec(),
+            None,
+            None,
+            false,
+        )
+        .await
+        .unwrap();
+    assert!(reader.get("knowledge", "project/stats").await.is_ok());
     assert!(reader.list("knowledge", "", 10, None).await.is_ok());
     assert!(
         reader

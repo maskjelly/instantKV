@@ -44,3 +44,11 @@ Added atomic deletion of old checkpoints through HTTP, CLI, and MCP. The current
 latest checkpoint is protected from deletion. Fixed FIFO order when an expired
 entry outside the cleanup batch is recreated. Twenty-five tests and strict Clippy
 passed; pruning also verifies quota reclamation and restore after reopening.
+
+## 6 — Repeatable packaging
+
+Added non-root Docker deployment, a short Compose CLI wrapper, offline backup
+helper, checksummed binary packaging/installation, and Linux/macOS CI with
+portable Linux and container checks. Auth now classifies the matched route rather
+than a record key suffix. Local tests, Clippy, shell syntax and generated-schema
+consistency passed. Remote container/backup/benchmark evidence follows separately.

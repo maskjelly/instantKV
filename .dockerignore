@@ -1,0 +1,9 @@
+.git
+target
+.instantkv
+instantkv.toml
+.tesseract-work
+.build
+._*
+docs
+.github

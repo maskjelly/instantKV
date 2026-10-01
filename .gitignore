@@ -9,3 +9,6 @@
 /.instantkv/
 /instantkv.toml
 /.tesseract-work/
+/.build/
+/dist/
+._*

@@ -164,13 +164,16 @@ async fn gate(State(app): State<App>, mut request: axum::extract::Request, next:
                 .into_response();
             }
         };
+        let route = parts
+            .extensions
+            .get::<axum::extract::MatchedPath>()
+            .map(|path| path.as_str())
+            .unwrap_or("");
         let operation = match parts.method {
             axum::http::Method::PUT | axum::http::Method::POST => Operation::Put,
             axum::http::Method::DELETE => Operation::Delete,
-            _ if parts.uri.path().ends_with("/stats") => Operation::Stats,
-            _ if parts.uri.path().ends_with("/records") && !params.contains_key("key") => {
-                Operation::List
-            }
+            _ if route == "/v1/namespaces/{ns}/stats" => Operation::Stats,
+            _ if route == "/v1/namespaces/{ns}/records" => Operation::List,
             _ => Operation::Get,
         };
         if let Err(error) = app.authorize(
