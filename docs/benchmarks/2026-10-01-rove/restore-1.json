@@ -1,0 +1,20 @@
+{
+  "client_version": "0.1.0",
+  "concurrency": 16,
+  "durability": "server configuration; durable namespaces use immediate commits",
+  "elapsed_seconds": 3.108706965,
+  "errors": 0,
+  "latency_ms": {
+    "p50": 2.238132,
+    "p95": 14.925161,
+    "p99": 47.973056
+  },
+  "namespace": "checkpoints",
+  "operation": "restore",
+  "requests": 10000,
+  "schema_version": 1,
+  "successful_requests": 10000,
+  "successful_requests_per_second": 3216.7715106592555,
+  "transport": "HTTP/1.1 keep-alive, closed-loop client; no pipelining",
+  "value_bytes": null
+}

@@ -1,0 +1,23 @@
+{
+  "started_at_utc": "2026-10-01T13:03:59.503331+00:00",
+  "code_commit": "28412f4e209b98c522846da79d2489f1d970e91f",
+  "source_verified": true,
+  "cpu": "Architecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nByte Order:                           Little Endian\nAddress sizes:                        40 bits physical, 48 bits virtual\nCPU(s):                               4\nOn-line CPU(s) list:                  0-3\nThread(s) per core:                   1\nCore(s) per socket:                   4\nSocket(s):                            1\nNUMA node(s):                         1\nVendor ID:                            GenuineIntel\nCPU family:                           15\nModel:                                6\nModel name:                           Common KVM processor\nStepping:                             1\nCPU MHz:                              2493.748\nBogoMIPS:                             4987.49\nHypervisor vendor:                    KVM\nVirtualization type:                  full\nL1d cache:                            128 KiB\nL1i cache:                            128 KiB\nL2 cache:                             16 MiB\nL3 cache:                             16 MiB\nNUMA node0 CPU(s):                    0-3\n",
+  "memory": [
+    "MemTotal:        7933420 kB",
+    "MemFree:         1088732 kB",
+    "MemAvailable:    6886840 kB"
+  ],
+  "loadavg_before": "4.24 4.98 5.26 6/2052 431946",
+  "kernel": "Linux-5.15.0-139-generic-x86_64-with-glibc2.29",
+  "os_release": "NAME=\"Ubuntu\"\nVERSION=\"20.04.6 LTS (Focal Fossa)\"\nID=ubuntu\nID_LIKE=debian\nPRETTY_NAME=\"Ubuntu 20.04.6 LTS\"\nVERSION_ID=\"20.04\"\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nVERSION_CODENAME=focal\nUBUNTU_CODENAME=focal\n",
+  "docker_version": "28.1.1",
+  "compose_version": "2.35.1",
+  "image": "sha256:2b0318f978ad0acf39d3318f51b2c7b637649daa08df2adc54305fd7cf5d97ab",
+  "binary_sha256": "78451e1210dd289fef8c2cf682e41a878f4452563b49c8cc65316dbc2cfbc87c",
+  "conditions": "Shared 4-vCPU VPS with existing shortener/load generators and other services active; client and server in the same container over loopback HTTP; namespace-scoped auth enabled; immediate redb durability; five profiles repeated three times; setup excluded.",
+  "finished_at_utc": "2026-10-01T13:06:23.009927+00:00",
+  "loadavg_after": "5.44 5.55 5.47 6/2055 433284",
+  "container_stats_after": "13.14% | 10.3MiB / 7.566GiB",
+  "database_bytes_after": 3379200
+}

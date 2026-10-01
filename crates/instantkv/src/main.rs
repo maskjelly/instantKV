@@ -96,7 +96,8 @@ enum Command {
     Checkpoint {
         #[arg(long, default_value = "checkpoints")]
         namespace: String,
-        #[arg(long)]
+        /// JSON file, or '-' for stdin (default).
+        #[arg(long, default_value = "-")]
         file: PathBuf,
     },
     /// Delete an old checkpoint; refuses to delete a session's latest checkpoint.
@@ -217,13 +218,8 @@ async fn run(cli: Cli) -> Result<()> {
                 } => {
                     let bytes = match (value, file) {
                         (Some(value), _) => value.into_bytes(),
-                        (_, Some(file)) => fs::read(file)?,
-                        _ => {
-                            use std::io::Read;
-                            let mut bytes = Vec::new();
-                            std::io::stdin().take(1048577).read_to_end(&mut bytes)?;
-                            bytes
-                        }
+                        (_, Some(file)) => read_input(&file)?,
+                        _ => read_input(Path::new("-"))?,
                     };
                     print_json(
                         &client
@@ -259,7 +255,7 @@ async fn run(cli: Cli) -> Result<()> {
                 }
                 Command::Stats { namespace } => print_json(&client.stats(&namespace).await?),
                 Command::Checkpoint { namespace, file } => {
-                    let request: CheckpointRequest = serde_json::from_slice(&fs::read(file)?)
+                    let request: CheckpointRequest = serde_json::from_slice(&read_input(&file)?)
                         .context("invalid checkpoint JSON")?;
                     print_json(&client.checkpoint(&namespace, &request).await?)
                 }
@@ -310,6 +306,22 @@ async fn run(cli: Cli) -> Result<()> {
             }
         }
     }
+}
+
+fn read_input(path: &Path) -> Result<Vec<u8>> {
+    use std::io::Read;
+    let mut bytes = Vec::new();
+    if path == Path::new("-") {
+        std::io::stdin().take(1048577).read_to_end(&mut bytes)?;
+    } else {
+        fs::File::open(path)?
+            .take(1048577)
+            .read_to_end(&mut bytes)?;
+    }
+    if bytes.len() > 1048576 {
+        bail!("CLI input exceeds 1 MiB");
+    }
+    Ok(bytes)
 }
 
 fn load_config(path: &Path) -> Result<Config> {

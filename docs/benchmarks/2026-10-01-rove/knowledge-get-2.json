@@ -1,0 +1,20 @@
+{
+  "client_version": "0.1.0",
+  "concurrency": 16,
+  "durability": "server configuration; durable namespaces use immediate commits",
+  "elapsed_seconds": 5.283838347,
+  "errors": 0,
+  "latency_ms": {
+    "p50": 1.812435,
+    "p95": 9.460652,
+    "p99": 47.862045
+  },
+  "namespace": "knowledge",
+  "operation": "get",
+  "requests": 20000,
+  "schema_version": 1,
+  "successful_requests": 20000,
+  "successful_requests_per_second": 3785.1271531339303,
+  "transport": "HTTP/1.1 keep-alive, closed-loop client; no pipelining",
+  "value_bytes": 512
+}

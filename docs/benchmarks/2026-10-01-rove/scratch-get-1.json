@@ -1,0 +1,20 @@
+{
+  "client_version": "0.1.0",
+  "concurrency": 16,
+  "durability": "server configuration; durable namespaces use immediate commits",
+  "elapsed_seconds": 5.394027893,
+  "errors": 0,
+  "latency_ms": {
+    "p50": 1.877082,
+    "p95": 10.71924,
+    "p99": 47.357298
+  },
+  "namespace": "scratch",
+  "operation": "get",
+  "requests": 20000,
+  "schema_version": 1,
+  "successful_requests": 20000,
+  "successful_requests_per_second": 3707.804334114518,
+  "transport": "HTTP/1.1 keep-alive, closed-loop client; no pipelining",
+  "value_bytes": 512
+}

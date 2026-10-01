@@ -1,0 +1,26 @@
+# Engineering references
+
+We studied these projects' public repository structure and official docs. The
+logo and code are original; this is a small early project, not a claim of their
+maturity or guarantees.
+
+| Reference | What instantKV adopts |
+|---|---|
+| [Valkey](https://github.com/valkey-io/valkey) | Start the README with something runnable; keep configuration, tests and benchmark commands discoverable |
+| [TigerBeetle](https://github.com/tigerbeetle/tigerbeetle) and [safety design](https://docs.tigerbeetle.com/concepts/safety/) | Write explicit invariants; verify failed writes preserve state; state durability boundaries and outstanding fault tests |
+| [redb](https://github.com/cberner/redb) | Reuse an embedded transactional engine; preserve immediate durability; document its one-writer constraint |
+| [KDE KCoreAddons](https://github.com/KDE/kcoreaddons) | Keep source, tests, examples, licensing and CI easy to locate; treat documentation as part of the project |
+| [KDE Extra CMake Modules](https://github.com/KDE/extra-cmake-modules) | Provide repeatable build checks and clear contributor entry points; use Cargo for this Rust repository |
+| [MCP Rust SDK](https://github.com/modelcontextprotocol/rust-sdk) | Use the maintained protocol implementation and typed tool schemas |
+
+Concrete checks here: locked dependencies, formatting, strict Clippy, invariant
+and HTTP/MCP tests, a restart demo, non-root container, offline backup drill, and
+workload-specific benchmarks with raw results. The roadmap separately records
+fault-injection and actual runtime integration still needed.
+
+## Visual direction
+
+The identity uses an original geometric K: three stored tiles and a folded recall
+path. Forest green, warm paper and lime highlight reflect a compact engineering
+tool. The architecture uses the same palette and shows the actual stored schema.
+Editable shapes/text and licensed embedded type live in [assets](assets/README.md).

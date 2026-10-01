@@ -1,0 +1,26 @@
+name: Bug report
+description: Report a reproducible behavior or storage invariant failure.
+body:
+  - type: markdown
+    attributes:
+      value: Keep tokens and sensitive memory out of public reports. Use private security reporting for vulnerabilities.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include minimal commands and sanitized configuration.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Version and environment
+      description: Commit/version, OS, binary or Docker, namespace mode and workload.
+    validations:
+      required: true

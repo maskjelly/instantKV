@@ -64,3 +64,6 @@ jobs:
           docker compose restart instantkv
           docker compose up -d --wait
           ./scripts/kv.sh get knowledge ci/probe
+          ./scripts/kv.sh checkpoint < examples/checkpoint.json
+          ./scripts/backup.sh /tmp/instantkv-backup
+          ./scripts/restore-drill.sh /tmp/instantkv-backup first-checkpoint

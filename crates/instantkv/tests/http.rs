@@ -340,6 +340,47 @@ fn server_refuses_missing_short_and_duplicate_secrets() {
 }
 
 #[tokio::test]
+async fn cli_accepts_a_checkpoint_from_stdin() {
+    use tokio::io::AsyncWriteExt;
+    let server = start(config()).await;
+    let request = serde_json::json!({"id":"stdin-cp","agent_id":"cli-agent","session_id":"cli-session","capsule":{"goal":"Ship","summary":"Input comes from the host","next_action":"Continue"},"references":[]});
+    let mut child = tokio::process::Command::new(env!("CARGO_BIN_EXE_instantkv"))
+        .args(["--url", &server.base, "checkpoint"])
+        .env("INSTANTKV_TOKEN", APP_TOKEN)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .kill_on_drop(true)
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    input
+        .write_all(request.to_string().as_bytes())
+        .await
+        .unwrap();
+    input.shutdown().await.unwrap();
+    drop(input);
+    let output = child.wait_with_output().await.unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let receipt: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(receipt["id"], "stdin-cp");
+    assert_eq!(
+        server
+            .client
+            .restore("checkpoints", "stdin-cp", 32768)
+            .await
+            .unwrap()
+            .capsule
+            .next_action,
+        "Continue"
+    );
+}
+
+#[tokio::test]
 async fn mcp_stdio_tools_save_and_restore_through_authenticated_http() {
     use serde_json::{Value, json};
     use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};

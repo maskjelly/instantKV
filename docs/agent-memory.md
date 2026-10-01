@@ -1,6 +1,6 @@
 # Agent memory contract
 
-**Proposed API, not implemented.** This defines what must survive compaction.
+Implemented HTTP and MCP contract. This defines what survives compaction.
 
 ## Memory record
 
@@ -20,8 +20,8 @@ Store small, independently useful JSON values under descriptive keys, for exampl
 
 Kinds: `fact`, `decision`, `constraint`, `task`, `reference`. The server attaches
 revision, write time, and optional expiry; it does not claim content is true.
-Generic JSON admission currently checks configuration only; envelope validation
-belongs to the future memory service.
+JSON admission validates JSON syntax at runtime. Ordinary memory envelopes remain
+application-defined; the server validates the typed checkpoint capsule.
 
 ## Checkpoint → compact → restore
 
@@ -38,14 +38,17 @@ belongs to the future memory service.
 Essential restore context lives inside the bundle. References include namespace,
 key, and expected revision; missing, expired, or changed references are reported.
 Normal keys are mutable and revisions detect change; v1 does not promise historical
-versions. Checkpoint bundles are immutable until explicitly deleted.
+versions. Checkpoint bundles are immutable until explicitly deleted. Deleting old bundles
+removes their retry history; generate unique IDs and never reuse deleted IDs.
 
-A compact capsule must fit the caller's byte budget. Reject an undersized restore
+The entire serialized restore response must fit the caller's byte budget. Reject an undersized restore
 budget explicitly; never silently drop essential constraints. Optional details
 are returned as references. Token budgeting belongs to the runtime/model tokenizer.
-Start with a 16 KiB capsule limit and a 1 MiB total bundle cap; tune using real tasks.
+Capsules are limited to 16 KiB and 64 references. The default total bundle cap is
+1 MiB, configurable downward. Restore defaults to 32 KiB; accepted budgets are
+512 bytes through 1 MiB. Byte limits are not model token counts.
 
-## Proposed operations
+## Operations
 
 | HTTP route under `/v1/namespaces/{ns}` | MCP tool | Permission |
 |---|---|---|
@@ -62,12 +65,11 @@ Reserved checkpoint keys cannot be mutated through generic record routes. Deleti
 the current latest checkpoint is rejected until another checkpoint is selected.
 Checkpoint namespaces must be durable with no TTL and no eviction; arbitrary TTL
 records remain separate. Listing defaults to 100 items with a server cap of 1000
-and a bounded response size; cursors do not promise a stable snapshot during writes.
+with key/value admission bounds; cursors do not promise a stable snapshot during writes.
 
 MCP exposes model-callable tools with input schemas; see the
 [official tools specification](https://modelcontextprotocol.io/specification/latest/server/tools).
-Use the [official Rust SDK](https://github.com/modelcontextprotocol/rust-sdk) when
-the adapter milestone starts. Integration cannot
+The adapter uses the [official Rust SDK](https://github.com/modelcontextprotocol/rust-sdk). Integration cannot
 assume every agent runtime exposes a pre-compaction hook: offer explicit tools and
 a documented save/restore instruction as the fallback.
 

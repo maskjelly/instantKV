@@ -1,5 +1,11 @@
 .git
 target
+data
+.env
+.env.*
+*.redb
+*.redb.*
+.DS_Store
 .instantkv
 instantkv.toml
 .tesseract-work

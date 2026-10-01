@@ -52,3 +52,17 @@ helper, checksummed binary packaging/installation, and Linux/macOS CI with
 portable Linux and container checks. Auth now classifies the matched route rather
 than a record key suffix. Local tests, Clippy, shell syntax and generated-schema
 consistency passed. Remote container/backup/benchmark evidence follows separately.
+
+## 7 — Verified deployment, measured performance and documentation
+
+Rove's Docker quick-start and real kill/restart demo passed. The offline backup
+drill exposed host copy ownership loss; backups now stream a tar archive, and an
+isolated restore helper verified the known checkpoint. Benchmark profiles ran
+three times each: 157,500 measured requests, zero errors. Raw JSON, tested code
+revision, binary/image hashes and shared-host load conditions are committed.
+
+The usable deployment receives a separate volume from the disposable benchmark
+instance. Added bounded checkpoint stdin/file input (tested through the CLI),
+original editable logo/architecture, current setup/API/policy/operations docs,
+contribution/security guidance and issue templates. Twenty-six local tests and
+strict Clippy passed. Linux/macOS/container CI includes demo, schema and backup gates.

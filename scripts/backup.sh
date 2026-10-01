@@ -14,5 +14,5 @@ umask 077
 mkdir -m 700 "$backup_dir"
 docker compose stop -t 30 instantkv
 trap 'docker compose up -d --wait instantkv' EXIT
-docker compose cp instantkv:/state/. "$backup_dir/"
+docker compose cp instantkv:/state/. - > "$backup_dir/state.tar"
 printf 'Offline backup complete: %s\n' "$backup_dir"

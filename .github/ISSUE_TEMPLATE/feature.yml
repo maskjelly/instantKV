@@ -1,0 +1,16 @@
+name: Feature proposal
+description: Describe a concrete agent-memory or operational need.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or workflow
+      description: What cannot be done with the current keys, checkpoints and tools?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior and acceptance check
+    validations:
+      required: true

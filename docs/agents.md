@@ -22,6 +22,10 @@ For clients using a `mcpServers` configuration:
 }
 ```
 
+For Docker setup, use `/absolute/path/to/instantKV/scripts/kv.sh` as the
+command with `args: ["mcp"]`; the wrapper inherits the container credentials.
+The server must already be running.
+
 Use absolute paths because agent clients may launch tools from another directory.
 Alternatively inject `INSTANTKV_TOKEN` through the client's secret environment.
 Stdout carries only MCP messages; diagnostics go to stderr. Never paste tokens
@@ -34,6 +38,7 @@ into tool arguments or committed client configuration.
 | memory_list | Discover a prefix through bounded metadata pages |
 | memory_delete | Explicitly forget an ordinary record |
 | memory_checkpoint | Commit a self-contained capsule before compaction |
+| memory_delete_checkpoint | Reclaim an old capsule; latest is protected |
 | memory_restore | Recover by stable ID or agent/session latest pointer |
 
 JSON is passed through as JSON. Non-JSON bytes are returned with an explicit
@@ -65,3 +70,7 @@ copy. [checkpoint.json](../examples/checkpoint.json) is a minimal complete examp
 Checkpoints require a namespace with `purpose = "checkpoints"`, durable storage,
 and no TTL. Ordinary record APIs cannot mutate checkpoint internals. References
 are advisory; essential continuation state belongs inline in the capsule.
+
+Old checkpoint retention: call `memory_delete_checkpoint` with namespace and
+checkpoint_id, or `instantkv delete-checkpoint ID`. The latest bundle is protected.
+Retiring a session and deleting its final bundle/pointer is future work.

@@ -11,4 +11,5 @@
 /.tesseract-work/
 /.build/
 /dist/
+/benchmark-results/
 ._*
