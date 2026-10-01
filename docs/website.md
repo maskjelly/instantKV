@@ -61,14 +61,17 @@ must own the active `instantkv.com` zone. Never commit access tokens.
 ```sh
 cd site
 npm run deploy          # workers.dev, before domain activation
-npm run deploy:domain   # instantkv.com and www.instantkv.com
+npm run deploy:domain   # instantkv.com
 ```
 
 `deploy` runs type/content checks, builds, verifies and uploads. The production
-Wrangler environment attaches two Custom Domains. Cloudflare creates their DNS
+Wrangler environment attaches the apex Custom Domain. Cloudflare creates its DNS
 records and certificates; preserve unrelated email/DNS records. If an existing
 CNAME conflicts, inspect it before changing anything. A pending zone must activate
-before Custom Domains can be used. See [official domain setup](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
+before Custom Domains can be used. The optional `www` hostname has an externally
+managed DNS conflict and is not configured for this Worker. Keep the canonical
+site at `instantkv.com`; inspect that record with its owner before changing it.
+See [official domain setup](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
 
 For continuous deployment, connect this repository to **Workers Builds** with
 root directory `site`, build command `npm run check && npm run build && npm run verify`

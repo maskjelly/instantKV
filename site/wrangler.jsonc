@@ -13,7 +13,6 @@
       "name": "instantkv-site",
       "routes": [
         { "pattern": "instantkv.com", "custom_domain": true },
-        { "pattern": "www.instantkv.com", "custom_domain": true },
       ],
     },
   },
