@@ -8,10 +8,16 @@
 - Monolith identity: an original split chrome K, graphite/silver palette and minimal typography.
 - Redesigned logo, wordmark and all four architecture diagrams with editable source pairs.
 - Documented the theme and updated README visuals to the latest design brief.
+- Cloudflare-hosted live demo: real Rust writes/reads, independent reader, cross-tab recall, pause/resume, measured latency and bounded temporary workloads.
+
+## 0.1.2 — 2026-10-01
+
+- Standard shared knowledge base and private agent namespace terminology across setup, CLI/MCP and documentation.
+- Fresh swarm setups use `shared`; existing configurations, data and checkpoint formats remain compatible.
 
 ## 0.1.1 — 2026-10-01
 
-- Shared read-only mother knowledge and private cloud-agent namespaces via per-namespace grants.
+- Shared read-only knowledge and private cloud-agent namespaces via per-namespace grants.
 - Swarm init profile and a real HTTP isolation, compaction and restart demo.
 - Classic desktop artwork, swarm topology, lifecycle and distributed consolidation proposal.
 - Quick-start reports the actual Compose port; release downloads show progress and time out.

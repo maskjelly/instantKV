@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 set -eu
-version="${INSTANTKV_VERSION:-0.1.1}"
+version="${INSTANTKV_VERSION:-0.1.2}"
 case "$version" in ''|*[!0-9.]*) echo 'Invalid version' >&2; exit 1 ;; esac
 destination="${1:-$HOME/.local/bin}"
 platform="${INSTANTKV_PLATFORM:-}"

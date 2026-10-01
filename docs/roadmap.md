@@ -10,14 +10,15 @@
 - [x] Idempotent retries, bounded restore, visible stale/missing/forbidden references.
 - [x] Old-checkpoint deletion protecting the latest restore point.
 - [x] Scoped credentials, HTTP, CLI setup/doctor, seven MCP stdio tools.
-- [x] Shared mother knowledge and isolated cloud agents using per-namespace grants.
+- [x] Shared knowledge and isolated cloud agents using per-namespace grants.
 - [x] Ready-made swarm init profile and two-agent HTTP isolation/restart demo.
 - [x] Demo with simulated compaction and real server kill/restart.
 - [x] HTTP benchmark client for recall, save, checkpoint and restore.
 - [x] Checksummed Linux/macOS binaries and hardened Docker quick-start.
 - [x] Offline backup and isolated restore drill.
 - [x] Three VPS benchmark runs per workload with raw reports and environment.
-- [x] Static Cloudflare website with setup, feature, contributor and benchmark pages.
+- [x] Cloudflare website with setup, feature, contributor and benchmark pages.
+- [x] Live Rust-backed demo with independent writer/reader, temporary workloads and measured latency.
 
 Deployment and measured results are recorded in [operations](operations.md),
 [benchmarks](benchmarks.md) and [verification checkpoints](checkpoints.md).
@@ -38,28 +39,29 @@ Deployment and measured results are recorded in [operations](operations.md),
 Managed hosting means we run the memory node and you connect your agents directly.
 Self-hosting is available today; a public managed endpoint is not available yet.
 There is no announced launch date or hosted pricing. The website is documentation
-and benchmark infrastructure, separate from the future memory service.
+and benchmark infrastructure, plus a temporary synthetic-data demo sandbox.
+The demo is separate from the future managed memory service.
 
 Before launch: scoped credential provisioning, persistent tenant isolation,
 resource budgets, verified backup/recovery, TLS, operational monitoring and the
 failure-injection gates above. The open-source self-hosted service stays available.
 
-## Distributed mothership direction
+## Distributed knowledge consolidation
 
 Each agent should receive a versioned baseline, retain its own private KV overlay,
 and contribute shareable findings when its run completes. A durable consolidation
 pipeline should deduplicate, validate sources, surface conflicts, and publish a
-reviewed new mother baseline. [Design and proposed schema](distributed-memory.md).
+reviewed new shared baseline. [Design and proposed schema](distributed-memory.md).
 
 | Stage | Scope | Status |
 |---|---|---|
-| Shared mother + private namespaces | One server; read-only mother for workers | Implemented |
+| Shared knowledge + private namespaces | One server; read-only shared knowledge for workers | Implemented |
 | Authorized export/import | Explicit portable knowledge bundles with source/hash validation | Proposed |
-| Baseline + private overlay | Immutable mother manifest on independent worker nodes | Proposed |
+| Baseline + private overlay | Immutable baseline manifest on independent worker nodes | Proposed |
 | Run-completion jobs | Idempotent uploads, durable state, retries and leases | Proposed |
 | Consolidation | Deduplicate, summarize with sources, review conflicts, conditional publication | Proposed |
 | Distributed sync | Restartable pull replication, offline/reconnect and tombstones | Proposed |
-| Knowledge meter | Validated facts, source coverage, freshness, conflicts and evaluated recall | Proposed |
+| Knowledge quality metrics | Validated facts, source coverage, freshness, conflicts and evaluated recall | Proposed |
 
 This is a distributed knowledge workflow proposal, not a shipped consensus KV.
 Choose automatic failover only after availability requirements justify it.

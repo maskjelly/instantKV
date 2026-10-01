@@ -2,7 +2,7 @@
 
 Examples use a locally installed `instantkv` and the default single-agent profile.
 For Docker use `./scripts/kv.sh` in its place. For swarm calls pass `alpha`, `beta`
-or `mother` explicitly, and `--namespace alpha_checkpoints` for Alpha handoffs.
+or `shared` explicitly, and `--namespace alpha_checkpoints` for Alpha handoffs.
 Run `instantkv COMMAND --help` for the authoritative option list.
 
 ## Connection and credentials

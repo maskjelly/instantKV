@@ -66,7 +66,7 @@ function prepareAssets() {
   cpSync(resolve(root, 'examples'), resolve(target, 'examples'), {
     recursive: true,
   });
-  const index = `# instantKV\n\nSelf-hosted knowledge memory for cloud agents. Current release: single-node 0.1.1. Managed hosting and distributed replication are in development.\n\n## Documentation\n\n${docs.map((d) => `- [${d.title}](https://instantkv.com/docs/${d.slug}/): ${d.description}`).join('\n')}\n\n- [Measured benchmarks](https://instantkv.com/benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`;
+  const index = `# instantKV\n\nSelf-hosted knowledge memory for cloud agents. Current release: single-node 0.1.2. Managed hosting and distributed replication are in development.\n\n## Documentation\n\n${docs.map((d) => `- [${d.title}](https://instantkv.com/docs/${d.slug}/): ${d.description}`).join('\n')}\n\n- [Live Rust-backed demo](https://instantkv.com/demo/)\n- [Measured benchmarks](https://instantkv.com/benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`;
   writeFileSync(resolve(target, 'llms.txt'), index);
   writeFileSync(
     resolve(target, 'llms-full.txt'),

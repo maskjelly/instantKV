@@ -16,7 +16,7 @@ or opening storage. `instantkv doctor` also checks the local setup and live heal
 [Agent profile](../config/instantkv.example.toml),
 [swarm profile](../config/swarm.toml), and
 [disposable loopback cache](../config/local-cache.toml) are checked in CI.
-`init` copies the agent profile; `init --profile swarm` creates a mother namespace,
+`init` copies the agent profile; `init --profile swarm` creates a shared namespace,
 Alpha/Beta private knowledge and separate checkpoint namespaces. Both use
 `.instantkv/data` and generate credentials for every configured principal.
 
@@ -58,7 +58,7 @@ Missing, duplicate or shorter-than-32-byte token values refuse server startup.
 The reader can get/list knowledge; the app can access all three namespaces.
 
 In the swarm profile the operator can access all five namespaces. Each agent can
-get/list `mother`, and read/write/delete/list/stats its own knowledge and checkpoint
+get/list `shared`, and read/write/delete/list/stats its own knowledge and checkpoint
 namespaces. This is one shared server with isolated namespaces; it creates no
 physical replica. See [cloud-agent setup](cloud-agents.md).
 
@@ -70,7 +70,7 @@ or explicit per-namespace `grants`. Mixing them is rejected:
 name = "alpha"
 token_env = "INSTANTKV_ALPHA_TOKEN"
 [[auth.principals.grants]]
-namespace = "mother"
+namespace = "shared"
 operations = ["get", "list"]
 [[auth.principals.grants]]
 namespace = "alpha"

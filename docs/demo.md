@@ -1,6 +1,11 @@
-# Demo: park → compact → restore
+# Demo: store → compact → restore
 
-## Shared mother and private cloud agents
+For the browser demo, [open instantkv.com/demo](https://instantkv.com/demo/).
+It writes up to 100,000 synthetic cache records or 10,000 durable records to
+the actual Rust service, then recalls exact keys in an independent reader.
+[Architecture, limits and timing methodology](live-demo.md).
+
+## Shared knowledge and private cloud agents
 
 ```sh
 instantkv demo --swarm
@@ -10,17 +15,17 @@ instantkv demo --swarm
 Verified on the local macOS release build and Rove's Linux Docker instance:
 
 ```text
-01  MOTHER    both cloud agents recall the same shared baseline
-02  PRIVATE   agents write independently; cross-agent reads and mother writes return 403
+01  SHARED    both cloud agents recall the same shared baseline
+02  PRIVATE   agents write independently; cross-agent reads and shared writes return 403
 03  HANDOFF   saved private capsule; cleared simulated context; locator lives outside it
 04  RESTORE   after real server restart, Alpha restores its capsule and both knowledge sources
-PASS: shared mother + isolated agents + durable handoff over real HTTP
+PASS: shared knowledge + isolated agents + durable handoff over real HTTP
 ```
 
-The demo creates a fresh swarm profile, seeds mother knowledge as operator, and
+The demo creates a fresh swarm profile, seeds shared knowledge as operator, and
 uses separate Alpha/Beta credentials for worker calls. It asserts that each agent
-can read mother and write privately, cannot read a sibling's facts or checkpoint,
-and cannot overwrite mother. After context clearing and server kill/restart,
+can read shared knowledge and write privately, cannot read a sibling's facts or checkpoint,
+and cannot overwrite shared knowledge. After context clearing and server kill/restart,
 Alpha restores the exact capsule and reads both referenced knowledge sources.
 The locator is a separate runtime metadata file. No physical replicas or automatic
 consolidation occur. [Deploy this topology](cloud-agents.md).
@@ -35,7 +40,7 @@ instantkv demo
 Verified locally and on Rove's Linux Docker deployment on 2026-10-01:
 
 ```text
-01  PARK      saved project/storage in durable knowledge
+01  STORE     saved project/storage in durable knowledge
 02  SAVE      committed checkpoint + latest pointer atomically
 03  COMPACT   cleared simulated agent context; locator stays outside it
 04  RESTART   reopened the same database with an empty scratch cache

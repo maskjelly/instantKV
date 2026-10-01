@@ -2,7 +2,7 @@
 
 Start the server with `instantkv serve`. The adapter connects to that HTTP server
 and inherits exactly the same namespace/operation grants as its credential.
-For shared mother knowledge plus private workers, follow the
+For shared knowledge plus private workers, follow the
 [cloud-agent guide](cloud-agents.md). Pass the configured namespace explicitly in
 every tool call; the default single-agent names are `knowledge` and `checkpoints`.
 

@@ -82,7 +82,7 @@ timeouts. Added SSH MCP instructions; the usable VPS checkout is
 
 Runtime checkpoint `b8f768b`: 28 local tests, formatting, strict Clippy, both HTTP
 demos and all three configuration profiles pass. The new test proves shared
-mother reads, private writes, forbidden sibling/mother operations, rejected
+shared knowledge reads, private writes, forbidden sibling/shared operations, rejected
 out-of-scope checkpoint references, and forbidden reference status during restore.
 Linux and macOS native CI checks also passed. Its container job stopped at the
 new port-output assertion because `rg` is absent from the runner; the assertion
@@ -101,7 +101,7 @@ Its saved `rove-first-checkpoint` was then restored from a fresh offline backup
 into an isolated volume before upgrading. Server credentials and backup contents
 are private and are never committed.
 
-Rove also passed the 0.1.1 swarm init, doctor, two-agent demo, mother knowledge
+Rove also passed the 0.1.1 swarm init, doctor, two-agent demo, shared knowledge
 recall, private checkpoint save and restore using the Linux artifact from runtime
 checkpoint `b8f768b`. The swarm has its own volume and loopback port 8096. A fresh
 offline swarm backup restored `alpha-first-handoff` from `alpha_checkpoints` in an
@@ -119,10 +119,10 @@ The published installer downloaded and checksum-verified both platform packages;
 their installed binaries passed `demo --swarm` on macOS and Rove Linux.
 
 Both Rove instances now run the release binary: original profile on loopback
-8095 and mother/private swarm on 8096. The old `rove-first-checkpoint` and its
+8095 and shared/private swarm on 8096. The old `rove-first-checkpoint` and its
 knowledge reference survived upgrade; `alpha-first-handoff` remains restorable.
-Scoped Alpha MCP discovered seven tools, read mother, parked private knowledge,
-saved/restored its capsule, and received 403 for mother writes and sibling access.
+Scoped Alpha MCP discovered seven tools, read shared knowledge, stored private knowledge,
+saved/restored its capsule, and received 403 for shared writes and sibling access.
 A 2,000-request Alpha GET smoke run completed with zero errors; the earlier
 three-run benchmark reports retain their own measured commit and conditions.
 

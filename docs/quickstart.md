@@ -2,7 +2,7 @@
 
 Choose Docker Compose or Rust 1.98+.
 
-For the mother/private cloud-agent topology, use `INSTANTKV_PROFILE=swarm` on the
+For shared knowledge and private agent namespaces, use `INSTANTKV_PROFILE=swarm` on the
 first Docker setup or `instantkv init --profile swarm` in a fresh binary setup.
 Follow [the cloud-agent guide](cloud-agents.md) for scopes and worker provisioning.
 The examples below use the default single-agent profile.

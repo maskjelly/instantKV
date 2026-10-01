@@ -17,6 +17,8 @@
 /site/dist/
 /site/.astro/
 /site/.wrangler/
+/site/.dev.vars
+/site/.dev.vars.*
 /site/public/assets/
 /site/public/benchmark-data/
 /site/public/examples/

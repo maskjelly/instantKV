@@ -132,18 +132,18 @@ b.save()
 b=Board('swarm',1600,1090)
 b.header('One base. Independent agents.','SWARM MEMORY / IMPLEMENTED / SINGLE NODE',
          'Shared project knowledge. A private workspace for every worker.')
-b.panel('Mother knowledge',350,255,900,175,
+b.panel('Shared knowledge base',350,255,900,175,
         ['Shared facts, decisions and source references.','Operator writes. Scoped agents read.'])
 for name,x,namespace in [('Alpha',72,'alpha'),('Beta',878,'beta')]:
     middle=x+325
-    b.arrow(name+' mother read',middle,497,middle,441)
-    b.text(name+' read label','READ MOTHER',middle+30,482,21,MUTED,500)
+    b.arrow(name+' shared read',middle,497,middle,441)
+    b.text(name+' read label','READ SHARED',middle+30,482,21,MUTED,500)
     b.panel('Agent '+name,x,508,650,160,
             ['Remote worker / scoped credential','Recall shared facts. Work independently.'])
     b.arrow(name+' private write',middle,677,middle,741)
     b.text(name+' write label','WRITE OWN SCOPE',middle+30,715,21,MUTED,500)
     b.panel('Private knowledge + checkpoints',x,754,650,165,
-            [namespace+' + '+namespace+'_checkpoints','Sibling access denied. Mother writes denied.'],26)
+            [namespace+' + '+namespace+'_checkpoints','Sibling access denied. Shared writes denied.'],26)
 b.text('Repeatable scopes','Repeat the namespace-and-grant pattern for each new agent.',72,969,28)
 b.footer('One server, no physical replicas. Namespace grants isolate access; agent/session labels do not.')
 b.save()
@@ -163,7 +163,7 @@ b.arrow('Scratch down',402,482,402,536)
 b.panel('Scratch / RAM',72,548,660,202,
         ['Optional working cache / TTL + FIFO','Bounded, indexed expiry cleanup','Empty after process restart.'],27)
 b.panel('Knowledge + checkpoints / redb',868,548,660,202,
-        ['Mother + private namespaces','One database file. Immediate durability.','Retained across process restart.'],27)
+        ['Shared + private namespaces','One database file. Immediate durability.','Retained across process restart.'],27)
 b.rect('Schema boundary',72,815,1456,271,LINE)
 b.rect('Schema surface',73,816,1454,269,PANEL)
 b.text('Records heading','records_v1',99,865,30,weight=500)
@@ -182,7 +182,7 @@ b=Board('lifecycle',1600,730)
 b.header('Save. Compact. Resume.','COMPACTION HANDOFF / IMPLEMENTED',
          'The runtime chooses when to save and restore. The server keeps the memory.')
 for i,(title,details) in enumerate([
-    ('01 / Park',['Facts + sources','Exact key recall']),
+    ('01 / Store',['Facts + sources','Exact key recall']),
     ('02 / Checkpoint',['Goal + constraints','Decisions + tasks','Next action + refs']),
     ('03 / Compact',['Wait for durable ACK','Keep locator outside','compacted context']),
     ('04 / Restore',['Small capsule first','Fetch facts by key','Continue the task'])]):
@@ -197,9 +197,9 @@ b.footer('Persist the locator outside prompt text. Restore the capsule, then fet
 b.save()
 
 b=Board('distributed',1600,1200)
-b.header('A distributed mothership.','DISTRIBUTED MEMORY / FUTURE PROPOSAL',
+b.header('Distributed agent memory.','DISTRIBUTED MEMORY / FUTURE PROPOSAL',
          'Replication and automatic run-completion consolidation are not implemented.')
-b.panel('Canonical mother knowledge',350,242,900,160,
+b.panel('Canonical knowledge base',350,242,900,160,
         ['Versioned facts, sources and conflict history.','Baseline manifests seed the next swarm.'],27)
 for name,x in [('Worker A',72),('Worker B',878)]:
     middle=x+325
@@ -218,9 +218,9 @@ b.arrow('Publication to canon',1560,321,1267,321)
 b.text('Publication label','PUBLISH NEXT',1290,281,21,MUTED,500)
 b.rect('Meter boundary',72,998,1456,95,LINE)
 b.rect('Meter surface',73,999,1454,93,PANEL)
-b.text('Meter heading','KNOWLEDGE METER / PROPOSED',98,1051,20,MUTED,500)
+b.text('Metrics heading','QUALITY METRICS / PROPOSED',98,1051,20,MUTED,500)
 b.text('Meter metrics','Facts / sources / freshness / conflicts / recall',605,1052,26)
-b.footer('No silent last-writer-wins merge. Accepted facts retain sources; rejected candidates stay outside canon.')
+b.footer('No silent last-writer-wins merge. Accepted facts retain sources; conflicts require review.')
 b.save()
 
 svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title"><title id="title">instantKV Monolith: split chrome K</title><defs><linearGradient id="chrome" x1="0" y1="0" x2="0" y2="128" gradientUnits="userSpaceOnUse">'

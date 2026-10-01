@@ -9,26 +9,26 @@
 # instantKV
 
 [Website](https://instantkv.com) · [Start guide](https://instantkv.com/docs/quickstart/)
-· [Benchmarks](https://instantkv.com/benchmarks/) · [Documentation](https://instantkv.com/docs/)
+· [Live demo](https://instantkv.com/demo/) · [Benchmarks](https://instantkv.com/benchmarks/) · [Documentation](https://instantkv.com/docs/)
 
-**A mother knowledge base for cloud agents. A private memory for every worker.**
+**A shared knowledge base for cloud agents. A private namespace for every worker.**
 
 Remote agents need somewhere to keep project facts, decisions, and unfinished
 work when their context gets compacted. instantKV is a self-hosted knowledge KV
-service for that handoff: park memory, save a capsule, restore, and continue.
+service for that handoff: store knowledge, save a checkpoint, restore, and continue.
 
-Give your swarm a shared **mother base** and give each agent its own knowledge
+Give your swarm a **shared knowledge base** and give each agent its own knowledge
 and checkpoint namespaces. Workers read the same project knowledge, work
 independently, and keep their findings private. One Rust binary, one config,
 one data directory. HTTP, CLI, and MCP share the same permission checks.
 
 ## The swarm memory model
 
-<img src="docs/assets/swarm.png" width="1100" alt="Implemented single-server topology: operator writes mother knowledge; Alpha and Beta read mother and write their own isolated knowledge and checkpoints">
+<img src="docs/assets/swarm.png" width="1100" alt="Implemented single-server topology: operator publishes shared knowledge; Alpha and Beta read shared records and write their own isolated knowledge and checkpoints">
 
-**Working today:** shared mother reads, private agent writes, durable checkpoints,
+**Working today:** shared knowledge reads, private agent writes, durable checkpoints,
 and access checks on every request. Add namespaces and scoped credentials to
-repeat the pattern for more agents. The mother is a live shared base; independent
+repeat the pattern for more agents. The shared knowledge base is live; independent
 physical replicas and automatic consolidation are planned below.
 [Cloud-agent setup and permissions →](docs/cloud-agents.md)
 
@@ -40,8 +40,8 @@ With Docker and Compose, on a fresh checkout and volume:
 git clone https://github.com/maskjelly/instantKV.git
 cd instantKV
 INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
-./scripts/kv.sh put mother project/storage --value '{"content":"Use Rust + redb"}'
-./scripts/kv.sh get mother project/storage
+./scripts/kv.sh put shared project/storage --value '{"content":"Use Rust + redb"}'
+./scripts/kv.sh get shared project/storage
 ./scripts/kv.sh demo --swarm
 ```
 
@@ -52,8 +52,8 @@ cargo install --git https://github.com/maskjelly/instantKV --locked instantkv
 instantkv init --profile swarm
 instantkv serve
 # In another terminal, in the same directory:
-instantkv put mother project/storage --value '{"content":"Use Rust + redb"}'
-instantkv get mother project/storage
+instantkv put shared project/storage --value '{"content":"Use Rust + redb"}'
+instantkv get shared project/storage
 ```
 
 Setup generates private credentials automatically. The commands above use the
@@ -69,7 +69,7 @@ instantkv demo --swarm
 ```
 
 The demo starts an isolated server and two scoped clients. It proves shared
-recall, private writes, forbidden cross-agent reads and mother writes, then saves
+recall, private writes, forbidden cross-agent reads and shared writes, then saves
 Alpha's capsule, clears simulated context, kills the server and restores from
 the same database. No model API key is needed.
 [Demo walkthrough and example output →](docs/demo.md)
@@ -88,11 +88,11 @@ the capsule first and recall detailed records as needed.
 
 | Namespace type | Purpose | Restart behavior |
 |---|---|---|
-| Mother + private knowledge | Facts, decisions, sources; exact key recall | Durable; no default TTL |
+| Shared + private knowledge | Facts, decisions, sources; exact key recall | Durable; no default TTL |
 | Private checkpoints | Immutable capsules and atomic session latest pointers | Durable; never auto-evicted |
 | Optional scratch | Temporary working data | RAM; TTL and FIFO eviction |
 
-The swarm profile ships `mother`, `alpha`, `beta`, and a checkpoint namespace for
+The swarm profile ships `shared`, `alpha`, `beta`, and a checkpoint namespace for
 each worker. Default `instantkv init` gives a single agent `knowledge`,
 `checkpoints`, and `scratch`. All namespace names and quotas are configurable.
 
@@ -136,23 +136,23 @@ medians of three runs, zero errors:
 These loopback measurements include existing host load. They do not measure
 public HTTPS or distributed swarms. Raw reports and environment are linked above.
 
-## Next: a distributed mothership
+## Next: distributed knowledge consolidation
 
-<img src="docs/assets/distributed.png" width="1100" alt="Future proposal: mothership sends a versioned baseline to independent workers; completed runs submit shareable deltas; durable consolidation validates sources and conflicts before publishing the next baseline; quality counters form the knowledge meter">
+<img src="docs/assets/distributed.png" width="1100" alt="Future proposal: canonical knowledge base sends a versioned baseline to independent workers; completed runs submit shareable deltas; durable consolidation validates sources and conflicts before publishing the next baseline; quality metrics track sources, freshness and recall">
 
 The direction: each cloud agent receives a versioned knowledge baseline, runs
 with its own local KV and private overlay, and submits shareable findings when
-its run ends. The mothership deduplicates, validates, compacts and reviews those
+its run ends. A consolidation pipeline deduplicates, validates, compacts and reviews those
 findings before publishing the next baseline for the swarm.
 
-The **knowledge meter** should track validated facts, source coverage, freshness,
+The **knowledge quality metrics** should track validated facts, source coverage, freshness,
 unresolved conflicts and recall success. More stored tokens alone do not mean
 better knowledge. **This distributed workflow is a proposal, not shipped behavior.**
 [Detailed design, schema and rollout gates →](docs/distributed-memory.md)
 
 ## Project status
 
-Early single-node release. Shared mother/private memory works today. Physical
+Early single-node release. Shared knowledge and private agent namespaces work today. Physical
 replication, automatic consolidation, semantic search and automatic runtime
 compaction hooks remain future work. The restart demo simulates context clearing;
 a real-model lifecycle evaluation and deeper power/disk-failure audit remain open.

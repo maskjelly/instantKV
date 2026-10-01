@@ -34,6 +34,12 @@ const path = Astro.url.pathname;
     </a>
     <nav aria-label="Main navigation">
       <a
+        href="/demo/"
+        aria-current={path.startsWith('/demo/') ? 'page' : undefined}
+      >
+        Live demo
+      </a>
+      <a
         href="/docs/quickstart/"
         aria-current={path.startsWith('/docs/') ? 'page' : undefined}
       >

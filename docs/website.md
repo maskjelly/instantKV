@@ -7,7 +7,8 @@ separately self-hosted process. Managed hosting is in development.
 ## Stack and boundaries
 
 Astro + TypeScript builds static HTML. Cloudflare Workers Static Assets serves
-the files; no server-side JavaScript or site database is needed. Pagefind generates
+the files. A small Worker proxies only `/api/demo/*` to the isolated Rust-backed
+[live demo](live-demo.md); documentation needs no database. Pagefind generates
 browser-local search. Application scripts provide search, code copying,
 benchmark chart controls and announcement pause/play. Fonts and images are
 served locally. Cloudflare's existing zone-level Web Analytics injects its beacon;
@@ -46,6 +47,7 @@ build first and run the actual static-asset server:
 
 ```sh
 npm run check
+npm test
 npm run build
 npm run verify
 npm run preview
@@ -91,7 +93,8 @@ interactive OAuth token in GitHub secrets.
 ## Verification and rollback
 
 Verify HTTPS at `/`, `/docs/quickstart/`, `/benchmarks/`, `/llms.txt` and a missing
-route after publishing. Confirm search works under the site's Content Security
+route after publishing. Run the live demo in both cache and durable modes,
+including cross-tab recall. Confirm search works under the site's Content Security
 Policy and that the domain serves the new build. There is no website user-data
 migration. To roll back, check out the last reviewed site commit and redeploy its
 static build. Record the deployed commit/version and verification result in

@@ -1,12 +1,20 @@
 export const repository = 'https://github.com/maskjelly/instantKV';
 export const docs = [
   {
+    slug: 'live-demo',
+    title: 'Live demo architecture',
+    group: 'Start here',
+    source: 'docs/live-demo.md',
+    description:
+      'Real Rust storage, independent readers and reproducible latency measurements.',
+  },
+  {
     slug: 'quickstart',
     title: 'Quick start',
     group: 'Start here',
     source: 'docs/quickstart.md',
     description:
-      'Install instantKV, park your first memory and restore a checkpoint.',
+      'Install instantKV, store your first memory and restore a checkpoint.',
   },
   {
     slug: 'features',
@@ -29,7 +37,7 @@ export const docs = [
     group: 'Use the service',
     source: 'docs/cloud-agents.md',
     description:
-      'Shared mother knowledge, private worker scopes and remote access.',
+      'Shared knowledge base, private agent namespaces and remote access.',
   },
   {
     slug: 'agents',
@@ -138,7 +146,7 @@ export const docs = [
     group: 'Project',
     source: 'docs/distributed-memory.md',
     description:
-      'Future baseline replicas, overlays and mothership consolidation.',
+      'Future baseline replicas, private overlays and knowledge consolidation.',
   },
   {
     slug: 'changelog',

@@ -1,0 +1,48 @@
+# Dedicated synthetic-data instance. Never reuse an agent's production database.
+version = 1
+[server]
+bind = "0.0.0.0:8080"
+max_request_body_bytes = 8192
+max_in_flight_requests = 64
+request_timeout_seconds = 10
+[storage]
+data_dir = "/state/data"
+cleanup_interval_seconds = 1
+cleanup_batch_entries = 1000
+[auth]
+mode = "api_key"
+[[auth.principals]]
+name = "demo"
+token_env = "INSTANTKV_DEMO_TOKEN"
+namespaces = ["demo_cache", "demo_knowledge"]
+operations = ["get", "put"]
+[[namespaces]]
+name = "demo_cache"
+mode = "memory"
+[namespaces.retention]
+require_ttl = true
+default_ttl_seconds = 900
+max_ttl_seconds = 900
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 8192
+[namespaces.capacity]
+max_entries = 150000
+max_total_bytes = 134217728
+on_full = "evict_oldest"
+[[namespaces]]
+name = "demo_knowledge"
+mode = "durable"
+[namespaces.retention]
+require_ttl = true
+default_ttl_seconds = 900
+max_ttl_seconds = 900
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 8192
+[namespaces.capacity]
+max_entries = 30000
+max_total_bytes = 67108864
+on_full = "reject"

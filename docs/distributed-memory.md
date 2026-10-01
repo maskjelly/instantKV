@@ -1,4 +1,4 @@
-# Distributed mothership memory: design proposal
+# Distributed agent memory: design proposal
 
 Status: **proposal, not implemented**. Date: 2026-10-01. Audience: builders and
 operators. Owners: instantKV maintainers. This document defines a path from the
@@ -7,18 +7,18 @@ working [single-server swarm profile](cloud-agents.md) to independent worker nod
 ## Objective
 
 Every remote cloud agent starts from a common knowledge baseline, keeps its own
-working memory, and contributes useful findings after its run. A mothership
+working memory, and contributes useful findings after its run. A consolidation service
 validates and consolidates those contributions into the next shared baseline.
 Repeated swarm runs improve the retained knowledge, with sources and conflicts
 visible rather than hidden in an increasingly large summary.
 
 Current code provides durable records, scoped namespaces, conditional revisions
 and atomic handoff capsules. It does not provide snapshot manifests, replication,
-change feeds, run-completion jobs, automatic summaries or a knowledge meter.
+change feeds, run-completion jobs, automatic summaries or knowledge quality metrics.
 
 ## Proposed ownership and flow
 
-1. **Publish baseline.** The mothership publishes an immutable manifest with a
+1. **Publish baseline.** The canonical knowledge service publishes an immutable manifest with a
    baseline ID, schema version, record content hashes and source revisions.
 2. **Seed workers.** Each worker fetches an authorized projection of that manifest
    into a local KV replica. Private writes land in a separate overlay; they do not
@@ -31,7 +31,7 @@ change feeds, run-completion jobs, automatic summaries or a knowledge meter.
 5. **Consolidate.** A durable job imports candidates, deduplicates exact content,
    checks provenance and policy, and surfaces disagreements. An optional model
    may propose a summary; acceptance requires validation and source retention.
-6. **Publish new canon.** Reviewed facts update the mothership with conditional
+6. **Publish baseline revision.** Reviewed facts update the canonical knowledge base with conditional
    revisions. A new manifest records the accepted changes. The next swarm starts
    from it. Unfinished or rejected jobs never partially publish a baseline.
 
@@ -59,18 +59,18 @@ they must not imply the other. Model output is untrusted candidate content.
 
 ## Compaction and conflict policy
 
-Handoff compaction and mothership consolidation have different purposes. A
+Context compaction and knowledge consolidation have different purposes. A
 handoff capsule preserves enough context to continue one task. Consolidation
 extracts reusable knowledge from finished runs. It must preserve original source
 locators and cannot replace private capsules silently.
 
-Deduplicate exact content first. A change based on an older mother revision
+Deduplicate exact content first. A change based on an older baseline revision
 becomes a conflict when the canonical value changed. Surface both candidates
 with their sources; do not silently apply last-writer-wins. Deletions require
 explicit tombstones and authorization. Revoked scopes stop future sync/import;
 already downloaded replicas require a separate retention/revocation policy.
 
-## The knowledge meter
+## Knowledge quality metrics
 
 Expose a small set of understandable counters instead of a fabricated intelligence
 score: validated unique facts, source coverage, freshness, unresolved conflicts,
@@ -85,9 +85,9 @@ The current namespace stats endpoint measures entries/bytes/revisions only.
 | 1. Explicit export/import | Round trip authorized records with hashes, revisions and sources; deny private-scope export |
 | 2. Baseline + overlay | Two workers start from one manifest, write independently, and retain the correct base revision |
 | 3. Completion queue | Duplicate/reordered uploads, interrupted transfer, lease expiry and worker restart never double-publish |
-| 4. Reviewed consolidation | Conflicting agent findings remain visible; rejected or unsupported summaries do not enter canon |
+| 4. Reviewed consolidation | Conflicting agent findings remain visible; rejected or unsupported summaries do not enter the canonical knowledge base |
 | 5. Distributed pull sync | Offline/reconnect, tombstones, revoked grants and partial baselines behave as documented |
-| 6. Knowledge meter | Fixed recall evaluation and quality counters show useful improvements rather than only database growth |
+| 6. Knowledge quality metrics | Fixed recall evaluation and quality counters show useful improvements rather than only database growth |
 
 Roll out behind an opt-in protocol version on separate data stores. Keep the
 single-node HTTP/MCP contract working. Back up the canonical database and keep

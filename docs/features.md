@@ -40,11 +40,11 @@ for each session is protected. Keep the checkpoint locator in runtime metadata
 outside the compacted prompt. Automatic runtime compaction hooks are future work.
 See [the memory contract](agent-memory.md).
 
-## Shared mother and private agents
+## Shared knowledge and private agents
 
-The swarm profile gives Alpha and Beta read-only mother knowledge plus private
+The swarm profile gives Alpha and Beta read-only shared knowledge plus private
 knowledge and checkpoint namespaces. An operator publishes shared facts. Workers
-cannot read sibling scopes or write mother knowledge. Add namespace/grant pairs
+cannot read sibling scopes or write shared knowledge. Add namespace/grant pairs
 and restart to provision more workers. These are API permissions on one shared
 process, not physical database replicas. See [cloud agents](cloud-agents.md).
 
@@ -72,5 +72,5 @@ temporary volume. Follow [operations](operations.md) before upgrading.
 
 Managed hosting, distributed replicas, automatic run-completion consolidation,
 semantic search, online snapshots, final-session retirement and a quality-focused
-knowledge meter are not implemented. The [roadmap](roadmap.md) and
+knowledge quality metrics are not implemented. The [roadmap](roadmap.md) and
 [distributed proposal](distributed-memory.md) state the rollout gates.

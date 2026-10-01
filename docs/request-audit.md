@@ -23,8 +23,8 @@ passed independently on macOS and Rove Linux.
 | Benchmark page and confident speed/efficiency/cost positioning | [Interactive benchmark page](https://instantkv.com/benchmarks/) calculates medians/totals from all 15 raw reports and publishes download links, conditions, tails and reproduction commands. Homepage leads with 4,010 reads/sec, 10.3 MiB observed post-run memory and $0 MIT software license fee; infrastructure cost and measurement scope stay explicit. |
 | Self-hosted service positioning and scrolling future-hosting announcement | No SaaS signup or live managed API claim. Pausable scrolling banner says managed hosting is in development; reduced-motion mode is static. [Roadmap](roadmap.md) defines the future service and launch gates without invented dates/prices. |
 | Market specifically to remote cloud agents and swarms | README opening, brand tagline, GitHub description/topics and [cloud-agent guide](cloud-agents.md) center this audience and workflow. |
-| Mother knowledge given to every agent; independent private bases | Working swarm profile: read-only `mother` for agents; private `alpha`/`beta` records and checkpoint scopes; operator publishing. Per-namespace permissions enforce the boundaries. The guide shows how to repeat the pattern for more agents. [Shipped profile](../config/swarm.toml), [swarm diagram](assets/swarm.png). |
-| Future distributed memory and end-of-run consolidation into a growing mothership | Complete proposal: versioned baseline replicas, private overlays, shareable completion deltas, durable jobs, source validation, deduplication, conflict review, conditional publication and pull sync. Knowledge meter tracks quality. [Design/schema/rollout gates](distributed-memory.md), [roadmap](roadmap.md). |
+| Shared knowledge given to every agent; independent private namespaces | Working swarm profile: read-only `shared` for agents; private `alpha`/`beta` records and checkpoint scopes; operator publishing. Per-namespace permissions enforce the boundaries. The guide shows how to repeat the pattern for more agents. [Shipped profile](../config/swarm.toml), [swarm diagram](assets/swarm.png). |
+| Future distributed memory and end-of-run knowledge consolidation | Complete proposal: versioned baseline replicas, private overlays, shareable completion deltas, durable jobs, source validation, deduplication, conflict review, conditional publication and pull sync. Knowledge quality metrics track sources, freshness and evaluated recall. [Design/schema/rollout gates](distributed-memory.md), [roadmap](roadmap.md). |
 | Learn from strong database/KV/low-level and KDE repositories | Primary references and adopted practices documented for Valkey, TigerBeetle, redb, KDE KCoreAddons/ECM and the official Rust MCP SDK. [Engineering references](inspirations.md). |
 | Proper open-source repo descriptions, docs and good practices | MIT license, contribution/security guides, private vulnerability reporting, issue/PR templates, pinned CI actions, locked dependencies, strict configuration, invariant tests, changelog and deployment/backup docs. [Contributor guide](../CONTRIBUTING.md), [security](../SECURITY.md). |
 | Commit and push each checkpoint/stage | Foundation, storage, HTTP/DX, MCP, retention, packaging, benchmark/docs, identity, swarm grants, CI portability and private backup fixes were committed and pushed. [Checkpoint history](checkpoints.md) and Git history record the stages. |
@@ -33,9 +33,9 @@ passed independently on macOS and Rove Linux.
 
 ## Shipped behavior versus future work
 
-Shared mother access plus private namespaces works on one server. A worker does
+Shared knowledge access plus private namespaces works on one server. A worker does
 not receive a physical database fork or an immutable multi-key baseline yet.
-Those replicas, automatic completed-run consolidation and the knowledge meter
+Those replicas, automatic completed-run consolidation and knowledge quality metrics
 are explicitly proposed, exactly as requested for future planning.
 
 The demos simulate prompt-context clearing while using real HTTP, real process
