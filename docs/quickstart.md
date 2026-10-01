@@ -2,6 +2,11 @@
 
 Choose Docker Compose or Rust 1.98+.
 
+For the mother/private cloud-agent topology, use `INSTANTKV_PROFILE=swarm` on the
+first Docker setup or `instantkv init --profile swarm` in a fresh binary setup.
+Follow [the cloud-agent guide](cloud-agents.md) for scopes and worker provisioning.
+The examples below use the default single-agent profile.
+
 ## Docker: no Rust install needed
 
 ```sh
@@ -61,6 +66,7 @@ in `.instantkv/data`; preserve that directory across upgrades.
 
 ```sh
 instantkv demo
+instantkv demo --swarm
 ```
 
 The demo starts an isolated server, saves knowledge and a checkpoint over HTTP,

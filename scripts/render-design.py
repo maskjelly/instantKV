@@ -1,143 +1,175 @@
 #!/usr/bin/env python3
-"""Author editable native Tesseract diagrams and branding. No raster layout flattening."""
+"""Author editable classic-desktop artwork with native Tesseract text and shapes."""
 import argparse
 import json
 from pathlib import Path
 import subprocess
-
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / 'docs/assets'
 WORK = ROOT / '.tesseract-work'
 parser = argparse.ArgumentParser()
 parser.add_argument('--tsrct', required=True, help='Pinned Tesseract 0.3.0 executable')
-args = parser.parse_args()
-CLI = str(Path(args.tsrct).resolve())
-
+CLI = str(Path(parser.parse_args().tsrct).resolve())
 def run(*args):
     subprocess.run([CLI, *map(str, args)], check=True, cwd=ROOT)
-
 def color(value):
-    value = value.lstrip('#')
-    return [int(value[i:i+2],16)/255 for i in (0,2,4)] + [1]
-
-INK = '#182D27'
-GREEN = '#267D60'
-LIME = '#D8ED9B'
-PAPER = '#F5F3ED'
-MUTED = '#63766D'
-LINE = '#B7C6BB'
-
+    return [int(value[i:i+2], 16)/255 for i in (1, 3, 5)] + [1]
+NAVY, DESKTOP, GRAY = '#000080', '#008080', '#C0C0C0'
+INK, WHITE, DARK, YELLOW = '#101010', '#FFFFFF', '#808080', '#FFFF80'
+PIXELS = [(8,6),(8,7),(8,8),(8,9),(8,10),(8,11),(8,12),(8,13),
+          (9,9),(10,8),(11,7),(12,6),(10,10),(11,11),(12,12),(13,13)]
 class Board:
     def __init__(self, name, width, height):
         self.path = ASSETS / f'{name}.tsrct'
         if not self.path.exists(): run('project','create','--project',self.path)
-        run('project','import-font','--project',self.path,'--file',ASSETS/'fonts/SpaceGrotesk.ttf')
+        run('project','import-font','--project',self.path,'--file',ASSETS/'fonts/VT323-Regular.ttf')
         self.layout = WORK/f'{name}.json'
         run('project','checkout','--project',self.path,'--output',self.layout)
         self.doc = json.loads(self.layout.read_text())
-        self.doc['dimensions']={'width':width,'height':height}
-        self.doc['composition']['layers']=[]
-        self.id=0
+        self.doc['dimensions'] = {'width':width,'height':height}
+        self.doc['composition']['layers'] = []
+        self.id = 0
     def layer(self, kind, name, x, y, payload):
-        self.id+=1
-        layer={'type':kind,'id':self.id,'name':name,'blendMode':'normal','activeRange':{'start':0,'duration':3000},'transform':{'anchorPoint':[0,0],'position':[x,y],'scale':[100,100],'rotation':0,'opacity':100},**payload}
-        self.doc['composition']['layers'].insert(0,layer)
-    def rect(self,name,x,y,w,h,fill,roundness=0,stroke=None):
-        rect={'size':[w,h],'fillColor':color(fill),'roundness':roundness}
-        if stroke: rect.update(strokeEnabled=True,strokeColor=color(stroke),strokeWidth=1.5)
-        self.layer('Rect',name,x,y,{'rect':rect})
-    def text(self,name,text,x,y,size=20,fill=INK,weight=400):
-        self.layer('Text',name,x,y,{'sourceText':{'text':text,'fontFamily':'Space Grotesk Light','fontStyle':'Regular','fontSize':size,'fontVariations':{'id':self.id+1,'axes':{'wght':weight}},'fillColor':color(fill),'strokeWidth':0,'justification':'left','leading':size*1.35}})
-    def polygon(self,name,points,fill):
-        commands=[{'type':'moveTo' if i==0 else 'lineTo','x':x,'y':y} for i,(x,y) in enumerate(points)]+[{'type':'close'}]
-        self.layer('Shape',name,0,0,{'shape':{'path':{'commands':commands},'fills':[{'paint':{'type':'solid','color':color(fill)},'fillRule':'nonZeroWinding','blendMode':'normal','opacity':100}]}})
-    def arrow(self,name,x1,y1,x2,y2,fill=GREEN):
-        if y1==y2:
-            self.rect(name,x1,y1-1.5,x2-x1-9,3,fill)
-            self.polygon(name+' head',[(x2,y2),(x2-10,y2-6),(x2-10,y2+6)],fill)
+        self.id += 1
+        self.doc['composition']['layers'].insert(0, {
+            'type':kind,'id':self.id,'name':name,'blendMode':'normal',
+            'activeRange':{'start':0,'duration':3000},
+            'transform':{'anchorPoint':[0,0],'position':[x,y],'scale':[100,100],'rotation':0,'opacity':100}, **payload})
+    def rect(self, name, x, y, w, h, fill):
+        self.layer('Rect',name,x,y,{'rect':{'size':[w,h],'fillColor':color(fill),'roundness':0}})
+    def text(self, name, text, x, y, size=30, fill=INK):
+        self.layer('Text',name,x,y,{'sourceText':{'text':text,'fontFamily':'VT323','fontStyle':'Regular',
+            'fontSize':size,'fillColor':color(fill),'strokeWidth':0,'justification':'left','leading':size*1.18}})
+    def bevel(self, name, x, y, w, h, fill=GRAY, inset=False):
+        top,bottom = (DARK,WHITE) if inset else (WHITE,INK)
+        self.rect(name,x,y,w,h,fill)
+        self.rect(name+' top',x,y,w,3,top); self.rect(name+' left',x,y,3,h,top)
+        self.rect(name+' bottom',x,y+h-3,w,3,bottom); self.rect(name+' right',x+w-3,y,3,h,bottom)
+    def window(self, title, x, y, w, h, bar=NAVY):
+        self.rect(title+' shadow',x+7,y+7,w,h,'#004C4C')
+        self.bevel(title+' frame',x,y,w,h)
+        self.rect(title+' title bar',x+7,y+7,w-14,38,bar)
+        self.text(title+' title',title,x+18,y+36,30,WHITE)
+        self.bevel(title+' close',x+w-40,y+13,27,25)
+        self.text(title+' close glyph','x',x+w-33,y+33,25)
+    def arrow(self, name, x1, y1, x2, y2, fill=NAVY):
+        if y1 == y2:
+            sign = 1 if x2 > x1 else -1
+            self.rect(name,min(x1,x2),y1-2,abs(x2-x1),4,fill)
+            for step in range(5): self.rect(name+str(step),x2-sign*(step+1)*3,y2-2-step*2,3,4+step*4,fill)
         else:
-            self.rect(name,x1-1.5,y1,3,y2-y1-9,fill)
-            self.polygon(name+' head',[(x2,y2),(x2-6,y2-10),(x2+6,y2-10)],fill)
-    def mark(self,x,y,scale=1,fill=GREEN):
-        for i in range(3): self.rect(f'Cache tile {i}',x+20*scale,y+(20+i*32)*scale,24*scale,24*scale,fill,4*scale)
-        self.polygon('Folded K ribbon',[(x+a*scale,y+b*scale) for a,b in [(44,53),(82,20),(112,20),(65,64),(112,108),(82,108),(44,75)]],fill)
+            sign = 1 if y2 > y1 else -1
+            self.rect(name,x1-2,min(y1,y2),4,abs(y2-y1),fill)
+            for step in range(5): self.rect(name+str(step),x2-2-step*2,y2-sign*(step+1)*3,4+step*4,3,fill)
+    def mark(self, x, y, scale=1):
+        u = 8*scale
+        self.bevel('Memory disk',x,y,16*u,16*u,NAVY)
+        self.rect('Disk top label',x+2*u,y+u,12*u,3*u,'#4080C0')
+        for i in range(3): self.bevel(f'Knowledge slot {i}',x+2*u,y+(6+3*i)*u,4*u,2*u,YELLOW)
+        for px,py in PIXELS: self.rect(f'K pixel {px}:{py}',x+px*u,y+py*u,u,u,WHITE)
     def save(self):
         self.layout.write_text(json.dumps(self.doc,indent=2)+'\n')
         run('project','commit','--project',self.path,'--file',self.layout)
         run('preview','--project',self.path,'--time','1','--output',self.path.with_suffix('.png'))
-
+def desktop(name, width, height, title, status):
+    b = Board(name,width,height)
+    b.rect('Desktop',0,0,width,height,DESKTOP)
+    b.text('Heading',title,42,66,52,WHITE)
+    b.text('Status',status,44,107,28,YELLOW)
+    b.bevel('Status bar',28,height-54,width-56,32,GRAY,True)
+    return b
 WORK.mkdir(exist_ok=True)
-b=Board('architecture',1600,1100)
-b.rect('Paper',0,0,1600,1100,PAPER)
-b.mark(52,30,0.55)
-b.text('Brand','instantKV',126,85,40,INK,700)
-b.text('Title','Memory that survives compaction.',64,170,52,INK,700)
-b.text('Subtitle','Park knowledge. Commit a capsule. Restore only what the agent needs.',64,211,22,MUTED)
-b.rect('Single node badge',1250,55,286,42,LIME,21)
-b.text('Single node label','SINGLE NODE  /  RUST',1274,84,17,INK,700)
-
-b.arrow('Runtime to clients',345,342,386,342)
-b.arrow('Clients to policy',615,342,658,342)
-b.arrow('Policy to durable',1086,342,1132,342)
-b.rect('Scratch branch',1084,399,30,3,GREEN)
-b.rect('Scratch route down',1111,399,3,137,GREEN)
-b.arrow('Scratch route right',1111,536,1132,536)
-b.rect('Expiry calls core',875,438,3,62,MUTED)
-b.polygon('Expiry core arrow',[(876.5,432),(870.5,443),(882.5,443)],MUTED)
-
-for name,x,y,w,h in [('Agent runtime',64,264,280,164),('Clients',392,264,222,164),('Memory service',664,264,420,164),('Durable storage',1136,264,400,164),('Expiry worker',664,500,420,154),('Scratch cache',1136,500,400,154)]:
-    b.rect(name+' panel',x,y,w,h,'#FFFFFF',14,LINE)
-
-b.text('Runtime label','01  AGENT RUNTIME',84,302,14,GREEN,700)
-b.text('Runtime title','Save / compact / restore',84,338,21,INK,700)
-b.text('Runtime details','Keep the locator outside\nthe compacted context.',84,377,18,MUTED)
-b.text('Client label','02  CLIENTS',412,302,14,GREEN,700)
-b.text('Client title','HTTP · CLI · MCP',412,338,22,INK,700)
-b.text('Client details','Shared namespace grants.\nScoped tool access.',412,377,17,MUTED)
-b.text('Service label','03  SHARED POLICY',686,302,14,GREEN,700)
-b.text('Service title','Memory service',686,338,25,INK,700)
-b.text('Service details','Scoped auth · size / TTL limits\nQuotas · revisions · bounded work',686,377,19,MUTED)
-b.text('Durable label','04  DURABLE / REDB',1158,302,14,GREEN,700)
-b.text('Durable title','Knowledge + checkpoints',1158,338,24,INK,700)
-b.text('Durable details','Atomic commit, then acknowledge.\nRetained across server restart.',1158,377,18,MUTED)
-b.text('Expiry title','Bounded expiry worker',686,544,25,INK,700)
-b.text('Expiry details','Ordered deadline index; capped batches.\nReads hide expired data immediately.',686,583,19,MUTED)
-b.text('Scratch title','Scratch / RAM',1158,544,25,INK,700)
-b.text('Scratch details','TTL + FIFO eviction within quota.\nDisposable on process restart.',1158,583,19,MUTED)
-
-b.rect('Handoff capsule',64,500,550,154,LIME,14)
-b.text('Handoff title','COMPACTION HANDOFF',86,539,15,INK,700)
-b.text('Handoff copy','goal · constraints · decisions · next action',86,577,23,INK,700)
-b.text('Handoff detail','A self-contained capsule; fetch details by key later.',86,614,18,INK)
-
-b.rect('Schema panel',64,715,1472,286,INK,20)
-b.text('Schema label','STORED SCHEMA  /  FORMAT v1',88,757,16,LIME,700)
-b.rect('Schema separator 1',560,778,1,185,'#426054')
-b.rect('Schema separator 2',1040,778,1,185,'#426054')
-b.text('Record schema','records_v1',88,805,27,'#FFFFFF',700)
-b.text('Record key','(namespace, key) → header + bytes',88,844,20,LIME)
-b.text('Record fields','revision · write time · expiry · insertion order\nexpiry_v1 → ordered deadline index\nusage_v1 → entries / bytes / revision high-water',88,883,17,'#C5D1C8')
-b.text('Checkpoint schema','Checkpoint bundle',586,805,27,'#FFFFFF',700)
-b.text('Checkpoint identity','id · agent_id · session_id',586,844,20,LIME)
-b.text('Checkpoint fields','capsule → goal / summary / constraints\n             decisions / tasks / next action\nreferences → namespace / key / revision',586,883,17,'#C5D1C8')
-b.text('Commit schema','One transaction',1066,805,27,'#FFFFFF',700)
-b.text('Commit fields','immutable bundle\n+ session latest pointer\n+ namespace usage counters',1066,850,20,LIME)
-b.text('Commit result','All commit together, or none do.',1066,953,17,'#C5D1C8')
-b.text('Footer','Exact recall  ·  Bounded restore  ·  Durable acknowledgements',64,1058,20,MUTED)
+b = desktop('brand',1200,400,'instantKV / Memory Manager','KNOWLEDGE FOR REMOTE CLOUD AGENTS')
+b.window('Memory Manager',32,128,1136,206)
+b.mark(59,184,.95)
+b.text('Wordmark','instantKV',217,265,102,NAVY)
+b.text('Tagline','A mother base.\nA private memory for every agent.',627,219,30)
+b.text('Lifecycle','PARK > COMPACT > RESTORE > CONTINUE',627,308,26,NAVY)
+b.text('Status label','Rust / self-hosted / HTTP + CLI + MCP / single node',45,369,24)
 b.save()
-
-b=Board('brand',1200,420)
-b.rect('Ink background',0,0,1200,420,INK)
-b.mark(68,81,1.9,LIME)
-b.text('Wordmark','instantKV',318,223,105,'#FFFFFF',700)
-b.text('Tagline','A durable place for agent memory.',325,283,28,'#BDCEC4')
-b.text('Descriptor','SAVE  /  COMPACT  /  RESTORE',325,341,15,LIME,700)
+b = Board('logo',512,512)
+b.rect('Icon canvas',0,0,512,512,GRAY); b.mark(64,64,3); b.save()
+b = desktop('swarm',1600,1040,'One mother base. Independent cloud agents.',
+            'WORKING TODAY: SHARED READS + PRIVATE WRITES / ONE SERVER')
+b.window('Mother knowledge / namespace: mother',350,152,900,195)
+b.text('Mother copy','Project facts / verified decisions / source references',383,234,34)
+b.text('Mother policy','Operator writes. Every scoped agent reads the same live base.',383,286,29)
+for label,x,ns in [('Agent Alpha',50,'alpha'),('Agent Beta',840,'beta')]:
+    b.arrow(label+' read',x+350,470,x+350,364,YELLOW)
+    b.text(label+' shared label','READ mother',x+391,417,30,WHITE)
+    b.window(label+' / remote worker',x,478,710,167)
+    b.text(label+' workflow','Recall shared facts. Work independently.',x+25,563,31)
+    b.text(label+' credential',f'One scoped token: mother read + {ns} write',x+25,607,29,NAVY)
+    b.arrow(label+' private write',x+355,654,x+355,709,YELLOW)
+    b.window('Private '+ns+' knowledge + checkpoints',x,720,710,184)
+    b.text(label+' private data','Own findings / capsule / next action',x+25,807,32)
+    b.text(label+' boundaries','Sibling access: DENIED / mother write: DENIED',x+25,858,28,NAVY)
+b.text('Repeat pattern','Add namespaces + grants per agent. No physical fork or replica is created yet.',52,958,31,WHITE)
+b.text('Status label','Mother = shared knowledge namespace / private scope = enforced by token grants',44,1011,26)
 b.save()
-
-b=Board('logo',512,512)
-b.rect('Ink background',0,0,512,512,INK,80)
-b.mark(-8,0,4,LIME)
+b = desktop('architecture',1600,1110,'How instantKV stores agent memory',
+            'IMPLEMENTED / SINGLE NODE / ACKNOWLEDGE DURABLE WRITES AFTER COMMIT')
+for title,x,w in [('Remote agents',44,340),('HTTP / CLI / MCP',453,330),('Policy + engine',852,704)]: b.window(title,x,155,w,200)
+b.text('Agent detail','Mother + own scope\nSave before compact\nRestore before work',67,240,30)
+b.text('Transport detail','Typed tools\nExact key recall\nScoped bearer token',476,240,30)
+b.text('Policy detail','Per-namespace grants / size limits / revisions\nQuotas / TTL policy / bounded blocking work\nRust + Tokio + Axum',877,240,30)
+b.arrow('Clients',391,260,443,260,YELLOW); b.arrow('Engine',791,260,842,260,YELLOW)
+b.arrow('Durable path',1160,364,1160,429,YELLOW)
+b.window('Durable / redb',852,440,704,190)
+b.text('Durable detail','Mother + private knowledge + checkpoints\nOne database file / survives process restart\nImmediate transaction durability',877,520,30)
+b.window('Disposable scratch / RAM',44,440,704,190)
+b.text('Scratch detail','Optional per-namespace cache / TTL + FIFO\nIndexed, bounded expiry cleanup\nEmpty after process restart',69,520,30)
+b.rect('RAM branch',396,392,765,4,YELLOW); b.arrow('RAM down',396,392,396,429,YELLOW)
+b.window('Storage schema / format v1',44,695,1512,290)
+b.text('Record label','records_v1',70,788,36,NAVY)
+b.text('Record fields','(namespace, key) -> header + bytes\nrevision / written_at / expires_at / order\nusage_v1: entries + bytes + high-water\nexpiry_v1: ordered deadlines',70,832,27)
+b.rect('Schema divider',647,762,3,195,DARK)
+b.text('Capsule label','Checkpoint: one transaction',675,788,36,NAVY)
+b.text('Capsule fields','__checkpoint/id: immutable capsule + references\n__latest/agent/session: checkpoint ID\n+ namespace usage counters\nAll commit together. Retry with identical ID + payload.',675,832,27)
+b.text('Status label','Namespaces isolate agents. agent_id and session_id are labels, not permission boundaries.',44,1081,26)
 b.save()
-
-(ASSETS/'logo.svg').write_text('''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title"><title id="title">instantKV — parked memory, ready to recall</title><g fill="#267d60"><rect x="20" y="20" width="24" height="24" rx="4"/><rect x="20" y="52" width="24" height="24" rx="4"/><rect x="20" y="84" width="24" height="24" rx="4"/><path d="M44 53 82 20H112L65 64 112 108H82L44 75Z"/></g></svg>\n''')
-print('Rendered: architecture 1600×1100, brand 1200×420, logo 512×512.')
+b = desktop('lifecycle',1600,730,'Compaction handoff: save once, resume with context',
+            'WORKING TODAY / YOUR AGENT RUNTIME CHOOSES WHEN TO SAVE AND RESTORE')
+for i,(title,lines) in enumerate([
+    ('1. PARK','Reusable facts\nMother references\nPrivate findings'),
+    ('2. CHECKPOINT','Goal + constraints\nDecisions + tasks\nNext action + refs'),
+    ('3. COMPACT','Wait for save ACK\nKeep locator outside\nthe prompt context'),
+    ('4. RESTORE','Recover small capsule\nFetch details by key\nContinue the task')]):
+    x = 42+i*395
+    b.window(title,x,177,331,240); b.text(title+' detail',lines,x+22,277,30)
+    if i<3: b.arrow(title+' next',x+342,302,x+382,302,YELLOW)
+b.window('Locator / durable runtime session metadata',42,477,1516,145)
+b.text('Locator copy','server URL + checkpoint namespace + checkpoint ID  (or agent / session for latest)',66,560,32)
+b.text('Locator secret note','Credential comes from the agent secret store. Keep tokens out of knowledge and capsules.',66,600,27,NAVY)
+b.text('Status label','Restore budget limits the complete response. Missing, stale and forbidden references stay visible.',44,701,25)
+b.save()
+b = desktop('distributed',1600,1140,'The mothership grows after every completed run',
+            'FUTURE PROPOSAL / REPLICATION + AUTOMATIC CONSOLIDATION ARE NOT IMPLEMENTED')
+b.window('Mothership / canonical knowledge',350,153,900,165,'#805000')
+b.text('Canonical copy','Versioned facts + provenance + conflict history',383,239,34)
+b.text('Canonical detail','Publish a baseline manifest for the next swarm run.',383,285,29)
+for x,label in [(50,'Worker A'),(855,'Worker B')]:
+    b.arrow(label+' baseline',x+350,326,x+350,412,YELLOW)
+    b.text(label+' fork label','VERSIONED BASELINE',x+385,382,26,WHITE)
+    b.window(label+' / independent node',x,425,695,173,'#805000')
+    b.text(label+' copy','Local KV: baseline + private overlay',x+25,513,32)
+    b.text(label+' copy2','Work / checkpoint / reconnect / continue',x+25,563,29)
+    b.arrow(label+' delta',x+350,607,x+350,713,YELLOW)
+    b.text(label+' completion','RUN COMPLETE: DELTA + SOURCES',x+383,670,25,WHITE)
+b.window('Consolidation / durable run-completion jobs',50,725,1500,198,'#805000')
+b.text('Consolidation steps','1. Import idempotently   2. Deduplicate   3. Validate source + permissions',78,812,32)
+b.text('Consolidation steps2','4. Surface conflicts    5. Review / approve    6. Publish with revision checks',78,861,32)
+b.text('Consolidation loop','Published baseline returns to the mothership; the next swarm starts from that version.',78,899,26,NAVY)
+b.rect('Publication route out',1558,880,22,4,YELLOW)
+b.arrow('Publication route up',1580,880,1580,237,YELLOW)
+b.arrow('Publication to mothership',1580,237,1260,237,YELLOW)
+b.text('Publication label','PUBLISH vNext',1280,202,28,WHITE)
+b.window('Knowledge meter / proposed quality metrics',50,974,1500,83,'#805000')
+b.text('Meter text','Validated facts / source coverage / freshness / unresolved conflicts / recall success',78,1041,28)
+b.text('Status label','No silent last-writer-wins merge. Summaries retain provenance. Rejected candidates stay outside canon.',44,1111,25)
+b.save()
+svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" role="img" aria-labelledby="title"><title id="title">instantKV memory disk</title><path fill="#000080" d="M0 0h128v128H0z"/><path fill="#4080c0" d="M16 8h96v24H16z"/>'
+svg += ''.join(f'<rect x="16" y="{48+i*24}" width="32" height="16" fill="#ffff80"/>' for i in range(3))
+svg += ''.join(f'<rect x="{x*8}" y="{y*8}" width="8" height="8" fill="#fff"/>' for x,y in PIXELS)
+(ASSETS/'logo.svg').write_text(svg+'</svg>\n')
+print('Rendered brand, logo, swarm, architecture, lifecycle and distributed proposal.')

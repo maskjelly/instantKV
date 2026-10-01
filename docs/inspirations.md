@@ -20,7 +20,9 @@ fault-injection and actual runtime integration still needed.
 
 ## Visual direction
 
-The identity uses an original geometric K: three stored tiles and a folded recall
-path. Forest green, warm paper and lime highlight reflect a compact engineering
-tool. The architecture uses the same palette and shows the actual stored schema.
+The identity uses an original memory-disk icon: three parked knowledge slots and
+a stepped pixel K. Square beveled windows, navy title bars, teal desktop and
+VT323 lettering follow the early Windows/Linux desktop brief. The architecture,
+swarm topology, compaction handoff and future consolidation proposal use the same
+visual language and explicitly label what is implemented.
 Editable shapes/text and licensed embedded type live in [assets](assets/README.md).

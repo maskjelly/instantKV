@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.1 — 2026-10-01
+
+- Shared read-only mother knowledge and private cloud-agent namespaces via per-namespace grants.
+- Swarm init profile and a real HTTP isolation, compaction and restart demo.
+- Classic desktop artwork, swarm topology, lifecycle and distributed consolidation proposal.
+- Quick-start reports the actual Compose port; release downloads show progress and time out.
+
+Single-node sharing works today. Physical replication and automatic consolidation
+remain roadmap proposals.
+
 ## 0.1.0 — 2026-10-01
 
 - Durable knowledge, RAM scratch with TTL/FIFO, bounded quotas and revision conditions.

@@ -106,6 +106,12 @@ Disk pages may be reused after deletion; secure erasure is not provided.
 Namespaces are the isolation boundary. Agent/session labels are metadata.
 Private agents need separate scopes; grants apply to reference lookup as well as
 record access. Secrets are loaded at startup and compared as fixed-size hashes.
+The swarm profile uses per-namespace grants: `mother` is read-only for workers,
+while each worker's records and checkpoints are writable by only its principal
+and the operator. Legacy namespace/operation shorthand remains supported; mixing
+it with explicit grants fails validation. Checkpoint saves require readable
+reference scopes; restores recheck current GET grants. See
+[the swarm topology](cloud-agents.md) for a deployable profile.
 Disabled auth requires loopback. Remote access uses SSH tunneling or HTTPS at a
 proxy. Logs avoid request bodies and tokens; metrics expose aggregate counters.
 
@@ -120,5 +126,11 @@ file. [Operations](operations.md) covers backup and upgrade boundaries.
 2. Add retired-session deletion, online backup, and deeper fault-injection tests.
 3. Measure contention, expiry lag and memory growth before adding sharding or a
    dedicated write executor. Keep overload rejection bounded.
-4. Add text/tag indexes only when exact keys and prefixes fail real retrieval tasks.
-   Semantic search, replication, custom WAL and Redis protocol are separate work.
+4. Build the [distributed mothership proposal](distributed-memory.md) in stages:
+   authorized export/import, immutable baselines, private worker overlays,
+   restartable run-completion jobs, reviewed consolidation, then pull sync.
+   Preserve source provenance and conflicts; measure knowledge quality with a
+   fixed recall evaluation. These are not current endpoints or replicas.
+5. Add text/tag indexes only when exact keys and prefixes fail real retrieval tasks.
+   Semantic search, consensus failover, custom WAL and Redis protocol need their
+   own evidence and designs.
