@@ -6,7 +6,14 @@
   "workers_dev": true,
   "observability": { "enabled": true },
   "secrets": { "required": ["DEMO_GATEWAY_TOKEN"] },
-  "vars": { "DEMO_ORIGIN": "https://45.196.196.251/instantkv-demo" },
+  "vars": { "DEMO_ORIGIN": "http://instantkv-demo.internal" },
+  "vpc_services": [
+    {
+      "binding": "DEMO_BACKEND",
+      "service_id": "01a0f870-cc92-7322-8d91-9962974c9bcc",
+      "remote": true,
+    },
+  ],
   "ratelimits": [
     {
       "name": "DEMO_RATE_LIMIT",
@@ -32,7 +39,14 @@
         "not_found_handling": "404-page",
         "html_handling": "force-trailing-slash",
       },
-      "vars": { "DEMO_ORIGIN": "https://45.196.196.251/instantkv-demo" },
+      "vars": { "DEMO_ORIGIN": "http://instantkv-demo.internal" },
+      "vpc_services": [
+        {
+          "binding": "DEMO_BACKEND",
+          "service_id": "01a0f870-cc92-7322-8d91-9962974c9bcc",
+          "remote": true,
+        },
+      ],
       "ratelimits": [
         {
           "name": "DEMO_RATE_LIMIT",

@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import http from "node:http";
 import { createGateway } from "./gateway.mjs";
 
 async function fixture(t, options = {}) {
@@ -14,7 +15,8 @@ async function fixture(t, options = {}) {
         request.headers.authorization,
         "Bearer private-backend-token",
       );
-      if (fail) return new Response("{}", { status: 503 });
+      if (typeof fail === "function" ? fail(url) : fail)
+        return new Response("{}", { status: 503 });
       const path = new URL(url).pathname;
       if (request.method === "PUT") {
         records.set(path, request.body);
@@ -118,17 +120,53 @@ test("private authorization, body limits, bounds and session capabilities fail c
 });
 
 test("failed batch does not advance acknowledgement; same offset can be retried", async (t) => {
-  const { call, setFailure } = await fixture(t);
+  const { call, setFailure, records } = await fixture(t);
   const {
     value: { id },
   } = await call("/session", { ...settings, count: 8, mode: "durable" });
-  setFailure(true);
+  setFailure((url) => url.includes("memory/000005"));
   assert.equal((await call("/write", { id, offset: 0 })).status, 503);
   assert.equal((await call("/status", { id })).value.written, 0);
+  assert.equal(records.size, 7);
   setFailure(false);
   assert.equal((await call("/write", { id, offset: 0 })).value.written, 8);
   assert.equal(
     (await call("/read", { id, index: 7 })).value.namespace,
     "demo_knowledge",
   );
+});
+
+test("native keep-alive transport preserves backend values and bounds response size", async (t) => {
+  const values = new Map();
+  let oversized = false;
+  const backend = http.createServer(async (req, res) => {
+    let body = "";
+    for await (const chunk of req) body += chunk;
+    const path = new URL(req.url, "http://localhost").pathname;
+    res.setHeader("content-type", "application/json");
+    res.setHeader("etag", '"7"');
+    if (req.method === "PUT") {
+      values.set(path, body);
+      res.end('{"revision":7}');
+    } else res.end(oversized ? "x".repeat(8193) : values.get(path));
+  });
+  await new Promise((resolve) => backend.listen(0, "127.0.0.1", resolve));
+  t.after(
+    () =>
+      new Promise((resolve) => {
+        backend.close(resolve);
+        backend.closeAllConnections();
+      }),
+  );
+  const { call } = await fixture(t, {
+    backend: `http://127.0.0.1:${backend.address().port}`,
+    fetcher: undefined,
+  });
+  const {
+    value: { id },
+  } = await call("/session", { ...settings, count: 4 });
+  assert.equal((await call("/write", { id, offset: 0 })).value.written, 4);
+  assert.equal((await call("/read", { id, index: 3 })).value.verified, true);
+  oversized = true;
+  assert.equal((await call("/read", { id, index: 3 })).status, 503);
 });

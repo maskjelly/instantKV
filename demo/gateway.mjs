@@ -8,10 +8,56 @@ export function createGateway({
   backend,
   backendToken,
   gatewayToken,
-  fetcher = fetch,
+  fetcher,
 }) {
   if (!backendToken || !gatewayToken)
     throw new Error("Private credentials required");
+  const agent = new http.Agent({
+    keepAlive: true,
+    maxSockets: 32,
+    maxFreeSockets: 16,
+  });
+  const requestBackend =
+    fetcher ||
+    ((url, options) =>
+      new Promise((resolve, reject) => {
+        const upstream = http.request(
+          url,
+          { agent, method: options.method || "GET", headers: options.headers },
+          (response) => {
+            const chunks = [];
+            let bytes = 0;
+            response.on("data", (chunk) => {
+              bytes += chunk.length;
+              if (bytes > 8192) {
+                response.destroy(
+                  new Error("Backend response exceeds demo limit"),
+                );
+                return;
+              }
+              chunks.push(chunk);
+            });
+            response.on("error", reject);
+            response.on("end", () => {
+              const data = Buffer.concat(chunks).toString("utf8");
+              const status = response.statusCode || 502;
+              resolve({
+                ok: status >= 200 && status < 300,
+                status,
+                headers: {
+                  get: (name) => response.headers[name.toLowerCase()] || null,
+                },
+                json: async () => JSON.parse(data),
+              });
+            });
+          },
+        );
+        upstream.on("error", reject);
+        upstream.setTimeout(10000, () =>
+          upstream.destroy(new Error("Backend deadline exceeded")),
+        );
+        upstream.end(options.body);
+      }));
   const sessions = new Map();
   let activeBatches = 0;
   const ttl = 900;
@@ -30,11 +76,10 @@ export function createGateway({
     tags: ["live-demo", "synthetic", session.mode],
   });
   async function call(path, options = {}) {
-    const response = await fetcher(`${backend}${path}`, {
+    const response = await requestBackend(`${backend}${path}`, {
       ...options,
       headers,
       redirect: "error",
-      signal: AbortSignal.timeout(10000),
     });
     if (!response.ok) {
       await response.body?.cancel();
@@ -57,7 +102,7 @@ export function createGateway({
     });
     res.end(JSON.stringify(data));
   };
-  return http.createServer(async (req, res) => {
+  const server = http.createServer(async (req, res) => {
     try {
       const supplied = Buffer.from(req.headers.authorization || "");
       const expected = Buffer.from(`Bearer ${gatewayToken}`);
@@ -250,6 +295,8 @@ export function createGateway({
         });
     }
   });
+  server.on("close", () => agent.destroy());
+  return server;
 }
 
 if (

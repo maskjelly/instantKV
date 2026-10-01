@@ -4,7 +4,14 @@ import worker from './index.ts';
 
 function environment(allowed = true) {
   return {
-    DEMO_ORIGIN: 'https://45.196.196.251/instantkv-demo',
+    DEMO_ORIGIN: 'http://instantkv-demo.internal',
+    DEMO_BACKEND: {
+      fetch: async (_url: RequestInfo | URL, _options?: RequestInit) =>
+        Response.json({}),
+      connect: () => {
+        throw new Error('Only HTTP requests are used');
+      },
+    },
     DEMO_GATEWAY_TOKEN: 'server-only-key',
     DEMO_RATE_LIMIT: { limit: async () => ({ success: allowed }) },
     ASSETS: {
@@ -77,13 +84,25 @@ test('static assets bypass demo; methods, origin, routes, size and rate limits r
     413,
   );
 });
+
+test('origin redirects are refused before credentials can leave the configured backend', async (t) => {
+  let calls = 0;
+  const env = environment();
+  env.DEMO_BACKEND.fetch = async (_url, options) => {
+    calls++;
+    assert.equal(options?.redirect, 'manual');
+    return new Response(null, {
+      status: 302,
+      headers: { location: 'https://another-origin.example' },
+    });
+  };
+  assert.equal((await worker.fetch(request(), env)).status, 503);
+  assert.equal(calls, 1);
+});
 test('proxy forwards only the fixed origin, keeps credentials server-side and never caches reads', async (t) => {
-  const original = globalThis.fetch;
-  t.after(() => {
-    globalThis.fetch = original;
-  });
-  globalThis.fetch = async (url, options) => {
-    assert.equal(url, 'https://45.196.196.251/instantkv-demo/read');
+  const env = environment();
+  env.DEMO_BACKEND.fetch = async (url, options) => {
+    assert.equal(url, 'http://instantkv-demo.internal/read');
     assert.equal(
       new Headers(options?.headers).get('authorization'),
       'Bearer server-only-key',
@@ -91,7 +110,7 @@ test('proxy forwards only the fixed origin, keeps credentials server-side and ne
     assert.equal(options?.redirect, 'manual');
     return Response.json({ value: 'stored context', backend_ms: 1.2 });
   };
-  const response = await worker.fetch(request(), environment());
+  const response = await worker.fetch(request(), env);
   assert.equal(response.headers.get('cache-control'), 'no-store');
   assert.equal(response.status, 200);
   assert(!JSON.stringify(await response.json()).includes('server-only-key'));

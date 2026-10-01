@@ -15,8 +15,8 @@ Browser writer / independent reader
   ▼
 Cloudflare Worker + Static Assets (instantkv.com)
   │ bounded request, origin check, per-IP rate limit, private gateway credential
-  ▼
-HTTPS reverse proxy → isolated demo coordinator on Rove
+  ▼ Workers VPC service binding · encrypted Cloudflare Tunnel
+Private loopback → isolated demo coordinator on Rove
   │ synthetic fixtures · 512 records/batch · 16 concurrent HTTP operations
   ▼
 instantKV Rust HTTP API · separate demo container
@@ -67,7 +67,10 @@ agent deployments. Quotas measure key/value bytes, not all process overhead.
 Session locators are randomly generated 192-bit bearer capabilities. Only someone
 with the locator can read that session through the coordinator. Locators are
 reusable until expiry; they are not production identity or tenant authorization.
-Private engine/gateway tokens stay server-side. The Worker permits only four fixed
+Private engine/gateway/tunnel tokens stay server-side. A Workers VPC service binds
+only the coordinator's loopback port; the origin has no public HTTP route or DNS
+record. Tunnel traffic is encrypted, with a private HTTP hop on the same VPS.
+The Worker permits only four fixed
 operations and checks request origins and body size. Its 240 requests/minute/IP
 limit is location-local, not a global abuse budget; shared networks can share that
 limit. The gateway enforces its own concurrency/session limits globally for this
@@ -80,16 +83,26 @@ single deployment. This is a public sandbox, not the future managed service.
    independently generated `INSTANTKV_DEMO_TOKEN` and `DEMO_GATEWAY_TOKEN` secrets.
 3. Run `docker compose -f demo/compose.yaml up -d` from the repository root. The
    image `instantkv:local` must already exist. The demo creates a separate volume.
-4. Route a dedicated HTTPS path to loopback port 8098, stripping its prefix. Set
-   `DEMO_ORIGIN` in both Wrangler environments to that HTTPS URL.
+4. Create a remotely managed Cloudflare Tunnel, keep its connector token in a
+   private `demo/.tunnel-token` owned by UID 65532, and run Compose with
+   `--profile cloudflare`. Create a Workers VPC HTTP service targeting
+   `127.0.0.1:8098` through that tunnel. Set its `service_id` for `DEMO_BACKEND` in
+   both Wrangler environments. `DEMO_ORIGIN` supplies the internal Host header;
+   the binding configuration fixes the actual destination. No public DNS needed.
 5. In `site/`, use `npx wrangler secret put DEMO_GATEWAY_TOKEN --env production`
    and enter the same gateway secret. Then `npm run deploy:domain`.
 
 For local preview, use `npm run build`, `npm run preview` and provide the gateway
-secret through an ignored `site/.dev.vars`. Keep authentication enabled on the
+secret through an ignored `site/.dev.vars`. The VPC binding uses remote mode, so
+Wrangler authentication and the running tunnel are required. Keep authentication enabled on the
 engine. Do not expose the Rust container port or grant the demo access to existing
 agent namespaces. Stop the isolated Compose project to disable the demo; the docs
 remain usable when the proxy returns a temporary-unavailability response.
+
+The connector image is pinned to cloudflared 2026.9.3. VPC requires QUIC transport
+and outbound UDP port 7844. It is a Cloudflare beta integration; monitor changes
+and preserve the self-hosted HTTP contract. See the [official VPC setup guide](https://developers.cloudflare.com/workers-vpc/get-started/)
+and [tunnel requirements](https://developers.cloudflare.com/workers-vpc/configuration/tunnel/).
 
 Coordinator/proxy tests: `cd site && npm test`. They cover credentials, route and
 body limits, exact write/read integrity, rejected indices, batch failure without

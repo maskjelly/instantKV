@@ -19,6 +19,7 @@
 /site/.wrangler/
 /site/.dev.vars
 /site/.dev.vars.*
+/demo/.tunnel-token
 /site/public/assets/
 /site/public/benchmark-data/
 /site/public/examples/

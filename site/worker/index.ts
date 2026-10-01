@@ -59,7 +59,7 @@ export default {
       offset += chunk.byteLength;
     }
     try {
-      const response = await fetch(
+      const response = await env.DEMO_BACKEND.fetch(
         `${env.DEMO_ORIGIN}${url.pathname.slice('/api/demo'.length)}`,
         {
           method: 'POST',
@@ -77,6 +77,13 @@ export default {
         return reply(
           503,
           'Demo origin must respond directly without a redirect',
+        );
+      }
+      if (!response.headers.get('content-type')?.includes('application/json')) {
+        await response.body?.cancel();
+        return reply(
+          503,
+          'Demo storage returned an invalid response. Retry shortly.',
         );
       }
       return new Response(response.body, {

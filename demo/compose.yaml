@@ -1,5 +1,19 @@
 name: instantkv-demo
 services:
+  tunnel:
+    profiles: [cloudflare]
+    image: cloudflare/cloudflared:2026.9.3@sha256:072c067d25ccbe61d46e18f0d0723255f2bb5304f7317caa95b27031520ff92c
+    command: ["tunnel", "--no-autoupdate", "--protocol", "quic", "run", "--token-file", "/run/secrets/tunnel-token"]
+    network_mode: host
+    user: "65532:65532"
+    volumes:
+      - ./.tunnel-token:/run/secrets/tunnel-token:ro
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    cpus: 0.25
   memory:
     image: ${INSTANTKV_DEMO_IMAGE:-instantkv:local}
     command: ["serve", "--config", "/config/instantkv.toml"]

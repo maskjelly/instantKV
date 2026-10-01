@@ -542,6 +542,9 @@ img {
   font-size: 13px;
   color: var(--muted);
 }
+.site-header nav a {
+  white-space: nowrap;
+}
 .site-header nav a:hover,
 .site-header nav a[aria-current] {
   color: var(--text);
@@ -1322,7 +1325,7 @@ td small {
     margin-right: 8px;
   }
   .site-header nav {
-    gap: 17px;
+    gap: 12px;
     font-size: 11px;
   }
   .nav-secondary {
