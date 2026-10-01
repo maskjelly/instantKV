@@ -108,7 +108,7 @@ impl MemoryTools {
     }
 
     #[tool(
-        description = "Park reusable knowledge under an exact key. Include provenance. Use if_revision for shared mutable memory; omit TTL for permanent knowledge."
+        description = "Store reusable knowledge under an exact key. Include provenance. Use if_revision for shared mutable memory; omit TTL for permanent knowledge."
     )]
     async fn memory_put(&self, Parameters(input): Parameters<PutMemory>) -> CallToolResult {
         let bytes = match serde_json::to_vec(&input.value) {
@@ -168,7 +168,7 @@ impl MemoryTools {
     }
 
     #[tool(
-        description = "Before compaction, durably save a self-contained capsule: goal, summary, constraints, decisions, open_tasks, next_action, optional versioned references. Wait for success, then persist its locator outside prompt context."
+        description = "Before compaction, durably save checkpoint context: goal, summary, constraints, decisions, open_tasks, next_action, optional versioned references. Wait for success, then persist its locator outside prompt context."
     )]
     async fn memory_checkpoint(
         &self,
@@ -197,7 +197,7 @@ impl MemoryTools {
     }
 
     #[tool(
-        description = "After compaction, recover a bounded capsule by checkpoint ID or agent/session. References report available, stale, missing, or forbidden. Fetch details on demand with memory_get."
+        description = "After compaction, restore bounded checkpoint context by checkpoint ID or agent/session. References report available, stale, missing, or forbidden. Fetch details on demand with memory_get."
     )]
     async fn memory_restore(&self, Parameters(input): Parameters<RestoreMemory>) -> CallToolResult {
         let response = if let Some(id) = input.checkpoint_id {

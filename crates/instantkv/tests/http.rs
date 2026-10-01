@@ -63,17 +63,17 @@ async fn swarm_isolation_and_restore_reference_grants_are_enforced() {
     let server = start(Config::parse(include_str!("../../../config/swarm.toml")).unwrap()).await;
     let alpha = Client::new(&server.base, Some(ALPHA_TOKEN.into())).unwrap();
     let beta = Client::new(&server.base, Some(BETA_TOKEN.into())).unwrap();
-    for namespace in ["mother", "alpha", "beta"] {
+    for namespace in ["shared", "alpha", "beta"] {
         server
             .client
             .put(namespace, "fact", b"1".to_vec(), None, None, true)
             .await
             .unwrap();
     }
-    assert_eq!(alpha.get("mother", "fact").await.unwrap().0, b"1");
+    assert_eq!(alpha.get("shared", "fact").await.unwrap().0, b"1");
     assert_eq!(
         alpha
-            .list("mother", "", 100, None)
+            .list("shared", "", 100, None)
             .await
             .unwrap()
             .items
@@ -83,11 +83,11 @@ async fn swarm_isolation_and_restore_reference_grants_are_enforced() {
     for result in [
         alpha.get("beta", "fact").await.map(|_| ()),
         alpha
-            .put("mother", "fact", b"2".to_vec(), None, None, false)
+            .put("shared", "fact", b"2".to_vec(), None, None, false)
             .await
             .map(|_| ()),
-        alpha.delete("mother", "fact", None).await,
-        alpha.stats("mother").await.map(|_| ()),
+        alpha.delete("shared", "fact", None).await,
+        alpha.stats("shared").await.map(|_| ()),
         alpha.list("beta", "", 100, None).await.map(|_| ()),
         beta.get("alpha", "fact").await.map(|_| ()),
     ] {
@@ -111,7 +111,7 @@ async fn swarm_isolation_and_restore_reference_grants_are_enforced() {
             open_tasks: vec![],
             next_action: "Recall".into(),
         },
-        references: ["mother", "alpha", "beta"]
+        references: ["shared", "alpha", "beta"]
             .into_iter()
             .map(|namespace| MemoryReference {
                 namespace: namespace.into(),

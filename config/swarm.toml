@@ -1,4 +1,4 @@
-# Shared mother knowledge + two private agent workspaces, on ONE server.
+# Shared knowledge base + two private agent namespaces, on ONE server.
 # `instantkv init --profile swarm` generates all three private credentials.
 # Add namespaces and a principal with explicit grants for each additional agent.
 version = 1
@@ -20,14 +20,14 @@ mode = "api_key"
 [[auth.principals]]
 name = "operator"
 token_env = "INSTANTKV_APP_TOKEN"
-namespaces = ["mother", "alpha", "beta", "alpha_checkpoints", "beta_checkpoints"]
+namespaces = ["shared", "alpha", "beta", "alpha_checkpoints", "beta_checkpoints"]
 operations = ["get", "put", "delete", "list", "stats"]
 
 [[auth.principals]]
 name = "alpha"
 token_env = "INSTANTKV_ALPHA_TOKEN"
 [[auth.principals.grants]]
-namespace = "mother"
+namespace = "shared"
 operations = ["get", "list"]
 [[auth.principals.grants]]
 namespace = "alpha"
@@ -40,7 +40,7 @@ operations = ["get", "put", "delete", "list", "stats"]
 name = "beta"
 token_env = "INSTANTKV_BETA_TOKEN"
 [[auth.principals.grants]]
-namespace = "mother"
+namespace = "shared"
 operations = ["get", "list"]
 [[auth.principals.grants]]
 namespace = "beta"
@@ -50,7 +50,7 @@ namespace = "beta_checkpoints"
 operations = ["get", "put", "delete", "list", "stats"]
 
 [[namespaces]]
-name = "mother"
+name = "shared"
 mode = "durable"
 [namespaces.retention]
 require_ttl = false

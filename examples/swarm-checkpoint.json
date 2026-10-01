@@ -5,10 +5,10 @@
   "expected_latest_revision": null,
   "capsule": {
     "goal": "Verify the project HTTP contract",
-    "summary": "Shared project decisions are in mother. Private findings are in alpha.",
+    "summary": "Shared project decisions are in shared. Private findings are in alpha.",
     "constraints": ["Keep credentials out of memory"],
-    "decisions": ["Use mother for baseline facts and alpha for private observations"],
-    "open_tasks": ["Review run/findings before publishing to the mother base"],
+    "decisions": ["Use shared for baseline facts and alpha for private observations"],
+    "open_tasks": ["Review run/findings before publishing to the shared knowledge base"],
     "next_action": "Recall alpha/run/findings and continue verification"
   },
   "references": []

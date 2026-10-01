@@ -94,7 +94,7 @@ enum Command {
     Stats {
         namespace: String,
     },
-    /// Commit an immutable restore capsule and atomically advance its session pointer.
+    /// Commit immutable checkpoint context and atomically advance its session pointer.
     Checkpoint {
         #[arg(long, default_value = "checkpoints")]
         namespace: String,
@@ -123,7 +123,7 @@ enum Command {
     },
     /// Run a self-contained HTTP save/compaction/restart/restore demonstration.
     Demo {
-        /// Demonstrate mother knowledge, isolated agents, and restored private capsules.
+        /// Demonstrate shared knowledge, isolated agents, and restored private checkpoints.
         #[arg(long)]
         swarm: bool,
     },

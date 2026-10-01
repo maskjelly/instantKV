@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "instantkv"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "axum",
@@ -816,7 +816,7 @@ dependencies = [
 
 [[package]]
 name = "instantkv-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "redb",
  "schemars",

@@ -86,7 +86,7 @@ pub async fn demo() -> Result<()> {
             true,
         )
         .await?;
-    println!("01  PARK      saved project/storage in durable knowledge");
+    println!("01  STORE     saved project/storage in durable knowledge");
     client
         .put(
             "scratch",
@@ -154,9 +154,9 @@ pub async fn swarm_demo() -> Result<()> {
     let alpha = Client::new(&url, Some(secrets["INSTANTKV_ALPHA_TOKEN"].clone()))?;
     let beta = Client::new(&url, Some(secrets["INSTANTKV_BETA_TOKEN"].clone()))?;
     let baseline = br#"{"content":"Use Rust + redb","source":"docs/architecture.md"}"#.to_vec();
-    let mother = operator
+    let shared = operator
         .put(
-            "mother",
+            "shared",
             "project/storage",
             baseline.clone(),
             None,
@@ -164,9 +164,9 @@ pub async fn swarm_demo() -> Result<()> {
             true,
         )
         .await?;
-    assert_eq!(alpha.get("mother", "project/storage").await?.0, baseline);
-    assert_eq!(beta.get("mother", "project/storage").await?.0, baseline);
-    println!("01  MOTHER    both cloud agents recall the same shared baseline");
+    assert_eq!(alpha.get("shared", "project/storage").await?.0, baseline);
+    assert_eq!(beta.get("shared", "project/storage").await?.0, baseline);
+    println!("01  SHARED    both cloud agents recall the same shared baseline");
     let alpha_note = br#"{"content":"Alpha verified the HTTP contract"}"#.to_vec();
     let own = alpha
         .put(
@@ -190,7 +190,7 @@ pub async fn swarm_demo() -> Result<()> {
     assert!(
         alpha
             .put(
-                "mother",
+                "shared",
                 "project/storage",
                 b"{}".to_vec(),
                 None,
@@ -218,7 +218,7 @@ pub async fn swarm_demo() -> Result<()> {
             .contains("403")
     );
     println!(
-        "02  PRIVATE   agents write independently; cross-agent reads and mother writes return 403"
+        "02  PRIVATE   agents write independently; cross-agent reads and shared writes return 403"
     );
     let mut context = Some(capsule());
     let request = CheckpointRequest {
@@ -229,11 +229,11 @@ pub async fn swarm_demo() -> Result<()> {
         capsule: context.clone().unwrap(),
         references: vec![
             MemoryReference {
-                namespace: "mother".into(),
+                namespace: "shared".into(),
                 key: "project/storage".into(),
-                revision: mother["revision"]
+                revision: shared["revision"]
                     .as_u64()
-                    .context("missing mother revision")?,
+                    .context("missing shared revision")?,
             },
             MemoryReference {
                 namespace: "alpha".into(),
@@ -275,11 +275,11 @@ pub async fn swarm_demo() -> Result<()> {
         instantkv_core::model::ReferenceStatus::Available
     )));
     assert_eq!(alpha.get("alpha", "run/findings").await?.0, alpha_note);
-    assert_eq!(alpha.get("mother", "project/storage").await?.0, baseline);
+    assert_eq!(alpha.get("shared", "project/storage").await?.0, baseline);
     println!(
         "04  RESTORE   after real server restart, Alpha restores its capsule and both knowledge sources"
     );
-    println!("PASS: shared mother + isolated agents + durable handoff over real HTTP");
+    println!("PASS: shared knowledge + isolated agents + durable handoff over real HTTP");
     process.stop()?;
     Ok(())
 }

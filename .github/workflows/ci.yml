@@ -75,7 +75,7 @@ jobs:
           ./scripts/restore-drill.sh /tmp/instantkv-backup first-checkpoint
           export COMPOSE_PROJECT_NAME=instantkv-swarm INSTANTKV_PROFILE=swarm INSTANTKV_PORT=8096
           INSTANTKV_BUILD_SOURCE=prebuilt ./scripts/quickstart.sh
-          ./scripts/kv.sh put mother ci/shared --value '{"baseline":true}'
+          ./scripts/kv.sh put shared ci/shared --value '{"baseline":true}'
           ./scripts/kv.sh checkpoint --namespace alpha_checkpoints < examples/swarm-checkpoint.json
           ./scripts/kv.sh restore --namespace alpha_checkpoints --agent alpha --session run-1
           ./scripts/backup.sh /tmp/instantkv-swarm-backup

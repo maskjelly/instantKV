@@ -9,9 +9,9 @@ fn swarm_grants_reject_ambiguous_or_invalid_permissions() {
     let config = Config::parse(SWARM).unwrap();
     assert_eq!(config.namespaces.len(), 5);
     for input in [
-        SWARM.replacen("token_env = \"INSTANTKV_ALPHA_TOKEN\"", "token_env = \"INSTANTKV_ALPHA_TOKEN\"\nnamespaces = [\"mother\"]\noperations = [\"put\"]", 1),
-        SWARM.replacen("namespace = \"mother\"", "namespace = \"unknown\"", 1),
-        SWARM.replacen("namespace = \"alpha\"", "namespace = \"mother\"", 1),
+        SWARM.replacen("token_env = \"INSTANTKV_ALPHA_TOKEN\"", "token_env = \"INSTANTKV_ALPHA_TOKEN\"\nnamespaces = [\"shared\"]\noperations = [\"put\"]", 1),
+        SWARM.replacen("namespace = \"shared\"", "namespace = \"unknown\"", 1),
+        SWARM.replacen("namespace = \"alpha\"", "namespace = \"shared\"", 1),
         SWARM.replacen("operations = [\"get\", \"list\"]", "operations = []", 1),
         SWARM.replacen("operations = [\"get\", \"list\"]", "operations = [\"get\", \"get\"]", 1),
     ] {
