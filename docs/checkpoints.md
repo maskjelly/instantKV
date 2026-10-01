@@ -234,3 +234,29 @@ editable SVG explains the public and private storage path in the README and
 guide. Upstash, Turso and Valkey were reviewed before the demo design; Monolith
 retains its own identity. Demo data expires after 15 minutes. Managed hosting
 and distributed consolidation remain future work.
+
+## 16 — Copy review and product comparison
+
+Reviewed the README, website and documentation for stale status, unclear terms
+and stiff wording. The features guide now names 0.1.2 and explains that the live
+demo uses temporary records while managed hosting is still being built. Setup
+guidance distinguishes the prebuilt binary from a Rust source build. The README
+and onboarding explain keys, namespaces and checkpoints before using them.
+
+An independent read-only review found four phrases worth tightening; those were
+revised. [Why instantKV](choosing-instantkv.md) compares the service with Mem0,
+Graphiti, Letta, Upstash and Valkey using official documentation checked on
+2026-10-01. It explains when each fits and keeps performance claims tied to the
+recorded workloads. No competitor speed or cost ranking is claimed.
+
+Local validation passed: formatting, Astro/TypeScript checks, seven gateway/proxy
+tests, a 29-page build, all rendered links/anchors/assets, the search index,
+machine-readable docs and the original 15 benchmark reports. Rust storage and
+wire formats are unchanged.
+
+Wrangler preview checks passed at 1440px and 390px: homepage, comparison, features,
+setup, benchmark and demo pages stayed within the viewport. Search and benchmark
+controls worked. Another 1,000 real cache writes completed with zero errors;
+the writer was cleared, record 999 was verified, and an independent tab retrieved
+record 500 with the expected text. Screenshots of the homepage and mobile guide
+were inspected before publishing.

@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible behavior or storage invariant failure.
+description: Report a bug with steps we can reproduce.
 body:
   - type: markdown
     attributes:

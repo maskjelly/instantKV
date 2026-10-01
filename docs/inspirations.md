@@ -1,8 +1,8 @@
 # Engineering references
 
-We studied these projects' public repository structure and official docs. The
-logo and code are original; this is a small early project, not a claim of their
-maturity or guarantees.
+These projects helped us decide how to organize the repo and check the storage
+engine. The table links to their code and docs, with the practices we adopted.
+instantKV's code and artwork are original.
 
 | Reference | What instantKV adopts |
 |---|---|
@@ -22,7 +22,7 @@ fault-injection and actual runtime integration still needed.
 
 Monolith is the original identity: three chrome planes form a split K, paired
 with graphite surfaces, silver text, fine borders and Space Grotesk typography.
-The latest minimal metallic brief supersedes the earlier desktop theme. The
+This replaced the earlier desktop theme. The
 architecture, swarm topology, compaction handoff and future consolidation proposal
 share this visual language and explicitly label what is implemented.
 Editable shapes/text and licensed embedded type live in [assets](assets/README.md).

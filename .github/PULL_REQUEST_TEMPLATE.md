@@ -1,5 +1,5 @@
 Describe the problem and resulting behavior.
 
-Validation actually run:
+How you checked it:
 
-Storage-format/configuration changes or material limitations:
+Storage/config changes, upgrade steps or known limits:

@@ -1,8 +1,8 @@
 # HTTP reference
 
-The Rust node exposes HTTP on its configured bind address. The documentation
-website is not an API endpoint. Use your own node URL; configure TLS at a reverse
-proxy or connect through an SSH tunnel for remote access.
+Send requests to your own Rust node. This guide describes its `/v1` API; the
+public website's temporary [demo API](live-demo.md) is separate. For remote
+access, configure TLS at a reverse proxy or use an SSH tunnel.
 
 ## Authentication and keys
 

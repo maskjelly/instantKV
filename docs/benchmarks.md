@@ -25,7 +25,7 @@ running. Host load averages were 4.24 before and 5.44 after on four vCPUs. We di
 not stop those services. Client and server shared a container and CPU over loopback
 HTTP/1.1 keep-alive, without pipelining. These are workload observations, not an
 isolated engine benchmark, public HTTPS capacity, maximum throughput or an SLA.
-The roughly 40–65 ms tails remain visible instead of being hidden behind p50.
+The table includes the roughly 40–65 ms p99 times as well as the faster median.
 
 ## Workload details
 
@@ -70,4 +70,4 @@ when sharing numbers.
 
 Next measurements: larger key populations, real capsule/reference distributions,
 repeated-session saves, expiry backlogs, contention curves, longer runs, peak RSS
-and disk growth. These runs do not prove those workloads.
+and disk growth. Those workloads still need measurement.

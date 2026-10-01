@@ -5,7 +5,8 @@
 `./scripts/quickstart.sh` builds the image, initializes a new volume once, starts
 with health checks, and runs `doctor`. Existing config/data are never overwritten.
 The process is UID 10001, capabilities are dropped, the root filesystem is read
-only, and `/tmp` is a small disposable mount. Host access is loopback-only.
+only, and `/tmp` is a small disposable mount. Only clients on the host can connect
+directly; use the remote-access setup below for other machines.
 
 ```sh
 docker compose ps

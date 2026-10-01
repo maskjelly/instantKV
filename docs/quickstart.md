@@ -1,6 +1,10 @@
 # Quick setup
 
-Choose Docker Compose or Rust 1.98+.
+Install a checksummed binary on Linux x86_64 or Apple Silicon macOS, or use
+Docker Compose. You only need Rust 1.98+ if you're building from source.
+
+Want to see it first? The [browser demo](https://instantkv.com/demo/) writes real
+records and lets you read them back, with no account or setup.
 
 For shared knowledge and private agent namespaces, use `INSTANTKV_PROFILE=swarm` on the
 first Docker setup or `instantkv init --profile swarm` in a fresh binary setup.

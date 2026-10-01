@@ -17,14 +17,14 @@ the CSP permits only its specific script/collection hosts alongside local code.
 This follows [Cloudflare's static Astro deployment guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/astro/).
 [Static asset requests are free and unlimited under current Cloudflare billing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/);
 that applies to the website and does not mean memory-node infrastructure is free.
-We keep redb on real persistent storage; the docs site does not route agent writes
-to Cloudflare KV or pretend an eventually consistent cache supplies its transactions.
+The demo's Rust service runs redb on persistent VPS storage. Its records and
+transactions use instantKV's storage engine.
 
 ## One documentation source
 
 `site/src/lib/docs.ts` defines navigation and descriptions. Astro's collection
 reads `docs/*.md`, `CONTRIBUTING.md`, `SECURITY.md` and `CHANGELOG.md` directly.
-Edit those Markdown files rather than copying prose into a second docs tree.
+Edit those Markdown files; you don't need to maintain a second copy for the site.
 The build rewrites relative repository links for the website, copies artwork,
 examples and all benchmark JSON, and generates `llms.txt`/`llms-full.txt`.
 

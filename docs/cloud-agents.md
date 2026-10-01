@@ -1,8 +1,10 @@
 # Shared knowledge for remote cloud agents
 
-One common knowledge base, a private workspace per agent, and durable handoffs
-when a worker compacts or restarts. This topology works on one instantKV server.
-Physical replicas and automatic consolidation are [future work](distributed-memory.md).
+Give every worker the same project facts and its own place to keep notes. A
+namespace is a section of storage with separate permissions. Workers read the
+`shared` namespace and write only to their own knowledge and checkpoint namespaces.
+All of this runs on one server. Independent replicas and automatic merging of
+findings are [future work](distributed-memory.md).
 
 ## Start a swarm instance
 

@@ -1,7 +1,7 @@
 # Deployment policies
 
-Strict TOML parsing and runtime enforcement are implemented. Unknown fields,
-unsupported enum values, contradictory policies and duplicate grants fail.
+Configure namespaces, storage limits and permissions in TOML. The server rejects
+unknown fields, unsupported values, contradictory policies and duplicate grants.
 `instantkv check-config --config PATH` validates structure without reading secrets
 or opening storage. `instantkv doctor` also checks the local setup and live health.
 

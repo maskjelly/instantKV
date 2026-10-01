@@ -1,5 +1,5 @@
 name: Feature proposal
-description: Describe a concrete agent-memory or operational need.
+description: Tell us what your agent or deployment needs to do.
 body:
   - type: textarea
     id: problem
@@ -11,6 +11,6 @@ body:
   - type: textarea
     id: proposal
     attributes:
-      label: Proposed behavior and acceptance check
+      label: What should change, and how could we check it?
     validations:
       required: true

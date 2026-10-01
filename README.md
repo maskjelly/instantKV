@@ -11,25 +11,40 @@
 [Website](https://instantkv.com) · [Start guide](https://instantkv.com/docs/quickstart/)
 · [Live demo](https://instantkv.com/demo/) · [Benchmarks](https://instantkv.com/benchmarks/) · [Documentation](https://instantkv.com/docs/)
 
-**A shared knowledge base for cloud agents. A private namespace for every worker.**
+**Your agent did the work. Give it somewhere to keep it.**
 
-Remote agents need somewhere to keep project facts, decisions, and unfinished
-work when their context gets compacted. instantKV is a self-hosted knowledge KV
-service for that handoff: store knowledge, save a checkpoint, restore, and continue.
+instantKV stores the facts and unfinished work your agents need after compaction
+or a restart. Save a decision under a key like `project/storage`. Save a checkpoint
+with the goal and next step. When the agent returns, load that checkpoint and
+fetch the details it needs.
 
-Give your swarm a **shared knowledge base** and give each agent its own knowledge
-and checkpoint namespaces. Workers read the same project knowledge, work
-independently, and keep their findings private. One Rust binary, one config,
-one data directory. HTTP, CLI, and MCP share the same permission checks.
+Run it on your own machine or VPS. Give the swarm shared project knowledge and
+each agent a private namespace: a section of storage with its own permissions.
+Workers can read the shared facts while keeping their notes and checkpoints separate.
+
+One Rust binary. No model calls to store or retrieve memory. Connect through HTTP,
+the CLI, or seven MCP tools. The software is MIT licensed; you pay for the machine
+and its upkeep.
+
+## Who it's for
+
+- Coding agents that need to keep decisions and pick up unfinished tasks.
+- Cloud workers that restart or regularly run out of context.
+- Swarms that share project facts but need separate working notes.
+- Developers who want to add memory to an agent runtime they already use.
+
+You choose what to save and how to name it. Retrieval uses exact keys or prefixes;
+semantic search and automatic memory extraction are future work.
+[How instantKV compares with other memory tools →](docs/choosing-instantkv.md)
 
 ## The swarm memory model
 
 <img src="docs/assets/swarm.png" width="1100" alt="Implemented single-server topology: operator publishes shared knowledge; Alpha and Beta read shared records and write their own isolated knowledge and checkpoints">
 
-**Working today:** shared knowledge reads, private agent writes, durable checkpoints,
-and access checks on every request. Add namespaces and scoped credentials to
-repeat the pattern for more agents. The shared knowledge base is live; independent
-physical replicas and automatic consolidation are planned below.
+Working today: agents read shared knowledge, write their own notes and save durable
+checkpoints. Each request checks that worker's permissions. Add namespaces and
+credentials for more agents. All workers use one server today; independent replicas
+and automatic consolidation are planned below.
 [Cloud-agent setup and permissions →](docs/cloud-agents.md)
 
 ## Start using it
@@ -66,8 +81,9 @@ original profile. [Quick setup and binary install →](docs/quickstart.md)
 [**Open the live memory demo →**](https://instantkv.com/demo/)
 Write up to 100,000 temporary cache records or 10,000 durable records. Clear the
 writer's local context, retrieve an exact key in the separate reader, or open the
-reader in a new tab. Real Rust storage, acknowledged progress, payload size,
-throughput, latency percentiles and a live request trace. No account needed.
+reader in a new tab. The demo uses real Rust storage and shows how many records
+were saved, how much data was written and how long requests took. Watch throughput,
+latency percentiles and the live request trace. No account needed.
 
 <img src="docs/assets/live-demo.svg" width="1100" alt="Live demo request flow: browser writer and reader, Cloudflare Worker, private VPC and QUIC tunnel, isolated coordinator, Rust HTTP API and real RAM or durable redb storage">
 
@@ -79,20 +95,24 @@ instantkv demo --swarm
 # Or: ./scripts/kv.sh demo --swarm
 ```
 
-The demo starts an isolated server and two scoped clients. It proves shared
-recall, private writes, forbidden cross-agent reads and shared writes, then saves
-Alpha's capsule, clears simulated context, kills the server and restores from
-the same database. No model API key is needed.
+The demo starts its own server and two clients with separate credentials. Both
+read shared facts; each writes private notes. It checks that a worker can't read
+the other's notes or overwrite shared facts. Then it saves Alpha's checkpoint,
+clears simulated context, kills the server and restores from the same database.
+No model API key is needed.
 [Demo walkthrough and example output →](docs/demo.md)
 
 ## Survive compaction
 
 <img src="docs/assets/lifecycle.png" width="1100" alt="Park reusable facts, commit a checkpoint, keep the locator outside compacted context, restore the capsule and fetch details by key">
 
-Save the goal, constraints, decisions, open tasks, next action, and versioned
-knowledge references in a capsule. Wait for the durable acknowledgement, then
-keep its locator in the runtime's session metadata. After compaction, restore
-the capsule first and recall detailed records as needed.
+Save the goal, constraints, decisions, unfinished tasks and next action in a
+checkpoint. Its short context note is called a `capsule` in the API. Keep detailed
+facts in separate records and refer to them by key and revision.
+
+Wait until the save succeeds. Keep the checkpoint ID outside the prompt so
+compaction can't erase it. After compaction, load the checkpoint first, then
+fetch the records it points to.
 [Connect your agent through MCP →](docs/agents.md)
 
 ## Three kinds of memory
@@ -151,14 +171,14 @@ public HTTPS or distributed swarms. Raw reports and environment are linked above
 
 <img src="docs/assets/distributed.png" width="1100" alt="Future proposal: canonical knowledge base sends a versioned baseline to independent workers; completed runs submit shareable deltas; durable consolidation validates sources and conflicts before publishing the next baseline; quality metrics track sources, freshness and recall">
 
-The direction: each cloud agent receives a versioned knowledge baseline, runs
-with its own local KV and private overlay, and submits shareable findings when
-its run ends. A consolidation pipeline deduplicates, validates, compacts and reviews those
-findings before publishing the next baseline for the swarm.
+The plan is to give each cloud agent a copy of shared knowledge and its own local
+KV. When a run ends, the agent submits the findings it wants to share. A review
+process removes duplicates, checks sources and resolves conflicts before those
+findings become part of the next shared baseline.
 
-The **knowledge quality metrics** should track validated facts, source coverage, freshness,
-unresolved conflicts and recall success. More stored tokens alone do not mean
-better knowledge. **This distributed workflow is a proposal, not shipped behavior.**
+We'll measure useful knowledge by checked facts, source coverage and recall
+success, with freshness and unresolved conflicts visible. Storing more text alone
+doesn't show improvement. This distributed workflow is a proposal.
 [Detailed design, schema and rollout gates →](docs/distributed-memory.md)
 
 ## Project status
@@ -169,8 +189,8 @@ compaction hooks remain future work. The restart demo simulates context clearing
 a real-model lifecycle evaluation and deeper power/disk-failure audit remain open.
 [Implemented and next](docs/roadmap.md) · [Operations and backup](docs/operations.md)
 
-Stores application knowledge and compaction context; model attention tensors
-remain with the inference runtime.
+Here, KV means keys and values for agent knowledge. An inference KV cache stores
+a model's attention tensors; those stay in the model runtime.
 
 ## Contribute
 

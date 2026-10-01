@@ -9,6 +9,7 @@
 - Redesigned logo, wordmark and all four architecture diagrams with editable source pairs.
 - Documented the theme and updated README visuals to the latest design brief.
 - Cloudflare-hosted live demo: real Rust writes/reads, independent reader, cross-tab recall, pause/resume, measured latency and bounded temporary workloads.
+- Clearer setup and product copy, corrected feature/version status, and a sourced comparison of memory tools.
 
 ## 0.1.2 — 2026-10-01
 

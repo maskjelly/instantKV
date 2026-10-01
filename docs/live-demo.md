@@ -4,8 +4,8 @@
 needed. Choose RAM cache or durable storage, edit the synthetic context and start
 the writer. The page displays only acknowledged writes. Clear local context,
 choose a record index and recall it from the separate reader. **Open reader in
-new tab** carries only a session locator; the new page fetches the value from the
-Rust service rather than receiving a copy of the writer's context.
+new tab** passes only a session locator. The new page uses it to fetch the saved
+value from the Rust service.
 
 ## Actual storage path
 
@@ -26,10 +26,10 @@ instantKV Rust HTTP API · separate demo container
   └─ demo_knowledge → redb immediate transactions + 15-minute TTL
 ```
 
-Cloudflare hosts the public site and request proxy. Rust/redb runs on a VPS with
-persistent storage. Cloudflare KV, browser storage and simulated timers are not
-used as substitutes for instantKV. The small Node coordinator is demo workload
-generation and batching, not a second storage engine.
+Cloudflare serves the public site and forwards demo requests. The Rust service
+runs on a VPS, storing cache records in RAM and durable records in redb. A small
+Node coordinator generates synthetic values and groups writes into batches.
+Every value is stored and read through instantKV.
 
 ## What the numbers mean
 
@@ -42,16 +42,16 @@ generation and batching, not a second storage engine.
 | Live trace | Browser round-trip for each successful 512-record batch; includes Cloudflare, TLS, network, batching and parsing |
 | Read round-trip | Browser request through Cloudflare to the coordinator and back |
 | Backend HTTP read | Coordinator-to-Rust GET plus JSON parsing |
-| Exact verification | Fetched JSON equals the deterministic fixture for the requested record |
+| Exact verification | Fetched JSON matches the generated value for that record |
 | Failed requests | Rejected browser API responses; failed batch replies also include their backend failure count |
 
 Context length is a character count for the content field; the complete JSON
 record is larger. Agent IDs cycle across 64 synthetic workers. The shared demo
-does not model namespace isolation between those synthetic workers. The actual
-scoped-worker isolation and checkpoint/restart demonstration is
-[the CLI swarm demo](demo.md). Use the [controlled benchmark page](benchmarks.md)
+does not model namespace isolation between those synthetic workers.
+[The CLI swarm demo](demo.md) tests worker isolation and checkpoint recovery
+after a restart. Use the [controlled benchmark page](benchmarks.md)
 for the separate three-run, hardware-recorded measurements; public demo timings
-vary with geography, shared-host load and concurrent visitors.
+vary with where you are, load on the shared server and other visitors.
 
 ## Recorded live verification
 

@@ -16,8 +16,8 @@ import Base from '../layouts/Base.astro';
           <span class="chrome-text">One exact recall.</span>
         </h1>
         <p>
-          Write a fleet's worth of agent context. Clear the writer. Retrieve any
-          record from the reader—with timings from the actual requests.
+          Save thousands of records, clear the writer's context, then read one
+          back on the right. The numbers come from the actual requests.
         </p>
       </div>
       <div class="demo-live">
@@ -97,7 +97,7 @@ import Base from '../layouts/Base.astro';
         ></progress>
         <div class="memory-grid" id="memory-grid" aria-hidden="true"></div>
         <p class="demo-caption">
-          Each illuminated cell represents acknowledged records.
+          Each lit cell represents records the server has saved.
         </p>
         <div class="demo-panel-heading">
           <span class="eyebrow">Generated record / preview</span>
@@ -117,7 +117,7 @@ import Base from '../layouts/Base.astro';
           <span class="eyebrow">02 / Reader</span>
           <span class="demo-terminal-label">STORAGE → GET</span>
         </div>
-        <h2>Recall it from another context.</h2>
+        <h2>Read it back.</h2>
         <label for="record-index">
           Record index · <span id="read-range">load memories first</span>
         </label>
@@ -172,11 +172,9 @@ import Base from '../layouts/Base.astro';
           class="demo-json demo-read-json"
           id="read-output"
           tabindex="0"
-        >The reader fetches the value from instantKV.
+        >Store some memories, choose a record and press Recall.
 
-No browser-local value cache.
-No simulated storage.
-No account needed.</pre>
+This reader fetches the saved value from instantKV's Rust service. You can also open it in a separate tab.</pre>
         <p id="read-key" class="demo-record-key">
           Exact key and revision will appear here.
         </p>
@@ -236,11 +234,11 @@ No account needed.</pre>
 
     <section class="demo-notes">
       <p>
-        <strong>Real measurements, visible boundaries.</strong> Browser timings
-        include Cloudflare, TLS, the network and the demo coordinator. Backend
-        timings measure coordinator-to-Rust HTTP operations; they are not
-        engine-only latency. Write percentiles combine acknowledged writes
-        measured in this tab.
+        <strong>Reading the timings.</strong> Browser time covers the full trip
+        through Cloudflare and back. Backend time covers the coordinator's HTTP
+        request to Rust, including response parsing. Half the measured writes
+        finish within p50; 99% finish within p99. These are the successful
+        writes measured in this tab, not engine-only timings.
       </p>
       <p>
         Demo data expires after 15 minutes. RAM cache can be evicted under load
@@ -250,7 +248,7 @@ No account needed.</pre>
       </p>
       <div class="button-row">
         <a class="text-link" href="/docs/live-demo/">
-          Architecture & reproduce →
+          How it works & how to run it →
         </a>
         <a class="text-link" href="/benchmarks/">
           Controlled benchmarks →

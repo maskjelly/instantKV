@@ -45,8 +45,8 @@ Run [container quick-start](docs/quickstart.md) for deployment changes.
 
 Edit Markdown in `docs/` or this contributor guide; the website renders those
 same sources. Add navigation entries in `site/src/lib/docs.ts` for a new guide.
-For site work, use Node 22.12+ and run `npm ci`, `npm run check`, `npm run build`
-and `npm run verify` from `site/`. Verify mobile layout, search, code copying and
+For site work, use Node 22.12+ and run `npm ci`, `npm run check`, `npm test`,
+`npm run build` and `npm run verify` from `site/`. Verify mobile layout, search, code copying and
 benchmark controls before deploying. See [website operations](docs/website.md).
 
 Benchmark claims must come from checked-in raw reports with their measured

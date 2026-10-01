@@ -14,21 +14,21 @@ INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
 
 <Base
   title="instantKV"
-  description="Fast, lean, self-hosted knowledge memory for cloud agents. Store facts, survive compaction, and give every worker a private namespace. Rust. HTTP. CLI. MCP."
+  description="Keep your agent's work through compaction and restarts. A self-hosted Rust memory service with shared project facts, private notes and durable checkpoints."
 >
   <main id="main" class="container" data-pagefind-body>
     <section class="hero">
       <div>
-        <span class="eyebrow">Knowledge infrastructure / written in Rust</span>
+        <span class="eyebrow">Self-hosted agent memory / written in Rust</span>
         <h1>
           Memory your
           <br />
           agents <span class="chrome-text">keep.</span>
         </h1>
         <p>
-          Context disappears. Knowledge shouldn't. Store facts, save the
-          checkpoint, and let your cloud agents pick up exactly where they left
-          off.
+          Keep the decisions, findings and next step outside your agent's
+          context. When it compacts or restarts, load the checkpoint and carry
+          on.
         </p>
         <div class="button-row">
           <a class="button button-primary" href="/docs/quickstart/">
@@ -107,8 +107,8 @@ INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
         <span class="eyebrow">Live / no account needed</span>
         <h2>Load 100,000 memories. Recall any key.</h2>
         <p>
-          Separate writer and reader. Real Rust storage. Measured throughput and
-          latency.
+          Fill the storage, clear the writer, then fetch a record from a
+          separate reader. Watch the actual request times as it runs.
         </p>
       </div>
       <a class="button button-primary" href="/demo/">
@@ -126,8 +126,8 @@ INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
           </h2>
         </div>
         <p>
-          A small context snapshot gets the agent back on task. Detailed
-          knowledge stays one key away.
+          A checkpoint holds the goal and next step. Keep the details in
+          separate records and load them when the agent needs them.
         </p>
       </div>
       <div class="flow">
@@ -138,20 +138,20 @@ INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
         </article>
         <article>
           <span class="number">02 / CHECKPOINT</span>
-          <h3>Commit the handoff.</h3>
+          <h3>Save the next step.</h3>
           <p>
-            Goal, constraints, pending work and next action. One transaction.
+            Goal, constraints and unfinished work, saved in one transaction.
           </p>
         </article>
         <article>
           <span class="number">03 / COMPACT</span>
           <h3>Free the context.</h3>
-          <p>Wait for the durable ACK. Keep the locator in runtime metadata.</p>
+          <p>Wait until the save succeeds. Keep its ID outside the prompt.</p>
         </article>
         <article>
           <span class="number">04 / RESTORE</span>
           <h3>Carry on.</h3>
-          <p>Restore checkpoint context, fetch facts by key and continue.</p>
+          <p>Load the checkpoint, fetch the details and pick up the task.</p>
         </article>
       </div>
       <p style="font-size:12px;margin-top:20px">
@@ -177,8 +177,8 @@ INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
       </div>
       <p style="max-width:650px">
         Give your agents the same project knowledge, then let them work
-        independently. Scoped credentials keep private findings and handoffs in
-        the right namespace.
+        independently. Each worker gets its own credentials and a private place
+        for notes and checkpoints.
       </p>
       <a
         class="diagram-frame"
@@ -209,7 +209,7 @@ INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
           <h2>
             Small footprint.
             <br />
-            Serious memory primitives.
+            One Rust binary.
           </h2>
         </div>
         <p>
@@ -220,18 +220,19 @@ INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
       <div class="feature-grid">
         <article class="feature">
           <span class="eyebrow">DURABLE / TRANSACTIONAL</span>
-          <h3>Acknowledged after commit.</h3>
+          <h3>Saved before we say so.</h3>
           <p>
-            redb transactions persist knowledge and checkpoints. Context, latest
-            pointer and quota counters commit together.
+            Durable writes succeed after the database commits. Saving a
+            checkpoint also updates the session's latest checkpoint in that same
+            transaction.
           </p>
         </article>
         <article class="feature">
           <span class="eyebrow">BOUNDED / PREDICTABLE</span>
           <h3>Memory with a budget.</h3>
           <p>
-            Per-namespace quotas, request admission, size limits and bounded
-            restores. Optional RAM scratch uses TTL and FIFO.
+            Set limits on stored records, request sizes and how much context a
+            restore returns. Use expiring RAM storage for disposable notes.
           </p>
         </article>
         <article class="feature">
@@ -244,13 +245,22 @@ INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
         </article>
         <article class="feature">
           <span class="eyebrow">EXACT / VERSIONED</span>
-          <h3>Recall without a detour.</h3>
+          <h3>Get the record you saved.</h3>
           <p>
-            Exact keys, prefix discovery and conditional revision writes.
-            References tell you when facts changed or became unavailable.
+            Read by key, browse by prefix and check revisions before updating a
+            record. A restore tells you if a referenced fact changed or went
+            missing. Storage and retrieval need no model calls.
           </p>
         </article>
       </div>
+      <p style="max-width:650px;margin-top:24px">
+        Built for coding agents, remote workers and swarms that need to keep
+        their work. You choose what gets saved; instantKV stores it and gives it
+        back by key.{' '}
+        <a class="text-link" href="/docs/choosing-instantkv/">
+          Compare memory tools →
+        </a>
+      </p>
     </section>
     <section class="section">
       <div class="start-panel">
@@ -262,8 +272,9 @@ INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
           </h2>
           <p>
             Start a shared knowledge base and two private workers with Docker
-            Compose. The demo proves isolation, compaction handoff and
-            persistence through a real restart.
+            Compose. The demo checks each worker's permissions, clears its
+            context, kills the server and loads the saved checkpoint after a
+            real restart.
           </p>
           <a class="text-link" href="/docs/quickstart/">
             Full setup guide →

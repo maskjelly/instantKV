@@ -18,11 +18,11 @@ below. See [verification history](checkpoints.md) for checks actually run.
 | Deployment | Binary / non-root Docker + volume | No database service or orchestration dependency |
 | Verification | Fake-clock invariant tests + HTTP/MCP tests + CLI load client | Deterministic lifecycle checks and measured request paths |
 
-Rust is a strong fit here. Go would also work; Rust trades development effort for
-control over allocation and ownership. We use a database engine rather than
-invent a WAL. Valkey would be a sensible backend for an integration-only product;
-redb keeps this system embedded and self-contained. These are engineering choices,
-not a claim that Rust automatically makes HTTP faster.
+We chose Rust for control over memory and concurrency. Go could also do this job;
+Rust asks for more development effort in exchange for those controls. redb handles
+transactions and persistence inside the process, so we can ship one binary.
+Valkey would also be a sensible backend if a separate database service suited
+the deployment. Language choice alone doesn't establish a speed advantage.
 
 Sources: [Rust ownership](https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html),
 [Axum](https://docs.rs/axum/latest/axum/),
@@ -63,8 +63,9 @@ is unambiguous.
 | `metadata_v1` | format / namespace identity | format version / storage mode + purpose |
 
 Record header: revision, write time, expiry time (0 means absent), insertion order.
-Ordinary JSON values have no mandatory application envelope; provenance is an
-agent convention. Raw bytes and UTF-8 are configurable alternatives.
+You choose the fields in ordinary JSON values, including how to record sources.
+The server doesn't require a fixed wrapper. Raw bytes and UTF-8 are configurable
+alternatives.
 
 Checkpoint namespace reserved records:
 

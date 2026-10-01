@@ -36,11 +36,10 @@ Deployment and measured results are recorded in [operations](operations.md),
 
 ## Managed hosting is in development
 
-Managed hosting means we run the memory node and you connect your agents directly.
-Self-hosting is available today; a public managed endpoint is not available yet.
-There is no announced launch date or hosted pricing. The website is documentation
-and benchmark infrastructure, plus a temporary synthetic-data demo sandbox.
-The demo is separate from the future managed memory service.
+For managed hosting, we'll run the node and you'll connect your agents to it.
+Today you can self-host or try the public demo with temporary synthetic records.
+Hosting for your own agents isn't available yet, and we haven't announced a date
+or price.
 
 Before launch: scoped credential provisioning, persistent tenant isolation,
 resource budgets, verified backup/recovery, TLS, operational monitoring and the
@@ -48,10 +47,10 @@ failure-injection gates above. The open-source self-hosted service stays availab
 
 ## Distributed knowledge consolidation
 
-Each agent should receive a versioned baseline, retain its own private KV overlay,
-and contribute shareable findings when its run completes. A durable consolidation
-pipeline should deduplicate, validate sources, surface conflicts, and publish a
-reviewed new shared baseline. [Design and proposed schema](distributed-memory.md).
+Each agent should start with a copy of shared knowledge and keep private work in
+its own KV. After a run, it submits the findings it wants to share. A consolidation
+service checks sources, removes duplicates and sends conflicts for review before
+publishing the next baseline. [Design and proposed schema](distributed-memory.md).
 
 | Stage | Scope | Status |
 |---|---|---|
@@ -66,4 +65,4 @@ reviewed new shared baseline. [Design and proposed schema](distributed-memory.md
 This is a distributed knowledge workflow proposal, not a shipped consensus KV.
 Choose automatic failover only after availability requirements justify it.
 Semantic search, a custom WAL and Redis wire compatibility are separate choices;
-prioritize proven recall gaps and measured limits.
+focus on gaps found in real tasks and limits we've measured.

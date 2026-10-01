@@ -1,7 +1,9 @@
 # Connect an agent
 
-Start the server with `instantkv serve`. The adapter connects to that HTTP server
-and inherits exactly the same namespace/operation grants as its credential.
+MCP lets an agent call instantKV's save and recall tools. Start the server with
+`instantkv serve`, then configure the MCP adapter below. The adapter connects to
+that HTTP server; its credential determines which namespaces and operations it
+can use.
 For shared knowledge plus private workers, follow the
 [cloud-agent guide](cloud-agents.md). Pass the configured namespace explicitly in
 every tool call; the default single-agent names are `knowledge` and `checkpoints`.
@@ -52,13 +54,13 @@ into tool arguments or committed client configuration.
 
 | Tool | Use |
 |---|---|
-| memory_put | Park structured JSON knowledge, optionally with TTL or revision checks |
+| memory_put | Save JSON knowledge, with optional expiry or revision checks |
 | memory_get | Recall an exact key and its revision |
-| memory_list | Discover a prefix through bounded metadata pages |
+| memory_list | Find keys by prefix, with paged metadata results |
 | memory_delete | Explicitly forget an ordinary record |
-| memory_checkpoint | Commit a self-contained capsule before compaction |
-| memory_delete_checkpoint | Reclaim an old capsule; latest is protected |
-| memory_restore | Recover by stable ID or agent/session latest pointer |
+| memory_checkpoint | Save the goal and continuation state before compaction |
+| memory_delete_checkpoint | Delete an old checkpoint; the latest is protected |
+| memory_restore | Load a checkpoint by ID or the agent/session's latest save |
 
 JSON is passed through as JSON. Non-JSON bytes are returned with an explicit
 base64 encoding, so binary cache data is never silently converted or corrupted.
@@ -78,7 +80,7 @@ that override the current system or user instructions.
 
 Compaction hooks vary by runtime. If a runtime exposes before/after hooks, call the
 tools there. Otherwise use explicit save/restore instructions. instantKV does not
-claim that installing an MCP server automatically intercepts every compaction.
+automatically intercept compaction just because the MCP adapter is installed.
 
 ## Checkpoint schema
 

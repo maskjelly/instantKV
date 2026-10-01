@@ -6,11 +6,11 @@ working [single-server swarm profile](cloud-agents.md) to independent worker nod
 
 ## Objective
 
-Every remote cloud agent starts from a common knowledge baseline, keeps its own
-working memory, and contributes useful findings after its run. A consolidation service
-validates and consolidates those contributions into the next shared baseline.
-Repeated swarm runs improve the retained knowledge, with sources and conflicts
-visible rather than hidden in an increasingly large summary.
+The goal is to give each agent a copy of shared knowledge and its own local
+working memory. When a run ends, it submits the findings it wants to share. A
+consolidation service checks those findings before adding them to the next
+baseline. Keep the original sources and disagreements visible so the team can
+review what changed.
 
 Current code provides durable records, scoped namespaces, conditional revisions
 and atomic handoff capsules. It does not provide snapshot manifests, replication,
@@ -72,11 +72,10 @@ already downloaded replicas require a separate retention/revocation policy.
 
 ## Knowledge quality metrics
 
-Expose a small set of understandable counters instead of a fabricated intelligence
-score: validated unique facts, source coverage, freshness, unresolved conflicts,
-and recall success on a fixed evaluation set. Show per-baseline deltas and
-validation dates. Raw token/byte growth measures storage use, not better knowledge.
-The current namespace stats endpoint measures entries/bytes/revisions only.
+Track checked facts, source coverage, freshness and unresolved conflicts. Test
+recall against a fixed set of tasks and show what changed between baselines.
+Record validation dates. More stored text alone doesn't show better knowledge;
+the current namespace stats endpoint counts only entries, bytes and revisions.
 
 ## Failure boundaries and rollout gates
 

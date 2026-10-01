@@ -1,9 +1,10 @@
-# Implemented features
+# What you can do today
 
-instantKV 0.1.1 is a self-hosted, single-node knowledge memory service for cloud
-agents. Use the [quick start](quickstart.md) to run it and [the demo](demo.md) to
-verify your setup. Managed hosting is in development; there is no public hosted
-memory endpoint yet. The website hosts documentation, not your memory.
+instantKV 0.1.2 stores agent knowledge and checkpoints on a server you run.
+Use the [quick start](quickstart.md) to set it up, or try the
+[live browser demo](https://instantkv.com/demo/) first. The demo uses real Rust
+storage with temporary synthetic records. Hosting for your own agents is still
+in development.
 
 ## Record memory
 
@@ -15,7 +16,7 @@ memory endpoint yet. The website hosts documentation, not your memory.
 | Revision-safe update/delete | Use the observed revision with `--if-revision` |
 | Explicit forgetting | `delete` removes an ordinary record and reclaims logical quota |
 | Optional expiry | `put --ttl SECONDS`, subject to the namespace policy |
-| Admission | Namespace checks JSON, UTF-8 or bytes; size limits bound keys and values |
+| Input checks | Choose JSON, UTF-8 or raw bytes per namespace; set key and value size limits |
 
 The default profile has durable `knowledge` and `checkpoints`, plus RAM `scratch`.
 Scratch uses TTL and FIFO eviction; it is empty after process restart. Durable
@@ -24,10 +25,11 @@ not process RAM or physical database size. See [configuration](configuration.md)
 
 ## Compaction handoffs
 
-A checkpoint atomically commits an immutable capsule, the session's latest
-pointer and usage counters. Save essential continuation state inline: goal,
-summary, constraints, decisions, open tasks and next action. Detailed records can
-be referenced by namespace, key and expected revision.
+A checkpoint saves the context needed to continue a task: the goal, summary,
+constraints, decisions, open tasks and next action. This note is the `capsule`
+field in the API. Detailed facts stay in separate records, referenced by
+namespace, key and expected revision. The checkpoint, session's latest pointer
+and usage counters commit together in one database transaction.
 
 Restore by checkpoint ID or by agent/session latest. The response has a byte
 budget and reports `available`, `stale`, `missing` or `forbidden` references.
@@ -70,7 +72,8 @@ temporary volume. Follow [operations](operations.md) before upgrading.
 
 ## Planned
 
-Managed hosting, distributed replicas, automatic run-completion consolidation,
-semantic search, online snapshots, final-session retirement and a quality-focused
-knowledge quality metrics are not implemented. The [roadmap](roadmap.md) and
-[distributed proposal](distributed-memory.md) state the rollout gates.
+We're working toward managed hosting, independent replicas and a way to review
+and merge findings after agents finish their runs. Semantic search, online
+snapshots, final-session retirement and knowledge quality metrics are also
+planned. See the [roadmap](roadmap.md) and
+[distributed proposal](distributed-memory.md) for what must pass before they ship.

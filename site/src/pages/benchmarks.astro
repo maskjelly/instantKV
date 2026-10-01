@@ -138,14 +138,16 @@ const number = (value: number) => Math.round(value).toLocaleString('en-US');
       <section>
         <h2>What these numbers mean</h2>
         <p>
-          These are hot-key request-path measurements on a shared machine.
-          Setup, warmup and cleanup are outside timing. Each table cell is the
-          median of three run results, rather than a pooled percentile.
+          The tests repeatedly read or update a small set of keys on a shared
+          machine. Setup, warmup and cleanup are outside timing. Each table cell
+          is the middle result from three runs; we don't pool their latency
+          samples.
         </p>
         <p>
-          Knowledge reads use the embedded engine/OS cache path. Durable writes
-          keep immediate commits enabled. Checkpoint and restore use a fixed
-          capsule without references.
+          p50 is the middle request time; p99 is the time 99% of requests finish
+          within. Knowledge reads use cached database data. Durable writes wait
+          for immediate commits. Checkpoint and restore use the same context
+          note with no references.
         </p>
         <p>
           The memory figure is a post-run snapshot, not peak RSS. This benchmark
@@ -192,7 +194,7 @@ const number = (value: number) => Math.round(value).toLocaleString('en-US');
       </p>
     </section>
     <section class="raw-runs">
-      <h2 style="font-size:28px">Every run. Nothing hidden.</h2>
+      <h2 style="font-size:28px">Open the raw results.</h2>
       {workloads.map((w) => (
         <details>
           <summary>{w.name} / 3 raw reports</summary>

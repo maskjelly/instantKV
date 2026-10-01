@@ -1,6 +1,9 @@
 # Agent memory contract
 
-Implemented HTTP and MCP contract. This defines what survives compaction.
+This is the save/restore contract for HTTP and MCP clients. An agent saves facts
+as records and its continuation state as a checkpoint. The runtime keeps the
+checkpoint ID outside the prompt so it can load that state after compaction.
+The checkpoint's short context note is called a `capsule` in the API.
 
 ## Memory record
 
@@ -18,10 +21,10 @@ Store small, independently useful JSON values under descriptive keys, for exampl
 }
 ```
 
-Kinds: `fact`, `decision`, `constraint`, `task`, `reference`. The server attaches
-revision, write time, and optional expiry; it does not claim content is true.
-JSON admission validates JSON syntax at runtime. Ordinary memory envelopes remain
-application-defined; the server validates the typed checkpoint capsule.
+Suggested kinds: `fact`, `decision`, `constraint`, `task`, `reference`. The server
+adds a revision, write time and optional expiry. It checks JSON syntax, not whether
+the content is true. You choose the fields in ordinary records; checkpoints have
+a defined schema that the server validates.
 
 ## Checkpoint → compact → restore
 

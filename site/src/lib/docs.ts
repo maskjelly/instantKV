@@ -1,12 +1,20 @@
 export const repository = 'https://github.com/maskjelly/instantKV';
 export const docs = [
   {
+    slug: 'choosing-instantkv',
+    title: 'Why instantKV',
+    group: 'Start here',
+    source: 'docs/choosing-instantkv.md',
+    description:
+      'Who it helps, what makes it useful and when another memory tool fits better.',
+  },
+  {
     slug: 'live-demo',
     title: 'Live demo architecture',
     group: 'Start here',
     source: 'docs/live-demo.md',
     description:
-      'Real Rust storage, independent readers and reproducible latency measurements.',
+      'How the browser demo stores records and measures request times.',
   },
   {
     slug: 'quickstart',
@@ -21,7 +29,8 @@ export const docs = [
     title: 'Features',
     group: 'Start here',
     source: 'docs/features.md',
-    description: 'Everything the current single-node service implements.',
+    description:
+      'What you can use in the current release, with links to each feature.',
   },
   {
     slug: 'demo',
@@ -37,7 +46,7 @@ export const docs = [
     group: 'Use the service',
     source: 'docs/cloud-agents.md',
     description:
-      'Shared knowledge base, private agent namespaces and remote access.',
+      'Give workers shared project facts and separate private notes.',
   },
   {
     slug: 'agents',
@@ -68,16 +77,14 @@ export const docs = [
     title: 'Memory & compaction',
     group: 'Use the service',
     source: 'docs/agent-memory.md',
-    description:
-      'Capsules, stable locators, bounded restores and revision-aware references.',
+    description: 'What to save before compaction and how to load it afterward.',
   },
   {
     slug: 'configuration',
     title: 'Configuration',
     group: 'Run a node',
     source: 'docs/configuration.md',
-    description:
-      'Strict policies for namespaces, grants, quotas, expiry and admission.',
+    description: 'Set permissions, storage limits, expiry and request limits.',
   },
   {
     slug: 'operations',
@@ -138,7 +145,8 @@ export const docs = [
     title: 'Roadmap',
     group: 'Project',
     source: 'docs/roadmap.md',
-    description: 'Shipped capabilities and the next engineering milestones.',
+    description:
+      'What works today and what must pass before the next features ship.',
   },
   {
     slug: 'distributed-memory',
@@ -160,7 +168,7 @@ export const docs = [
     title: 'Verified checkpoints',
     group: 'Project',
     source: 'docs/checkpoints.md',
-    description: 'Build stages with concrete validation evidence.',
+    description: 'What changed at each stage and how we checked it.',
   },
   {
     slug: 'request-audit',
