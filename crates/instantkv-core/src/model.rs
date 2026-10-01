@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Record {
     pub value: Vec<u8>,
     pub revision: u64,
@@ -9,7 +9,7 @@ pub struct Record {
     pub(crate) inserted: u64,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Usage {
     pub entries: u64,
     pub bytes: u64,
@@ -24,7 +24,7 @@ pub enum Condition {
     Revision(u64),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct RecordInfo {
     pub key: String,
     pub revision: u64,
@@ -32,13 +32,13 @@ pub struct RecordInfo {
     pub expires_at_ms: Option<u64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Page {
     pub items: Vec<RecordInfo>,
     pub next_cursor: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Capsule {
     pub goal: String,
@@ -52,7 +52,7 @@ pub struct Capsule {
     pub next_action: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct MemoryReference {
     pub namespace: String,
@@ -60,7 +60,7 @@ pub struct MemoryReference {
     pub revision: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct CheckpointRequest {
     pub id: String,
@@ -72,7 +72,7 @@ pub struct CheckpointRequest {
     pub references: Vec<MemoryReference>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CheckpointReceipt {
     pub id: String,
     pub revision: u64,
@@ -81,7 +81,7 @@ pub struct CheckpointReceipt {
     pub is_latest: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ReferenceStatus {
     Available,
@@ -90,14 +90,14 @@ pub enum ReferenceStatus {
     Forbidden,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct ResolvedReference {
     #[serde(flatten)]
     pub reference: MemoryReference,
     pub status: ReferenceStatus,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Restore {
     pub checkpoint_id: String,
     pub revision: u64,

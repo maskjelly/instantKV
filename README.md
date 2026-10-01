@@ -8,9 +8,9 @@ whether it survives restart.
 
 ## Status
 
-**Architecture and Rust scaffold.** Configuration parsing, validation, and a CLI
-work today. Storage, the HTTP server, authentication enforcement, and deployment
-artifacts are planned; this is not a running KV server yet.
+**Working Rust memory server and CLI.** Durable storage, atomic checkpoints,
+scratch eviction, TTL, scoped authentication, HTTP, a real restart demo, and a
+benchmark client are implemented. MCP and container deployment are in progress.
 
 ## The agent workflow
 
@@ -51,7 +51,25 @@ Eviction removes unexpired data when an explicitly configured cache fills.
 See the [architecture](docs/architecture.md), [agent memory contract](docs/agent-memory.md),
 and [ordered build plan](docs/roadmap.md).
 
-## Try the scaffold
+## Quickstart
+
+```sh
+cargo install --git https://github.com/maskjelly/instantKV --locked instantkv
+instantkv init
+instantkv serve
+```
+
+In a second terminal in the same directory:
+
+```sh
+instantkv put knowledge project/storage --value '{"content":"Use Rust + redb"}'
+instantkv get knowledge project/storage
+```
+
+Run `instantkv demo` for a self-contained save → compact → kill → restart → restore
+proof. See [setup and benchmark commands](docs/quickstart.md).
+
+## Configuration checks
 
 Install Rust with Cargo, then run from this directory:
 

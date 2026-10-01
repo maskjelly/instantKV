@@ -1,0 +1,15 @@
+{
+  "id": "first-checkpoint",
+  "agent_id": "builder",
+  "session_id": "project-1",
+  "expected_latest_revision": null,
+  "capsule": {
+    "goal": "Build the project without losing context",
+    "summary": "The memory store is running. The storage decision is saved.",
+    "constraints": ["Keep credentials out of memory and logs"],
+    "decisions": ["Use durable knowledge and checkpoints; expire scratch data"],
+    "open_tasks": ["Connect the agent's memory tools"],
+    "next_action": "Restore this capsule after compaction and continue the task"
+  },
+  "references": []
+}

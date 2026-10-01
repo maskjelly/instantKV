@@ -6,3 +6,6 @@
 *.redb
 *.redb.*
 .DS_Store
+/.instantkv/
+/instantkv.toml
+/.tesseract-work/
