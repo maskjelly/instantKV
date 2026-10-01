@@ -11,9 +11,7 @@
   "env": {
     "production": {
       "name": "instantkv-site",
-      "routes": [
-        { "pattern": "instantkv.com", "custom_domain": true },
-      ],
+      "routes": [{ "pattern": "instantkv.com", "custom_domain": true }],
     },
   },
 }
