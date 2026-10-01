@@ -35,7 +35,7 @@ impl Drop for ProcessGuard {
     }
 }
 
-async fn start(dir: &Path, token: &str) -> Result<(Client, ProcessGuard)> {
+async fn start(dir: &Path, token: &str) -> Result<(Client, ProcessGuard, String)> {
     let reservation = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
     let address = reservation.local_addr()?;
     drop(reservation);
@@ -55,7 +55,7 @@ async fn start(dir: &Path, token: &str) -> Result<(Client, ProcessGuard)> {
     let deadline = Instant::now() + Duration::from_secs(15);
     loop {
         if client.health().await.is_ok() {
-            return Ok((client, process));
+            return Ok((client, process, format!("http://{address}")));
         }
         if process.0.try_wait()?.is_some() || Instant::now() >= deadline {
             bail!(
@@ -69,10 +69,10 @@ async fn start(dir: &Path, token: &str) -> Result<(Client, ProcessGuard)> {
 
 pub async fn demo() -> Result<()> {
     let dir = tempfile::tempdir()?;
-    crate::init(dir.path())?;
+    crate::init(dir.path(), crate::Profile::Agent)?;
     let secrets = instantkv::auth::read_secrets(&dir.path().join(".instantkv/credentials.env"))?;
     let token = secrets["INSTANTKV_APP_TOKEN"].clone();
-    let (client, mut process) = start(dir.path(), &token).await?;
+    let (client, mut process, _) = start(dir.path(), &token).await?;
     let decision =
         br#"{"kind":"decision","content":"Use Rust + redb","source":"docs/architecture.md"}"#
             .to_vec();
@@ -119,7 +119,7 @@ pub async fn demo() -> Result<()> {
     println!("03  COMPACT   cleared simulated agent context; locator stays outside it");
     process.stop()?;
     drop(client);
-    let (client, mut process) = start(dir.path(), &token).await?;
+    let (client, mut process, _) = start(dir.path(), &token).await?;
     println!("04  RESTART   reopened the same database with an empty scratch cache");
     let receipt: instantkv_core::model::CheckpointReceipt =
         serde_json::from_slice(&std::fs::read(locator_path)?)?;
@@ -141,6 +141,145 @@ pub async fn demo() -> Result<()> {
     println!("06  RECALL    durable knowledge survived; disposable scratch did not");
     println!("\nNext action: {}", restored.capsule.next_action);
     println!("PASS: compaction handoff and database restart via real HTTP requests");
+    process.stop()?;
+    Ok(())
+}
+
+pub async fn swarm_demo() -> Result<()> {
+    let dir = tempfile::tempdir()?;
+    crate::init(dir.path(), crate::Profile::Swarm)?;
+    let secrets = instantkv::auth::read_secrets(&dir.path().join(".instantkv/credentials.env"))?;
+    let token = &secrets["INSTANTKV_APP_TOKEN"];
+    let (operator, mut process, url) = start(dir.path(), token).await?;
+    let alpha = Client::new(&url, Some(secrets["INSTANTKV_ALPHA_TOKEN"].clone()))?;
+    let beta = Client::new(&url, Some(secrets["INSTANTKV_BETA_TOKEN"].clone()))?;
+    let baseline = br#"{"content":"Use Rust + redb","source":"docs/architecture.md"}"#.to_vec();
+    let mother = operator
+        .put(
+            "mother",
+            "project/storage",
+            baseline.clone(),
+            None,
+            None,
+            true,
+        )
+        .await?;
+    assert_eq!(alpha.get("mother", "project/storage").await?.0, baseline);
+    assert_eq!(beta.get("mother", "project/storage").await?.0, baseline);
+    println!("01  MOTHER    both cloud agents recall the same shared baseline");
+    let alpha_note = br#"{"content":"Alpha verified the HTTP contract"}"#.to_vec();
+    let own = alpha
+        .put(
+            "alpha",
+            "run/findings",
+            alpha_note.clone(),
+            None,
+            None,
+            true,
+        )
+        .await?;
+    beta.put(
+        "beta",
+        "run/findings",
+        b"{\"content\":\"Beta checked deployment\"}".to_vec(),
+        None,
+        None,
+        true,
+    )
+    .await?;
+    assert!(
+        alpha
+            .put(
+                "mother",
+                "project/storage",
+                b"{}".to_vec(),
+                None,
+                None,
+                false
+            )
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    assert!(
+        alpha
+            .get("beta", "run/findings")
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    assert!(
+        beta.get("alpha", "run/findings")
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    println!(
+        "02  PRIVATE   agents write independently; cross-agent reads and mother writes return 403"
+    );
+    let mut context = Some(capsule());
+    let request = CheckpointRequest {
+        id: "alpha-handoff".into(),
+        agent_id: "alpha".into(),
+        session_id: "run-1".into(),
+        expected_latest_revision: None,
+        capsule: context.clone().unwrap(),
+        references: vec![
+            MemoryReference {
+                namespace: "mother".into(),
+                key: "project/storage".into(),
+                revision: mother["revision"]
+                    .as_u64()
+                    .context("missing mother revision")?,
+            },
+            MemoryReference {
+                namespace: "alpha".into(),
+                key: "run/findings".into(),
+                revision: own["revision"]
+                    .as_u64()
+                    .context("missing private revision")?,
+            },
+        ],
+    };
+    let receipt = alpha.checkpoint("alpha_checkpoints", &request).await?;
+    std::fs::write(
+        dir.path().join("alpha-locator.json"),
+        serde_json::to_vec(&receipt)?,
+    )?;
+    context.take();
+    assert!(context.is_none());
+    assert!(
+        beta.restore("alpha_checkpoints", &receipt.id, 32768)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    println!(
+        "03  HANDOFF   saved private capsule; cleared simulated context; locator lives outside it"
+    );
+    process.stop()?;
+    let (_, mut process, url) = start(dir.path(), token).await?;
+    let alpha = Client::new(&url, Some(secrets["INSTANTKV_ALPHA_TOKEN"].clone()))?;
+    let receipt: instantkv_core::model::CheckpointReceipt =
+        serde_json::from_slice(&std::fs::read(dir.path().join("alpha-locator.json"))?)?;
+    let restored = alpha
+        .restore("alpha_checkpoints", &receipt.id, 32768)
+        .await?;
+    assert_eq!(restored.capsule, request.capsule);
+    assert!(restored.references.iter().all(|reference| matches!(
+        reference.status,
+        instantkv_core::model::ReferenceStatus::Available
+    )));
+    assert_eq!(alpha.get("alpha", "run/findings").await?.0, alpha_note);
+    assert_eq!(alpha.get("mother", "project/storage").await?.0, baseline);
+    println!(
+        "04  RESTORE   after real server restart, Alpha restores its capsule and both knowledge sources"
+    );
+    println!("PASS: shared mother + isolated agents + durable handoff over real HTTP");
     process.stop()?;
     Ok(())
 }

@@ -66,3 +66,15 @@ instance. Added bounded checkpoint stdin/file input (tested through the CLI),
 original editable logo/architecture, current setup/API/policy/operations docs,
 contribution/security guidance and issue templates. Twenty-six local tests and
 strict Clippy passed. Linux/macOS/container CI includes demo, schema and backup gates.
+
+## 8 — Published binaries and final setup polish
+
+Published v0.1.0 as an early release from verified commit `3005ec7`, with Linux
+x86_64 static-musl and macOS arm64 archives, checksums and build metadata. The
+published downloads passed the demo on both macOS and Rove. On Rove the first
+release-based setup took 281 seconds, primarily download time, without compiling.
+
+Fixed the ready address when a custom host port is supplied through `.env`;
+CI now checks that case. Installer downloads show progress and have bounded
+timeouts. Added SSH MCP instructions; the usable VPS checkout is
+`/srv/instantkv/app`, separate from the retained benchmark state.

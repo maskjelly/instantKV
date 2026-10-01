@@ -62,7 +62,7 @@ Capsules are limited to 16 KiB and 64 references. The default total bundle cap i
 
 UTF-8 record keys are one percent-encoded path segment, bounded after decoding.
 Reserved checkpoint keys cannot be mutated through generic record routes. Deleting
-the current latest checkpoint is rejected until another checkpoint is selected.
+the current latest checkpoint is rejected until a newer checkpoint is saved.
 Checkpoint namespaces must be durable with no TTL and no eviction; arbitrary TTL
 records remain separate. Listing defaults to 100 items with a server cap of 1000
 with key/value admission bounds; cursors do not promise a stable snapshot during writes.

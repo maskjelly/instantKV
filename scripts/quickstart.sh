@@ -14,8 +14,9 @@ fi
 docker compose build
 # Existing state is kept; initialize only on first use.
 if ! docker compose run --rm --no-deps instantkv check-config >/dev/null 2>&1; then
-  docker compose run --rm --no-deps instantkv init
+  docker compose run --rm --no-deps instantkv init --profile "${INSTANTKV_PROFILE:-agent}"
 fi
 docker compose up -d --wait
 docker compose exec -T instantkv instantkv doctor
-printf '%s\n' "Ready at http://127.0.0.1:${INSTANTKV_PORT:-8080}" 'Try: ./scripts/kv.sh demo'
+ready_address="$(docker compose port instantkv 8080)"
+printf '%s\n' "Ready at http://$ready_address" 'Try: ./scripts/kv.sh demo'

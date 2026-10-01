@@ -50,8 +50,36 @@ pub enum AuthMode {
 pub struct Principal {
     pub name: String,
     pub token_env: String,
+    #[serde(default)]
     pub namespaces: Vec<String>,
+    #[serde(default)]
     pub operations: Vec<Operation>,
+    /// Per-namespace permissions. Cannot be mixed with the legacy shorthand.
+    #[serde(default)]
+    pub grants: Vec<Grant>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Grant {
+    pub namespace: String,
+    pub operations: Vec<Operation>,
+}
+
+impl Principal {
+    pub fn namespace_grants(&self) -> Vec<Grant> {
+        if self.grants.is_empty() {
+            self.namespaces
+                .iter()
+                .map(|namespace| Grant {
+                    namespace: namespace.clone(),
+                    operations: self.operations.clone(),
+                })
+                .collect()
+        } else {
+            self.grants.clone()
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
@@ -206,28 +234,37 @@ impl Config {
                     {
                         return Err("principal token_env names must be valid and unique".into());
                     }
-                    if principal.namespaces.is_empty() || principal.operations.is_empty() {
+                    if !principal.grants.is_empty()
+                        && (!principal.namespaces.is_empty() || !principal.operations.is_empty())
+                    {
+                        return Err("use grants OR namespaces/operations, never both".into());
+                    }
+                    if principal.grants.is_empty()
+                        && (principal.namespaces.is_empty() || principal.operations.is_empty())
+                    {
                         return Err(format!(
                             "principal '{}' needs explicit namespaces and operations",
                             principal.name
                         ));
                     }
                     let mut grants = HashSet::new();
-                    for name in &principal.namespaces {
-                        if !names.contains(name.as_str()) || !grants.insert(name) {
+                    for grant in principal.namespace_grants() {
+                        let name = &grant.namespace;
+                        if !names.contains(name.as_str()) || !grants.insert(name.clone()) {
                             return Err(format!(
                                 "principal '{}' references unknown or duplicate namespace '{name}'",
                                 principal.name
                             ));
                         }
-                    }
-                    if principal.operations.iter().collect::<HashSet<_>>().len()
-                        != principal.operations.len()
-                    {
-                        return Err(format!(
-                            "principal '{}' has duplicate operations",
-                            principal.name
-                        ));
+                        if grant.operations.is_empty()
+                            || grant.operations.iter().collect::<HashSet<_>>().len()
+                                != grant.operations.len()
+                        {
+                            return Err(format!(
+                                "principal '{}' needs nonempty, unique operations for '{name}'",
+                                principal.name
+                            ));
+                        }
                     }
                 }
             }

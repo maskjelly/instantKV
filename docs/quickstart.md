@@ -18,6 +18,8 @@ when 8080 is taken. Keep that variable set for later Compose commands, or put
 On x86_64 Linux Docker hosts, setup downloads the checksummed release binary.
 Other platforms, unavailable releases, or `INSTANTKV_BUILD_SOURCE=source-build`
 use a source build; that initial compilation can take several minutes.
+Release download time depends on the network; the installer shows progress and
+verifies the archive before use.
 
 ## Binary: no compiler needed on supported platforms
 

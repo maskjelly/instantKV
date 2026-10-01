@@ -12,6 +12,8 @@ use std::{collections::HashMap, sync::Arc};
 
 const APP_TOKEN: &str = "test-app-token-00000000000000000000000000000000000000";
 const READER_TOKEN: &str = "test-reader-token-00000000000000000000000000000000000";
+const ALPHA_TOKEN: &str = "test-alpha-token-000000000000000000000000000000000000";
+const BETA_TOKEN: &str = "test-beta-token-0000000000000000000000000000000000000";
 
 struct Harness {
     _dir: tempfile::TempDir,
@@ -34,6 +36,8 @@ async fn start(mut config: Config) -> Harness {
     let secrets = HashMap::from([
         ("INSTANTKV_APP_TOKEN".into(), APP_TOKEN.into()),
         ("INSTANTKV_READER_TOKEN".into(), READER_TOKEN.into()),
+        ("INSTANTKV_ALPHA_TOKEN".into(), ALPHA_TOKEN.into()),
+        ("INSTANTKV_BETA_TOKEN".into(), BETA_TOKEN.into()),
     ]);
     let auth = Auth::load(&config, &secrets).unwrap();
     let engine = Arc::new(Engine::open(config).unwrap());
@@ -51,6 +55,110 @@ async fn start(mut config: Config) -> Harness {
 
 fn config() -> Config {
     Config::parse(include_str!("../../../config/instantkv.example.toml")).unwrap()
+}
+
+#[tokio::test]
+async fn swarm_isolation_and_restore_reference_grants_are_enforced() {
+    use instantkv_core::model::{MemoryReference, ReferenceStatus};
+    let server = start(Config::parse(include_str!("../../../config/swarm.toml")).unwrap()).await;
+    let alpha = Client::new(&server.base, Some(ALPHA_TOKEN.into())).unwrap();
+    let beta = Client::new(&server.base, Some(BETA_TOKEN.into())).unwrap();
+    for namespace in ["mother", "alpha", "beta"] {
+        server
+            .client
+            .put(namespace, "fact", b"1".to_vec(), None, None, true)
+            .await
+            .unwrap();
+    }
+    assert_eq!(alpha.get("mother", "fact").await.unwrap().0, b"1");
+    assert_eq!(
+        alpha
+            .list("mother", "", 100, None)
+            .await
+            .unwrap()
+            .items
+            .len(),
+        1
+    );
+    for result in [
+        alpha.get("beta", "fact").await.map(|_| ()),
+        alpha
+            .put("mother", "fact", b"2".to_vec(), None, None, false)
+            .await
+            .map(|_| ()),
+        alpha.delete("mother", "fact", None).await,
+        alpha.stats("mother").await.map(|_| ()),
+        alpha.list("beta", "", 100, None).await.map(|_| ()),
+        beta.get("alpha", "fact").await.map(|_| ()),
+    ] {
+        assert!(result.unwrap_err().to_string().contains("403"));
+    }
+    let own = alpha
+        .put("alpha", "fact", b"2".to_vec(), None, Some(1), false)
+        .await
+        .unwrap();
+    assert_eq!(own["revision"], 2);
+    let request = CheckpointRequest {
+        id: "alpha-cp".into(),
+        agent_id: "alpha".into(),
+        session_id: "run".into(),
+        expected_latest_revision: None,
+        capsule: Capsule {
+            goal: "Continue".into(),
+            summary: "Scoped recall".into(),
+            constraints: vec![],
+            decisions: vec![],
+            open_tasks: vec![],
+            next_action: "Recall".into(),
+        },
+        references: ["mother", "alpha", "beta"]
+            .into_iter()
+            .map(|namespace| MemoryReference {
+                namespace: namespace.into(),
+                key: "fact".into(),
+                revision: if namespace == "alpha" { 2 } else { 1 },
+            })
+            .collect(),
+    };
+    // Agents cannot save references outside their readable scopes. An operator
+    // can create a broader capsule, but agent restore must still redact status.
+    assert!(
+        alpha
+            .checkpoint("alpha_checkpoints", &request)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    server
+        .client
+        .checkpoint("alpha_checkpoints", &request)
+        .await
+        .unwrap();
+    let restored = alpha
+        .restore("alpha_checkpoints", "alpha-cp", 32768)
+        .await
+        .unwrap();
+    assert!(matches!(
+        restored.references[0].status,
+        ReferenceStatus::Available
+    ));
+    assert!(matches!(
+        restored.references[1].status,
+        ReferenceStatus::Available
+    ));
+    assert!(matches!(
+        restored.references[2].status,
+        ReferenceStatus::Forbidden
+    ));
+    assert!(
+        beta.restore("alpha_checkpoints", "alpha-cp", 32768)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    alpha.delete("alpha", "fact", Some(2)).await.unwrap();
 }
 
 #[tokio::test]

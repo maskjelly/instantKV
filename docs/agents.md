@@ -26,6 +26,22 @@ For Docker setup, use `/absolute/path/to/instantKV/scripts/kv.sh` as the
 command with `args: ["mcp"]`; the wrapper inherits the container credentials.
 The server must already be running.
 
+For a remote Docker instance, SSH can carry MCP directly without copying tokens:
+
+```json
+{
+  "mcpServers": {
+    "instantkv": {
+      "command": "ssh",
+      "args": ["-T", "your-vps", "/srv/instantkv/app/scripts/kv.sh", "mcp"]
+    }
+  }
+}
+```
+
+Replace the host/path with your own. The account needs access to Docker and the
+running instance; use the server's scoped credentials for agent isolation.
+
 Use absolute paths because agent clients may launch tools from another directory.
 Alternatively inject `INSTANTKV_TOKEN` through the client's secret environment.
 Stdout carries only MCP messages; diagnostics go to stderr. Never paste tokens

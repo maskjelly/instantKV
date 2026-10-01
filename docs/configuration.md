@@ -13,9 +13,12 @@ or opening storage. `instantkv doctor` also checks the local setup and live heal
 | checkpoints | checkpoints | durable | no TTL | reject |
 | scratch | records | memory | default 1h, max 1 day | evict oldest |
 
-[Agent profile](../config/instantkv.example.toml) and
+[Agent profile](../config/instantkv.example.toml),
+[swarm profile](../config/swarm.toml), and
 [disposable loopback cache](../config/local-cache.toml) are checked in CI.
-`init` copies the agent profile and changes the data directory to `.instantkv/data`.
+`init` copies the agent profile; `init --profile swarm` creates a mother namespace,
+Alpha/Beta private knowledge and separate checkpoint namespaces. Both use
+`.instantkv/data` and generate credentials for every configured principal.
 
 ## Rules and units
 
@@ -53,6 +56,32 @@ The template refers to `INSTANTKV_APP_TOKEN` and `INSTANTKV_READER_TOKEN`.
 (private permissions on Unix). Environment values override saved secrets.
 Missing, duplicate or shorter-than-32-byte token values refuse server startup.
 The reader can get/list knowledge; the app can access all three namespaces.
+
+In the swarm profile the operator can access all five namespaces. Each agent can
+get/list `mother`, and read/write/delete/list/stats its own knowledge and checkpoint
+namespaces. This is one shared server with isolated namespaces; it creates no
+physical replica. See [cloud-agent setup](cloud-agents.md).
+
+Use either `namespaces` + `operations` (the same operations on every namespace),
+or explicit per-namespace `grants`. Mixing them is rejected:
+
+```toml
+[[auth.principals]]
+name = "alpha"
+token_env = "INSTANTKV_ALPHA_TOKEN"
+[[auth.principals.grants]]
+namespace = "mother"
+operations = ["get", "list"]
+[[auth.principals.grants]]
+namespace = "alpha"
+operations = ["get", "put", "delete", "list", "stats"]
+```
+
+Add a separate checkpoint grant as in the shipped swarm profile. Checkpoint saves
+require GET permission on every referenced namespace. Restore checks the current
+GET grants and reports `forbidden` for references whose access was removed.
+The global metrics endpoint requires a stats grant in at least one namespace;
+it exposes aggregate service counters, not an agent-specific view.
 
 Clients use `INSTANTKV_TOKEN`, then `INSTANTKV_APP_TOKEN`, then the app token in
 their secrets file. `--secrets-file PATH` supports a different setup. No token

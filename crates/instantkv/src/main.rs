@@ -1,5 +1,5 @@
 use anyhow::{Context, Result, bail};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use instantkv::{auth::read_secrets, client::Client, server};
 use instantkv_core::{config::Config, model::CheckpointRequest};
 use std::{
@@ -31,6 +31,8 @@ enum Command {
     Init {
         #[arg(long, default_value = ".")]
         dir: PathBuf,
+        #[arg(long, value_enum, default_value = "agent")]
+        profile: Profile,
     },
     /// Start the memory server with persistent knowledge and disposable scratch.
     Serve {
@@ -120,7 +122,11 @@ enum Command {
         max_bytes: usize,
     },
     /// Run a self-contained HTTP save/compaction/restart/restore demonstration.
-    Demo,
+    Demo {
+        /// Demonstrate mother knowledge, isolated agents, and restored private capsules.
+        #[arg(long)]
+        swarm: bool,
+    },
     /// Expose memory tools over MCP stdio; all operations use the authenticated HTTP API.
     Mcp,
     /// Print the checkpoint JSON Schema for editors and agent integrations.
@@ -140,6 +146,12 @@ enum Command {
         #[arg(long)]
         output: Option<PathBuf>,
     },
+}
+
+#[derive(Clone, Copy, ValueEnum)]
+enum Profile {
+    Agent,
+    Swarm,
 }
 
 #[tokio::main]
@@ -162,7 +174,7 @@ async fn main() -> std::process::ExitCode {
 
 async fn run(cli: Cli) -> Result<()> {
     match cli.command {
-        Command::Init { dir } => init(&dir),
+        Command::Init { dir, profile } => init(&dir, profile),
         Command::CheckConfig { config } => {
             let parsed = load_config(&config)?;
             println!(
@@ -187,7 +199,13 @@ async fn run(cli: Cli) -> Result<()> {
             parsed.validate().map_err(anyhow::Error::msg)?;
             server::serve(parsed, &cli.secrets_file).await
         }
-        Command::Demo => workflows::demo().await,
+        Command::Demo { swarm } => {
+            if swarm {
+                workflows::swarm_demo().await
+            } else {
+                workflows::demo().await
+            }
+        }
         Command::Schema => print_json(&schemars::schema_for!(CheckpointRequest)),
         command => {
             let secrets = read_secrets(&cli.secrets_file)?;
@@ -337,7 +355,7 @@ fn print_json(value: &impl serde::Serialize) -> Result<()> {
     Ok(())
 }
 
-fn init(dir: &Path) -> Result<()> {
+fn init(dir: &Path, profile: Profile) -> Result<()> {
     let config_path = dir.join("instantkv.toml");
     let private = dir.join(".instantkv");
     let secrets_path = private.join("credentials.env");
@@ -357,11 +375,18 @@ fn init(dir: &Path) -> Result<()> {
             uuid::Uuid::new_v4().simple()
         )
     };
-    let credentials = format!(
-        "INSTANTKV_APP_TOKEN={}\nINSTANTKV_READER_TOKEN={}\n",
-        token(),
-        token()
-    );
+    let template = match profile {
+        Profile::Agent => include_str!("../../../config/instantkv.example.toml"),
+        Profile::Swarm => include_str!("../../../config/swarm.toml"),
+    }
+    .replace("./data", ".instantkv/data");
+    let parsed = Config::parse(&template).map_err(anyhow::Error::msg)?;
+    let credentials: String = parsed
+        .auth
+        .principals
+        .iter()
+        .map(|principal| format!("{}={}\n", principal.token_env, token()))
+        .collect();
     let mut options = fs::OpenOptions::new();
     options.write(true).create_new(true);
     #[cfg(unix)]
@@ -373,8 +398,6 @@ fn init(dir: &Path) -> Result<()> {
     options
         .open(&secrets_path)?
         .write_all(credentials.as_bytes())?;
-    let template =
-        include_str!("../../../config/instantkv.example.toml").replace("./data", ".instantkv/data");
     fs::OpenOptions::new()
         .write(true)
         .create_new(true)

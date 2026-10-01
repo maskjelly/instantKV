@@ -2,6 +2,22 @@ use instantkv_core::config::{AuthMode, Config, OnFull, StorageMode};
 
 const AGENT: &str = include_str!("../../../config/instantkv.example.toml");
 const CACHE: &str = include_str!("../../../config/local-cache.toml");
+const SWARM: &str = include_str!("../../../config/swarm.toml");
+
+#[test]
+fn swarm_grants_reject_ambiguous_or_invalid_permissions() {
+    let config = Config::parse(SWARM).unwrap();
+    assert_eq!(config.namespaces.len(), 5);
+    for input in [
+        SWARM.replacen("token_env = \"INSTANTKV_ALPHA_TOKEN\"", "token_env = \"INSTANTKV_ALPHA_TOKEN\"\nnamespaces = [\"mother\"]\noperations = [\"put\"]", 1),
+        SWARM.replacen("namespace = \"mother\"", "namespace = \"unknown\"", 1),
+        SWARM.replacen("namespace = \"alpha\"", "namespace = \"mother\"", 1),
+        SWARM.replacen("operations = [\"get\", \"list\"]", "operations = []", 1),
+        SWARM.replacen("operations = [\"get\", \"list\"]", "operations = [\"get\", \"get\"]", 1),
+    ] {
+        assert!(Config::parse(&input).is_err(), "accepted invalid grants");
+    }
+}
 
 #[test]
 fn agent_profile_preserves_knowledge_and_checkpoints() {

@@ -1,0 +1,122 @@
+# Shared mother knowledge + two private agent workspaces, on ONE server.
+# `instantkv init --profile swarm` generates all three private credentials.
+# Add namespaces and a principal with explicit grants for each additional agent.
+version = 1
+
+[server]
+bind = "127.0.0.1:8080"
+max_request_body_bytes = 1048576
+max_in_flight_requests = 256
+request_timeout_seconds = 10
+
+[storage]
+data_dir = "./data"
+cleanup_interval_seconds = 1
+cleanup_batch_entries = 1000
+
+[auth]
+mode = "api_key"
+
+[[auth.principals]]
+name = "operator"
+token_env = "INSTANTKV_APP_TOKEN"
+namespaces = ["mother", "alpha", "beta", "alpha_checkpoints", "beta_checkpoints"]
+operations = ["get", "put", "delete", "list", "stats"]
+
+[[auth.principals]]
+name = "alpha"
+token_env = "INSTANTKV_ALPHA_TOKEN"
+[[auth.principals.grants]]
+namespace = "mother"
+operations = ["get", "list"]
+[[auth.principals.grants]]
+namespace = "alpha"
+operations = ["get", "put", "delete", "list", "stats"]
+[[auth.principals.grants]]
+namespace = "alpha_checkpoints"
+operations = ["get", "put", "delete", "list", "stats"]
+
+[[auth.principals]]
+name = "beta"
+token_env = "INSTANTKV_BETA_TOKEN"
+[[auth.principals.grants]]
+namespace = "mother"
+operations = ["get", "list"]
+[[auth.principals.grants]]
+namespace = "beta"
+operations = ["get", "put", "delete", "list", "stats"]
+[[auth.principals.grants]]
+namespace = "beta_checkpoints"
+operations = ["get", "put", "delete", "list", "stats"]
+
+[[namespaces]]
+name = "mother"
+mode = "durable"
+[namespaces.retention]
+require_ttl = false
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 1048576
+[namespaces.capacity]
+max_entries = 100000
+max_total_bytes = 1073741824
+on_full = "reject"
+
+[[namespaces]]
+name = "alpha"
+mode = "durable"
+[namespaces.retention]
+require_ttl = false
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 1048576
+[namespaces.capacity]
+max_entries = 10000
+max_total_bytes = 268435456
+on_full = "reject"
+
+[[namespaces]]
+name = "beta"
+mode = "durable"
+[namespaces.retention]
+require_ttl = false
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 1048576
+[namespaces.capacity]
+max_entries = 10000
+max_total_bytes = 268435456
+on_full = "reject"
+
+[[namespaces]]
+name = "alpha_checkpoints"
+purpose = "checkpoints"
+mode = "durable"
+[namespaces.retention]
+require_ttl = false
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 1048576
+[namespaces.capacity]
+max_entries = 10000
+max_total_bytes = 268435456
+on_full = "reject"
+
+[[namespaces]]
+name = "beta_checkpoints"
+purpose = "checkpoints"
+mode = "durable"
+[namespaces.retention]
+require_ttl = false
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 1048576
+[namespaces.capacity]
+max_entries = 10000
+max_total_bytes = 268435456
+on_full = "reject"

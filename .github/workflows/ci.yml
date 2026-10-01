@@ -22,6 +22,8 @@ jobs:
       - run: cargo +1.98 test --workspace --locked
       - run: cargo +1.98 build --workspace --release --locked
       - run: ./target/release/instantkv demo
+      - run: ./target/release/instantkv demo --swarm
+      - run: ./target/release/instantkv check-config --config config/swarm.toml
       - run: ./target/release/instantkv check-config --config config/instantkv.example.toml
       - run: ./target/release/instantkv check-config --config config/local-cache.toml
       - name: Verify generated schema and scripts
@@ -37,6 +39,7 @@ jobs:
           rustup target add --toolchain 1.98 x86_64-unknown-linux-musl
           cargo +1.98 build --release --locked --target x86_64-unknown-linux-musl -p instantkv
           ./target/x86_64-unknown-linux-musl/release/instantkv demo
+          ./target/x86_64-unknown-linux-musl/release/instantkv demo --swarm
       - name: Package verified binary
         run: bash scripts/package-release.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -58,8 +61,11 @@ jobs:
       - name: Container quick-start and restart demo
         run: |
           tar -xzf dist/instantkv-linux-x86_64.tar.gz -C dist instantkv
-          INSTANTKV_BUILD_SOURCE=prebuilt ./scripts/quickstart.sh
+          printf 'INSTANTKV_PORT=8095\n' > .env
+          INSTANTKV_BUILD_SOURCE=prebuilt ./scripts/quickstart.sh | tee /tmp/instantkv-setup.log
+          rg -q 'Ready at http://127.0.0.1:8095' /tmp/instantkv-setup.log
           ./scripts/kv.sh demo
+          ./scripts/kv.sh demo --swarm
           ./scripts/kv.sh put knowledge ci/probe --value '{"retained":true}'
           docker compose restart instantkv
           docker compose up -d --wait
@@ -67,3 +73,8 @@ jobs:
           ./scripts/kv.sh checkpoint < examples/checkpoint.json
           ./scripts/backup.sh /tmp/instantkv-backup
           ./scripts/restore-drill.sh /tmp/instantkv-backup first-checkpoint
+          export COMPOSE_PROJECT_NAME=instantkv-swarm INSTANTKV_PROFILE=swarm INSTANTKV_PORT=8096
+          INSTANTKV_BUILD_SOURCE=prebuilt ./scripts/quickstart.sh
+          ./scripts/kv.sh put mother ci/shared --value '{"baseline":true}'
+          ./scripts/kv.sh checkpoint --namespace alpha_checkpoints < examples/swarm-checkpoint.json
+          ./scripts/kv.sh restore --namespace alpha_checkpoints --agent alpha --session run-1

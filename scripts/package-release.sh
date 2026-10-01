@@ -11,7 +11,7 @@ release_dir="$(mktemp -d)"
 trap 'rm -rf "$release_dir"' EXIT
 cp "$binary" "$release_dir/instantkv"
 cp LICENSE README.md "$release_dir/"
-printf 'Version: 0.1.0\nCommit: %s\nPlatform: %s\n' "${GITHUB_SHA:-local}" "$platform" > "$release_dir/BUILD.txt"
+printf 'Version: %s\nCommit: %s\nPlatform: %s\n' "$("$binary" --version | cut -d ' ' -f 2)" "${GITHUB_SHA:-local}" "$platform" > "$release_dir/BUILD.txt"
 archive="instantkv-$platform.tar.gz"
 tar -czf "dist/$archive" -C "$release_dir" instantkv LICENSE README.md BUILD.txt
 (cd dist && shasum -a 256 "$archive" > "$archive.sha256")

@@ -14,8 +14,7 @@ pub struct Auth {
 }
 struct Principal {
     digest: [u8; 32],
-    namespaces: HashSet<String>,
-    operations: HashSet<Operation>,
+    grants: HashMap<String, HashSet<Operation>>,
 }
 
 pub fn read_secrets(path: &Path) -> Result<HashMap<String, String>> {
@@ -44,6 +43,7 @@ pub fn read_secrets(path: &Path) -> Result<HashMap<String, String>> {
 
 impl Auth {
     pub fn load(config: &Config, secrets: &HashMap<String, String>) -> Result<Self> {
+        config.validate().map_err(anyhow::Error::msg)?;
         let mut principals = Vec::new();
         let mut digests = HashSet::new();
         for principal in &config.auth.principals {
@@ -63,8 +63,11 @@ impl Auth {
             }
             principals.push(Principal {
                 digest,
-                namespaces: principal.namespaces.iter().cloned().collect(),
-                operations: principal.operations.iter().copied().collect(),
+                grants: principal
+                    .namespace_grants()
+                    .into_iter()
+                    .map(|grant| (grant.namespace, grant.operations.into_iter().collect()))
+                    .collect(),
             });
         }
         Ok(Self {
@@ -93,16 +96,25 @@ impl Auth {
             .iter()
             .find(|principal| bool::from(principal.digest.ct_eq(&digest)))
             .ok_or(401u16)?;
-        if !principal.operations.contains(&operation)
-            || namespace.is_some_and(|namespace| !principal.namespaces.contains(namespace))
-        {
+        let allowed = match namespace {
+            Some(namespace) => principal
+                .grants
+                .get(namespace)
+                .is_some_and(|operations| operations.contains(&operation)),
+            None => principal
+                .grants
+                .values()
+                .any(|operations| operations.contains(&operation)),
+        };
+        if !allowed {
             return Err(403);
         }
-        if principal.operations.contains(&Operation::Get) {
-            Ok(principal.namespaces.clone())
-        } else {
-            Ok(HashSet::new())
-        }
+        Ok(principal
+            .grants
+            .iter()
+            .filter(|(_, operations)| operations.contains(&Operation::Get))
+            .map(|(namespace, _)| namespace.clone())
+            .collect())
     }
 
     pub fn disabled(&self) -> bool {
