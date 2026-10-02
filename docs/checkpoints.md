@@ -296,3 +296,31 @@ Production Chromium verification passed the same recorded and live workflows at
 independent reader tabs and 390px layout, with zero browser errors. A final
 startup fix keeps the replay button disabled until its recording is loaded and
 enables the live button only after its handlers are ready.
+
+## 18 — White technical blueprint website
+
+Rebuilt the website around the later white blueprint brief. White paper, blue
+ink, square controls, drafting grids and original SVG diagrams replace the dark
+metal layout. The flat blue split-K preserves the mark's shape. The homepage
+explains self-hosted agent memory, publishes actual Mac measurements and gives
+working installation commands. Setup, demo, benchmarks and docs are direct
+product paths. Managed hosting and distributed branches remain clearly planned.
+
+The same theme now covers all 29 pages. Mobile gets a complete compact swarm
+diagram; wide technical figures scroll without widening the page and can receive
+keyboard focus. The native HTML/CSS layout needs no WebGL renderer. The docs
+stay sourced from repository Markdown, with locally served fonts and search.
+
+Local checks passed: formatting, Astro/TypeScript, nine coordinator/proxy/recording
+tests, the static build, every rendered local link/anchor/asset, search and raw
+benchmark downloads. Chromium checked nine page types at 1440, 390 and 320px,
+including white rendering with a dark system preference, code copying, search,
+chart controls, keyboard navigation and the custom 404. No browser errors.
+
+Recorded cache/durable replay, pause/resume, eight exact saved responses,
+cleared context and an independent recorded reader passed. Recorded mode made
+no live API calls. A further 1,000 live VPS writes and exact reads in independent
+tabs also passed. Homepage Lighthouse scores on the local Worker preview were
+100 for performance, accessibility, best practices and SEO; demo performance
+was 99, with 100 in the other categories. These are local checks, not a public
+latency claim. Screenshots were inspected before publication.

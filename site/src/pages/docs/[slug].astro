@@ -59,6 +59,16 @@ const slug = doc.slug;
         <p>{doc.description}</p>
       </header>
 
+      {[
+        'cloud-agents',
+        'live-demo',
+        'architecture',
+        'distributed-memory',
+        'agents',
+        'agent-memory',
+      ].includes(slug) && (
+        <p class="diagram-guide">Diagram / scroll across to inspect details</p>
+      )}
       {(slug === 'cloud-agents' && <SwarmDiagram />) ||
         (slug === 'live-demo' && <DemoFlowDiagram />) ||
         (slug === 'architecture' && <ArchitectureDiagram />) ||

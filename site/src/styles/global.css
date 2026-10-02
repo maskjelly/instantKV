@@ -423,10 +423,10 @@ strong {
   fill: none;
 }
 .sketch-heading {
-  font-size: 12px;
+  font-size: 18px;
 }
 .sketch-text {
-  font-size: 10px;
+  font-size: 16px;
 }
 .sketch-brand {
   font-family: var(--font-sans) !important;
@@ -434,7 +434,7 @@ strong {
   font-weight: 500;
 }
 .sketch-annotation {
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.06em;
 }
 .service-spec {
@@ -478,6 +478,7 @@ strong {
 }
 .performance-source {
   grid-column: 1/-1;
+  max-width: none;
   padding-top: 15px;
   font: 11px/1.8 var(--font-mono);
   border-top: 1px solid var(--line);
@@ -527,8 +528,14 @@ strong {
 }
 .setup-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 65px;
+}
+.setup-layout > *,
+.demo-callout > *,
+.roadmap-section > *,
+.bench-notes > * {
+  min-width: 0;
 }
 .setup-layout h2 {
   margin-bottom: 21px;
@@ -958,6 +965,8 @@ progress::-moz-progress-bar {
   padding-block: 28px;
 }
 .demo-station {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   padding: 20px;
   border: 1px solid var(--line-2);
@@ -1026,6 +1035,8 @@ progress::-moz-progress-bar {
 }
 .terminal--tall {
   height: 300px;
+  flex: 1;
+  min-height: 300px;
 }
 .demo-read-controls {
   display: grid;
@@ -1108,6 +1119,32 @@ progress::-moz-progress-bar {
 }
 .diagram--compact {
   display: none;
+}
+.diagram.diagram--compact .d-label {
+  font-size: 19px;
+  letter-spacing: 0;
+}
+.diagram.diagram--compact .d-note {
+  font-size: 17px;
+}
+.diagram.diagram--compact .d-index {
+  font-size: 14px;
+}
+.docs-layout .figure,
+.diagram-band .figure {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  padding: 16px;
+}
+.docs-layout .diagram:not(.diagram--compact),
+.diagram-band .diagram {
+  width: 1200px;
+  max-width: none;
+}
+.diagram-guide {
+  margin-top: 20px;
+  color: var(--ink-3);
+  font: 11px/1.7 var(--font-mono);
 }
 .diagram text {
   font-family: var(--font-mono);
@@ -1291,6 +1328,9 @@ progress::-moz-progress-bar {
 .prose pre {
   margin-block: 25px;
 }
+.prose pre.astro-code {
+  background: white !important;
+}
 .prose table {
   display: block;
   overflow-x: auto;
@@ -1469,7 +1509,7 @@ progress::-moz-progress-bar {
   .demo-callout,
   .roadmap-section,
   .bench-notes {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 27px;
   }
   .demo-callout {
