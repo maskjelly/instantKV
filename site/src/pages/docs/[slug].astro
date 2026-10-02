@@ -54,26 +54,29 @@ const slug = doc.slug;
       </details>
 
       <header class="docs-title">
-        <p class="data-label">{doc.group} / single-node 0.1.2</p>
+        <p class="data-label">{doc.group} / single-node · source MVP</p>
         <h1>{doc.title}</h1>
         <p>{doc.description}</p>
       </header>
 
       {[
+        'cloud-agents',
         'live-demo',
         'architecture',
         'distributed-memory',
         'agents',
         'agent-memory',
       ].includes(slug) && (
-        <p class="diagram-guide">Diagram / scroll across to inspect details</p>
+        <details class="docs-diagram">
+          <summary>View the diagram</summary>
+          {(slug === 'cloud-agents' && <SwarmDiagram />) ||
+            (slug === 'live-demo' && <DemoFlowDiagram />) ||
+            (slug === 'architecture' && <ArchitectureDiagram />) ||
+            (slug === 'distributed-memory' && <ConsolidationDiagram />) ||
+            (slug === 'agents' && <LifecycleDiagram />) ||
+            (slug === 'agent-memory' && <LifecycleDiagram />)}
+        </details>
       )}
-      {(slug === 'cloud-agents' && <SwarmDiagram />) ||
-        (slug === 'live-demo' && <DemoFlowDiagram />) ||
-        (slug === 'architecture' && <ArchitectureDiagram />) ||
-        (slug === 'distributed-memory' && <ConsolidationDiagram />) ||
-        (slug === 'agents' && <LifecycleDiagram />) ||
-        (slug === 'agent-memory' && <LifecycleDiagram />)}
 
       <div class="prose">
         <Content />
@@ -88,7 +91,7 @@ const slug = doc.slug;
     </article>
 
     <aside class="docs-toc" aria-label="On this page">
-      <h2>ON THIS PAGE</h2>
+      <h2>On this page</h2>
       {headings
         .filter((h) => h.depth === 2)
         .map((h) => (

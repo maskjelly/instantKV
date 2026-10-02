@@ -7,11 +7,12 @@ platform="${INSTANTKV_PLATFORM:-}"
 if [ -z "$platform" ]; then
   case "$(uname -s)/$(uname -m)" in
     Linux/x86_64) platform=linux-x86_64 ;;
+    Linux/aarch64|Linux/arm64) platform=linux-arm64 ;;
     Darwin/arm64) platform=darwin-arm64 ;;
     *) echo 'No binary for this platform; install with Cargo.' >&2; exit 1 ;;
   esac
 fi
-case "$platform" in linux-x86_64|darwin-arm64) ;; *) echo 'Unsupported platform' >&2; exit 1 ;; esac
+case "$platform" in linux-x86_64|linux-arm64|darwin-arm64) ;; *) echo 'Unsupported platform' >&2; exit 1 ;; esac
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT HUP INT TERM
 archive="instantkv-$platform.tar.gz"

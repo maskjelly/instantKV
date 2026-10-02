@@ -8,68 +8,39 @@ const current = (prefix: string) =>
 <a class="skip-link" href="#main">
   Skip to content
 </a>
-
-<div class="announcement" aria-label="Hosting update">
-  <div class="announcement-track">
-    <span>
-      MANAGED HOSTING IS IN DEVELOPMENT. SELF-HOST TODAY.
-      <span class="announcement-dot">◆</span>YOUR NODE. YOUR KNOWLEDGE.
-    </span>
-    <span aria-hidden="true">
-      MANAGED HOSTING IS IN DEVELOPMENT. SELF-HOST TODAY.
-      <span class="announcement-dot">◆</span>YOUR NODE. YOUR KNOWLEDGE.
-    </span>
-  </div>
-  <button
-    class="announcement-pause"
-    type="button"
-    aria-label="Pause hosting announcement"
-    aria-pressed="false"
-  >
-    Pause
-  </button>
-</div>
-
 <header class="site-header">
   <div class="header-inner shell">
     <a class="brand-link" href="/" aria-label="instantKV home">
-      <img src="/assets/blueprint-mark.svg" width="26" height="26" alt="" />
+      <img src="/assets/blueprint-mark.svg" width="22" height="22" alt="" />
       instant<span>KV</span>
     </a>
     <nav aria-label="Main navigation">
-      <a href="/demo/" aria-current={current('/demo/')}>
-        Demo
-      </a>
       <a href="/docs/quickstart/" aria-current={current('/docs/')}>
         Docs
       </a>
-      <a href="/benchmarks/" aria-current={current('/benchmarks/')}>
+      <a href="/demo/" aria-current={current('/demo/')}>
+        Demo
+      </a>
+      <a
+        class="nav-benchmark"
+        href="/benchmarks/"
+        aria-current={current('/benchmarks/')}
+      >
         Benchmarks
       </a>
-      <a class="nav-secondary" href="/docs/contributing/">
-        Contribute
+      <a class="nav-source" href={repository}>
+        GitHub <span aria-hidden="true">↗</span>
       </a>
-      <a class="github-link" href={repository}>
-        GitHub
-      </a>
+      <details class="nav-more">
+        <summary>More</summary>
+        <div class="nav-more-links">
+          <a href="/benchmarks/" aria-current={current('/benchmarks/')}>
+            Benchmarks
+          </a>
+          <a href="/docs/contributing/">Contribute</a>
+          <a href={repository}>GitHub ↗</a>
+        </div>
+      </details>
     </nav>
   </div>
 </header>
-
-<script>
-  const pause = document.querySelector<HTMLButtonElement>(
-    '.announcement-pause',
-  )!;
-  pause.addEventListener('click', () => {
-    const paused = pause.getAttribute('aria-pressed') !== 'true';
-    pause.setAttribute('aria-pressed', String(paused));
-    pause.textContent = paused ? 'Play' : 'Pause';
-    pause.setAttribute(
-      'aria-label',
-      paused ? 'Play hosting announcement' : 'Pause hosting announcement',
-    );
-    document.querySelector<HTMLElement>(
-      '.announcement-track',
-    )!.style.animationPlayState = paused ? 'paused' : '';
-  });
-</script>

@@ -54,6 +54,10 @@ into tool arguments or committed client configuration.
 
 | Tool | Use |
 |---|---|
+| remember | Save structured content, topic, tags, event time and custom metadata |
+| recall | Retrieve by topic/tag/time/keywords with bounded pages |
+| browse | Explore structured memories newest first; follow next_cursor |
+| forget | Delete structured memory and indexes, optionally with revision protection |
 | memory_put | Save JSON knowledge, with optional expiry or revision checks |
 | memory_get | Recall an exact key and its revision |
 | memory_list | Find keys by prefix, with paged metadata results |
@@ -66,11 +70,17 @@ JSON is passed through as JSON. Non-JSON bytes are returned with an explicit
 base64 encoding, so binary cache data is never silently converted or corrupted.
 The adapter uses the official [Rust MCP SDK](https://github.com/modelcontextprotocol/rust-sdk).
 
+The four new everyday tools are part of the unreleased source MVP. The seven
+original tools remain compatible. Start with [structured local memory](memory-mvp.md)
+for query semantics, configuration and the optional Ollama example.
+
 ## Agent instruction
 
 ```text
-Save reusable facts, decisions, constraints, and source locators under descriptive
-keys as you work. Before compaction, call memory_checkpoint with a self-contained
+Use remember to save reusable facts, preferences and decisions with topic/tags
+and source metadata. Use recall to find them by topic, time or literal keywords.
+Follow next_cursor with unchanged filters, including empty pages. Before
+compaction, call memory_checkpoint with a self-contained
 goal, summary, constraints, decisions, open_tasks, and next_action. Wait for success.
 Store the returned checkpoint locator in runtime session metadata outside the prompt.
 After compaction, call memory_restore before continuing. Fetch detailed records

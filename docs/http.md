@@ -20,6 +20,10 @@ Use `/v1/namespaces/{namespace}` as the base:
 
 | Method and path | Request / response |
 |---|---|
+| `POST /memories` | Structured memory; create-only or revision-protected update; returns memory, key, revision and timestamps |
+| `GET /memories` | Topic/tag/query/since_ms/until_ms/limit/max_bytes/cursor; bounded values; requires get + list |
+| `GET /memories/{key}` | Exact structured memory with revision and timestamps |
+| `DELETE /memories/{key}` | Deletes structured memory and indexes; optional If-Match; 204 |
 | `PUT /records/{key}` | Raw value bytes; optional `ttl_seconds` query; returns revision, bytes, write/expiry timestamps |
 | `GET /records/{key}` | Original bytes, namespace content type and quoted revision `ETag` |
 | `DELETE /records/{key}` | Deletes an ordinary key; 204 on success |
@@ -33,6 +37,12 @@ Use `/v1/namespaces/{namespace}` as the base:
 Record reads choose `application/json`, `text/plain; charset=utf-8` or
 `application/octet-stream` from the namespace admission kind. Metadata/checkpoint
 responses are JSON. The node sends `Cache-Control: no-store`.
+
+Memory routes are implemented in the unreleased source MVP. `POST /memories`
+uses a nested `memory` object; MCP fields are passed directly instead. See the
+[memory guide](memory-mvp.md#http-and-mcp) and [schemas](../examples/memory.schema.json).
+KV/checkpoint routes remain compatible. Time filters are inclusive Unix
+milliseconds. Follow the filter-bound cursor even across empty pages.
 
 ## First record over HTTP
 
@@ -54,7 +64,7 @@ printf 'header = "Authorization: Bearer %s"\n' "$INSTANTKV_APP_TOKEN" |
     'http://127.0.0.1:8080/v1/namespaces/knowledge/records/project%2Fstack'
 ```
 
-For cloud workers inject their scoped token securely and target their private
+For local or remote workers inject their scoped token securely and target their private
 namespace. The server credentials file is operator-only. MCP and CLI perform
 this authentication for you.
 

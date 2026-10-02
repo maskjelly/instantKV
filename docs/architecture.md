@@ -1,6 +1,6 @@
 # Architecture and storage schema
 
-Status: implemented single-node design, 2026-10-01. Future proposals are separated
+Status: implemented single-node design with unreleased memory MVP, 2026-10-03. Future proposals are separated
 below. See [verification history](checkpoints.md) for checks actually run.
 
 The request path and the stored schema are drawn below the title: three
@@ -34,7 +34,8 @@ Sources: [Rust ownership](https://doc.rust-lang.org/book/ch04-00-understanding-o
 
 `instantkv-core` owns policy, admission, clocks, quota accounting, storage and
 checkpoint transactions. `instantkv` owns HTTP, authentication, CLI, MCP, demo
-and benchmark workflows. Clients do not bypass the HTTP permission layer.
+and benchmark workflows. HTTP, CLI and MCP clients use the same permission layer. An embedding Rust app
+can call the core directly and owns authorization itself. See [local integration](local-first.md#embed-the-existing-rust-core).
 
 Write: authorization → bounded body → format/TTL/size checks → conditional
 revision and quota checks → transaction or namespace lock → acknowledge.
@@ -63,11 +64,19 @@ is unambiguous.
 | `usage_v1` | namespace | entry count, key/value bytes, revision high-water mark |
 | `expiry_v1` | padded UTC deadline + revision + composite key | composite record key |
 | `metadata_v1` | format / namespace identity | format version / storage mode + purpose |
+| `memory_index_v1` | namespace + index kind + optional normalized label + event time + key | composite structured-memory record key |
 
 Record header: revision, write time, expiry time (0 means absent), insertion order.
 You choose the fields in ordinary JSON values, including how to record sources.
 The server doesn't require a fixed wrapper. Raw bytes and UTF-8 are configurable
 alternatives.
+
+Structured-memory APIs add a `_instantkv_memory: 1` envelope in ordinary durable
+JSON records. Its time/topic/tag indexes update in the same transaction as the
+record, quotas and expiry entries. Delete, replacement and expiry cleanup remove
+old indexes. Recall reads indexes and values in one snapshot, with configurable
+candidate/scan/output caps. Keywords filter content literally; no vector index or
+model is involved. [Full shape and cursor contract](memory-mvp.md).
 
 Checkpoint namespace reserved records:
 
@@ -134,6 +143,7 @@ file. [Operations](operations.md) covers backup and upgrade boundaries.
    restartable run-completion jobs, reviewed consolidation, then pull sync.
    Preserve source provenance and conflicts; measure knowledge quality with a
    fixed recall evaluation. These are not current endpoints or replicas.
-5. Add text/tag indexes only when exact keys and prefixes fail real retrieval tasks.
-   Semantic search, consensus failover, custom WAL and Redis protocol need their
-   own evidence and designs.
+5. Evaluate ranked lexical search and optional local embeddings against real tasks.
+   Topic/tag/time indexes and bounded keyword filtering are implemented in the
+   source MVP. Semantic search, consensus failover, custom WAL and Redis protocol
+   need their own evidence and designs.

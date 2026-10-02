@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { docs } from '../../lib/docs';
+import { docs, groups } from '../../lib/docs';
 ---
 
 <Base
@@ -10,9 +10,9 @@ import { docs } from '../../lib/docs';
   <main id="main" class="shell" data-pagefind-body>
     <header class="page-intro">
       <p class="eyebrow">
-        <b>Documentation</b> / single-node 0.1.2
+        <b>Documentation</b> / single-node · source MVP
       </p>
-      <h1>Run it. Build with it.</h1>
+      <h1>Documentation</h1>
       <p>
         Install the service, save your first record and connect an agent. The
         guides cover checkpoints, worker permissions and running your own
@@ -28,13 +28,21 @@ import { docs } from '../../lib/docs';
       </div>
     </header>
 
-    <div class="docs-cards">
-      {docs.map((doc) => (
-        <a class="docs-card" href={`/docs/${doc.slug}/`}>
-          <span class="data-label">{doc.group}</span>
-          <h2>{doc.title} ↗</h2>
-          <p>{doc.description}</p>
-        </a>
+    <div class="doc-index">
+      {groups.map((group) => (
+        <section class="doc-index-group">
+          <h2>{group}</h2>
+          <div class="doc-index-links">
+            {docs
+              .filter((doc) => doc.group === group)
+              .map((doc) => (
+                <a href={`/docs/${doc.slug}/`}>
+                  <strong>{doc.title}</strong>
+                  <span>{doc.description}</span>
+                </a>
+              ))}
+          </div>
+        </section>
       ))}
     </div>
   </main>

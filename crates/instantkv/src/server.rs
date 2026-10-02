@@ -11,6 +11,7 @@ use axum::{
 use instantkv_core::{
     Engine, Error,
     config::{Config, Operation, ValueKind},
+    memory::{MemoryHit, MemoryPage, MemoryQuery, RememberRequest},
     model::{CheckpointRequest, Condition},
 };
 use serde::Deserialize;
@@ -111,6 +112,11 @@ pub fn router(app: App) -> Router {
         )
         .route("/metrics", get(metrics))
         .route("/v1/namespaces/{ns}/records", get(list))
+        .route("/v1/namespaces/{ns}/memories", get(recall).post(remember))
+        .route(
+            "/v1/namespaces/{ns}/memories/{*key}",
+            get(memory_read).delete(forget),
+        )
         .route(
             "/v1/namespaces/{ns}/records/{*key}",
             get(read).put(write).delete(delete),
@@ -174,6 +180,7 @@ async fn gate(State(app): State<App>, mut request: axum::extract::Request, next:
             axum::http::Method::DELETE => Operation::Delete,
             _ if route == "/v1/namespaces/{ns}/stats" => Operation::Stats,
             _ if route == "/v1/namespaces/{ns}/records" => Operation::List,
+            _ if route == "/v1/namespaces/{ns}/memories" => Operation::List,
             _ => Operation::Get,
         };
         if let Err(error) = app.authorize(
@@ -338,6 +345,77 @@ async fn list(
         })
         .await?,
     ))
+}
+
+async fn remember(
+    State(app): State<App>,
+    Extension(permit): Extension<Permit>,
+    Path(ns): Path<String>,
+    headers: HeaderMap,
+    Json(request): Json<RememberRequest>,
+) -> Result<Json<MemoryHit>, ApiError> {
+    app.authorize(&headers, Some(&ns), Operation::Put)?;
+    if request.if_revision.is_some_and(|revision| revision == 0)
+        || (request.if_revision.is_some() && request.key.is_none())
+    {
+        return Err(Error::Invalid(
+            "if_revision requires a stable key and a positive revision".into(),
+        )
+        .into());
+    }
+    let key = request
+        .key
+        .unwrap_or_else(|| format!("memories/{}", uuid::Uuid::new_v4()));
+    let condition = request
+        .if_revision
+        .map_or(Condition::Absent, Condition::Revision);
+    Ok(Json(
+        blocking(&app, permit, move |engine| {
+            engine.remember(&ns, &key, request.memory, request.ttl_seconds, condition)
+        })
+        .await?,
+    ))
+}
+
+async fn recall(
+    State(app): State<App>,
+    Extension(permit): Extension<Permit>,
+    Path(ns): Path<String>,
+    Query(query): Query<MemoryQuery>,
+    headers: HeaderMap,
+) -> Result<Json<MemoryPage>, ApiError> {
+    app.authorize(&headers, Some(&ns), Operation::List)?;
+    app.authorize(&headers, Some(&ns), Operation::Get)?;
+    Ok(Json(
+        blocking(&app, permit, move |engine| engine.recall(&ns, query)).await?,
+    ))
+}
+
+async fn memory_read(
+    State(app): State<App>,
+    Extension(permit): Extension<Permit>,
+    Path((ns, key)): Path<(String, String)>,
+    headers: HeaderMap,
+) -> Result<Json<MemoryHit>, ApiError> {
+    app.authorize(&headers, Some(&ns), Operation::Get)?;
+    Ok(Json(
+        blocking(&app, permit, move |engine| engine.memory_get(&ns, &key)).await?,
+    ))
+}
+
+async fn forget(
+    State(app): State<App>,
+    Extension(permit): Extension<Permit>,
+    Path((ns, key)): Path<(String, String)>,
+    headers: HeaderMap,
+) -> Result<StatusCode, ApiError> {
+    app.authorize(&headers, Some(&ns), Operation::Delete)?;
+    let condition = condition(&headers)?;
+    blocking(&app, permit, move |engine| {
+        engine.forget(&ns, &key, condition)
+    })
+    .await?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 async fn stats(

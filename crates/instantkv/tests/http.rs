@@ -58,6 +58,161 @@ fn config() -> Config {
 }
 
 #[tokio::test]
+async fn memory_api_creates_filters_updates_and_forgets_with_revision_conditions() {
+    use instantkv_core::memory::{MemoryInput, MemoryQuery, RememberRequest};
+    let server = start(config()).await;
+    let request = RememberRequest {
+        key: Some("prefs/rust".into()),
+        memory: MemoryInput {
+            content: "Prefer Rust for local tools".into(),
+            topic: Some("Preferences".into()),
+            tags: vec!["Local".into()],
+            metadata: serde_json::from_value(serde_json::json!({"source":"user"})).unwrap(),
+            occurred_at_ms: Some(1234),
+        },
+        ttl_seconds: None,
+        if_revision: None,
+    };
+    let first = server.client.remember("knowledge", &request).await.unwrap();
+    assert_eq!(first.key, "prefs/rust");
+    assert!(
+        server
+            .client
+            .remember("knowledge", &request)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("409")
+    );
+    let reader = Client::new(&server.base, Some(READER_TOKEN.into())).unwrap();
+    let query = MemoryQuery {
+        topic: Some("preferences".into()),
+        tag: Some("local".into()),
+        query: Some("rust TOOLS".into()),
+        since_ms: Some(1234),
+        until_ms: Some(1234),
+        ..Default::default()
+    };
+    let page = reader.recall("knowledge", &query).await.unwrap();
+    assert_eq!(page.items.len(), 1);
+    assert_eq!(page.items[0].memory.metadata["source"], "user");
+    assert_eq!(
+        reader
+            .memory_get("knowledge", "prefs/rust")
+            .await
+            .unwrap()
+            .revision,
+        first.revision
+    );
+    let mut update = request.clone();
+    update.if_revision = Some(first.revision);
+    update.memory.topic = Some("work".into());
+    let updated = server.client.remember("knowledge", &update).await.unwrap();
+    assert!(
+        reader
+            .recall("knowledge", &query)
+            .await
+            .unwrap()
+            .items
+            .is_empty()
+    );
+    assert!(
+        reader
+            .remember("knowledge", &update)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    assert!(
+        reader
+            .forget("knowledge", &first.key, None)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    assert!(
+        server
+            .client
+            .forget("knowledge", &first.key, Some(first.revision))
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("409")
+    );
+    server
+        .client
+        .forget("knowledge", &first.key, Some(updated.revision))
+        .await
+        .unwrap();
+    assert!(
+        reader
+            .recall("knowledge", &MemoryQuery::default())
+            .await
+            .unwrap()
+            .items
+            .is_empty()
+    );
+    let mut generated = request;
+    generated.key = None;
+    let saved = server
+        .client
+        .remember("knowledge", &generated)
+        .await
+        .unwrap();
+    assert!(saved.key.starts_with("memories/"));
+}
+
+#[tokio::test]
+async fn memory_queries_need_both_list_and_get_and_never_cross_scopes() {
+    use instantkv_core::{config::Operation, memory::MemoryQuery};
+    let mut conf = config();
+    conf.auth
+        .principals
+        .iter_mut()
+        .find(|p| p.name == "reader")
+        .unwrap()
+        .operations = vec![Operation::List];
+    let server = start(conf).await;
+    let reader = Client::new(&server.base, Some(READER_TOKEN.into())).unwrap();
+    assert!(reader.list("knowledge", "", 10, None).await.is_ok());
+    assert!(
+        reader
+            .recall("knowledge", &MemoryQuery::default())
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    let anonymous = Client::new(&server.base, None).unwrap();
+    assert!(
+        anonymous
+            .recall("knowledge", &MemoryQuery::default())
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("401")
+    );
+    let server = start(Config::parse(include_str!("../../../config/swarm.toml")).unwrap()).await;
+    let alpha = Client::new(&server.base, Some(ALPHA_TOKEN.into())).unwrap();
+    assert!(
+        alpha
+            .recall("beta", &MemoryQuery::default())
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    assert!(
+        alpha
+            .recall("shared", &MemoryQuery::default())
+            .await
+            .is_ok()
+    );
+}
+
+#[tokio::test]
 async fn swarm_isolation_and_restore_reference_grants_are_enforced() {
     use instantkv_core::model::{MemoryReference, ReferenceStatus};
     let server = start(Config::parse(include_str!("../../../config/swarm.toml")).unwrap()).await;
@@ -538,7 +693,16 @@ async fn mcp_stdio_tools_save_and_restore_through_authenticated_http() {
         json!({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}),
     )
     .await;
-    assert_eq!(tools["tools"].as_array().unwrap().len(), 7);
+    assert_eq!(tools["tools"].as_array().unwrap().len(), 11);
+    for name in ["remember", "recall", "browse", "forget"] {
+        assert!(
+            tools["tools"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|tool| tool["name"] == name)
+        );
+    }
     let saved = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"memory_put","arguments":{"key":"mcp/decision","value":{"content":"Keep memory durable"}}}})).await;
     assert_eq!(saved["isError"], false);
     let got = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"memory_get","arguments":{"key":"mcp/decision"}}})).await;
@@ -556,6 +720,119 @@ async fn mcp_stdio_tools_save_and_restore_through_authenticated_http() {
     );
     let missing = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"memory_get","arguments":{"key":"missing"}}})).await;
     assert_eq!(missing["isError"], true);
+    let memory = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"remember","arguments":{"key":"preferences/editor","content":"Use Neovim locally","topic":"Preferences","tags":["local"],"metadata":{"source":"user"},"occurred_at_ms":1234}}})).await;
+    assert_eq!(memory["isError"], false);
+    let recall = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"recall","arguments":{"topic":"preferences","tag":"local","query":"neovim","since_ms":1234,"until_ms":1234}}})).await;
+    assert_eq!(
+        recall["structuredContent"]["items"][0]["memory"]["content"],
+        "Use Neovim locally"
+    );
+    let browse = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":10,"method":"tools/call","params":{"name":"browse","arguments":{}}})).await;
+    assert_eq!(
+        browse["structuredContent"]["items"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    let forgotten = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":11,"method":"tools/call","params":{"name":"forget","arguments":{"key":"preferences/editor"}}})).await;
+    assert_eq!(forgotten["structuredContent"]["forgotten"], true);
+    let browse = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":12,"method":"tools/call","params":{"name":"browse","arguments":{}}})).await;
+    assert!(
+        browse["structuredContent"]["items"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
     child.kill().await.unwrap();
     child.wait().await.unwrap();
+}
+
+#[tokio::test]
+async fn cli_memory_commands_and_generated_schemas_match_the_live_api() {
+    use serde_json::Value;
+    let server = start(config()).await;
+    async fn cli(server: &Harness, args: &[&str]) -> Value {
+        let output = tokio::process::Command::new(env!("CARGO_BIN_EXE_instantkv"))
+            .args(["--url", &server.base])
+            .args(args)
+            .env("INSTANTKV_TOKEN", APP_TOKEN)
+            .output()
+            .await
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        serde_json::from_slice(&output.stdout).unwrap()
+    }
+    let saved = cli(
+        &server,
+        &[
+            "remember",
+            "Prefer Rust",
+            "--key",
+            "prefs/language",
+            "--topic",
+            "Preferences",
+            "--tag",
+            "local",
+            "--metadata",
+            "{\"source\":\"user\"}",
+            "--occurred-at-ms",
+            "1234",
+        ],
+    )
+    .await;
+    let recalled = cli(
+        &server,
+        &[
+            "recall",
+            "--topic",
+            "preferences",
+            "--query",
+            "Rust",
+            "--since-ms",
+            "1234",
+            "--until-ms",
+            "1234",
+        ],
+    )
+    .await;
+    assert_eq!(recalled["items"][0]["memory"]["content"], "Prefer Rust");
+    assert_eq!(
+        cli(&server, &["browse", "--limit", "1"]).await["items"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    let schema = cli(&server, &["schema", "--kind", "memory"]).await;
+    assert_eq!(
+        schema,
+        serde_json::from_str::<Value>(include_str!("../../../examples/memory.schema.json"))
+            .unwrap()
+    );
+    let revision = saved["revision"].as_u64().unwrap().to_string();
+    let output = tokio::process::Command::new(env!("CARGO_BIN_EXE_instantkv"))
+        .args([
+            "--url",
+            &server.base,
+            "forget",
+            "prefs/language",
+            "--if-revision",
+            &revision,
+        ])
+        .env("INSTANTKV_TOKEN", APP_TOKEN)
+        .output()
+        .await
+        .unwrap();
+    assert!(output.status.success());
+    assert!(
+        cli(&server, &["browse"]).await["items"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
 }

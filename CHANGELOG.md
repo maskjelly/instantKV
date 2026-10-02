@@ -2,14 +2,14 @@
 
 ## Unreleased
 
-- Public Astro documentation site on Cloudflare Static Assets: setup, feature/CLI/HTTP references, contributor guides and browser-local search.
-- Interactive benchmark page computed from all 15 raw reports, with source revision and measurement conditions.
-- Managed-hosting development banner; self-hosted runtime remains separate from the website.
-- Monolith identity: an original split chrome K, graphite/silver palette and minimal typography.
-- Redesigned logo, wordmark and all four architecture diagrams with editable source pairs.
-- Documented the theme and updated README visuals to the latest design brief.
-- Cloudflare-hosted live demo: real Rust writes/reads, independent reader, cross-tab recall, pause/resume, measured latency and bounded temporary workloads.
-- Clearer setup and product copy, corrected feature/version status, and a sourced comparison of memory tools.
+- Structured local-memory MVP: remember, recall, browse and forget through Rust, HTTP, CLI and MCP. Topics, tags, explicit event times and custom JSON metadata.
+- Atomic ordered time/topic/tag indexes maintained alongside record updates, replacement, deletion and expiry cleanup. Bounded literal keyword filtering with filter-bound cursors.
+- Configurable candidate, scan-byte and serialized-response limits. Create-only saves and revision-protected edits/deletes; queries require both get and list grants.
+- Four new MCP tools alongside the seven existing KV/checkpoint tools. Generated memory schemas, embedded Rust example and optional Ollama tool loop.
+- Smaller default local profile with loopback access, private credentials and an 8 MiB database cache. Linux ARM64 build/installer path; device validation pending.
+- Three 10,000-memory Mac runs with raw latency/RSS evidence and exact recovery after abrupt restart. Native mobile integration and ARM performance targets remain planned/unverified.
+- Minimal Astro website: neutral surfaces, locally served Geist, simpler docs and expandable diagrams. Homepage and benchmarks emphasize the source MVP, measurements and next milestones.
+- Existing live KV demo, recorded Mac replay, benchmark controls and browser-local search retained. That demo measures raw KV workloads rather than the new memory API.
 
 ## 0.1.2 — 2026-10-01
 

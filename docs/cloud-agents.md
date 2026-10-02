@@ -1,9 +1,10 @@
-# Shared knowledge for remote cloud agents
+# Shared knowledge for local agents
 
 Give every worker the same project facts and its own place to keep notes. A
 namespace is a section of storage with separate permissions. Workers read the
 `shared` namespace and write only to their own knowledge and checkpoint namespaces.
-All of this runs on one server. Independent replicas and automatic merging of
+Run the agents and memory process on the same machine. Remote workers can
+use the same scoped API when explicitly configured. All storage lives on one node. Independent replicas and automatic merging of
 findings are [future work](distributed-memory.md).
 
 ## Start a swarm instance

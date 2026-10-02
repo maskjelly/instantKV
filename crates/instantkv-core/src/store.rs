@@ -10,7 +10,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-const RECORDS: TableDefinition<&str, &[u8]> = TableDefinition::new("records_v1");
+pub(crate) const RECORDS: TableDefinition<&str, &[u8]> = TableDefinition::new("records_v1");
 const USAGE: TableDefinition<&str, &[u8]> = TableDefinition::new("usage_v1");
 const EXPIRY: TableDefinition<&str, &str> = TableDefinition::new("expiry_v1");
 const META: TableDefinition<&str, &str> = TableDefinition::new("metadata_v1");
@@ -19,7 +19,7 @@ pub struct Engine {
     pub config: Config,
     db: Option<Database>,
     memory: HashMap<String, Mutex<MemoryState>>,
-    clock: Arc<dyn Clock>,
+    pub(crate) clock: Arc<dyn Clock>,
 }
 
 #[derive(Default)]
@@ -50,7 +50,11 @@ impl Engine {
                 .any(|ns| ns.mode == StorageMode::Durable)
         {
             std::fs::create_dir_all(&config.storage.data_dir).map_err(storage)?;
-            let database = Database::create(path).map_err(storage)?;
+            let mut builder = Database::builder();
+            if let Some(bytes) = config.storage.cache_size_bytes {
+                builder.set_cache_size(bytes);
+            }
+            let database = builder.create(path).map_err(storage)?;
             let txn = database.begin_write().map_err(storage)?;
             {
                 let mut meta = txn.open_table(META).map_err(storage)?;
@@ -87,6 +91,7 @@ impl Engine {
                 txn.open_table(RECORDS).map_err(storage)?;
                 txn.open_table(USAGE).map_err(storage)?;
                 txn.open_table(EXPIRY).map_err(storage)?;
+                txn.open_table(crate::memory::INDEX).map_err(storage)?;
             }
             txn.commit().map_err(storage)?;
             Some(database)
@@ -131,7 +136,7 @@ impl Engine {
         Ok(ns)
     }
 
-    fn database(&self) -> Result<&Database> {
+    pub(crate) fn database(&self) -> Result<&Database> {
         self.db
             .as_ref()
             .ok_or_else(|| Error::Storage("durable storage unavailable".into()))
@@ -174,6 +179,20 @@ impl Engine {
     ) -> Result<Record> {
         let ns = self.record_namespace(namespace, key)?;
         validate_value(ns, &value)?;
+        if crate::memory::parse(&value)?.is_some() {
+            if ns.mode != StorageMode::Durable
+                || !matches!(ns.admission.value_kind, ValueKind::Json)
+            {
+                return Err(Error::Invalid(
+                    "structured memory requires a durable JSON records namespace".into(),
+                ));
+            }
+            if key.len() > 256 {
+                return Err(Error::Invalid(
+                    "structured memory keys may use at most 256 bytes".into(),
+                ));
+            }
+        }
         let ttl = resolve_ttl(ns, ttl_seconds)?;
         let now = self.clock.unix_ms();
         let expires = ttl
@@ -249,6 +268,7 @@ impl Engine {
             let mut expiry = txn.open_table(EXPIRY).map_err(storage)?;
             let mut counters = txn.open_table(USAGE).map_err(storage)?;
             let mut usage = load_usage(&counters, namespace)?;
+            let old = read_write(&records, &composite(namespace, key))?;
             result = write_record(
                 ns,
                 &mut records,
@@ -260,6 +280,8 @@ impl Engine {
                 expires,
                 condition,
             )?;
+            let mut index = txn.open_table(crate::memory::INDEX).map_err(storage)?;
+            crate::memory::update_index(&mut index, namespace, key, old.as_ref(), Some(&result))?;
             counters
                 .insert(namespace, encode_usage(&usage).as_slice())
                 .map_err(storage)?;
@@ -269,8 +291,27 @@ impl Engine {
     }
 
     pub fn delete(&self, namespace: &str, key: &str, condition: Condition) -> Result<()> {
+        self.delete_impl(namespace, key, condition, false)
+    }
+
+    pub fn forget(&self, namespace: &str, key: &str, condition: Condition) -> Result<()> {
+        self.delete_impl(namespace, key, condition, true)
+    }
+
+    fn delete_impl(
+        &self,
+        namespace: &str,
+        key: &str,
+        condition: Condition,
+        managed_only: bool,
+    ) -> Result<()> {
         let ns = self.record_namespace(namespace, key)?;
         if ns.mode == StorageMode::Memory {
+            if managed_only {
+                return Err(Error::Invalid(
+                    "structured memory requires durable storage".into(),
+                ));
+            }
             let mut state = self.memory[namespace].lock().map_err(storage)?;
             let entry = state.entries.get(key).ok_or(Error::NotFound)?;
             if entry
@@ -290,10 +331,15 @@ impl Engine {
             let mut counters = txn.open_table(USAGE).map_err(storage)?;
             let encoded = composite(namespace, key);
             let record = read_write(&records, &encoded)?.ok_or(Error::NotFound)?;
+            if managed_only && crate::memory::parse(&record.value)?.is_none() {
+                return Err(Error::NotFound);
+            }
             if expired(&record, self.clock.unix_ms()) {
                 return Err(Error::NotFound);
             }
             check_condition(condition, Some(&record))?;
+            let mut index = txn.open_table(crate::memory::INDEX).map_err(storage)?;
+            crate::memory::update_index(&mut index, namespace, key, Some(&record), None)?;
             let mut usage = load_usage(&counters, namespace)?;
             subtract(&mut usage, key, &record)?;
             records.remove(encoded.as_str()).map_err(storage)?;
@@ -697,6 +743,14 @@ impl Engine {
                             .split_once('\0')
                             .ok_or_else(|| storage("invalid expiry record"))?;
                         let mut usage = load_usage(&counters, namespace)?;
+                        let mut index = txn.open_table(crate::memory::INDEX).map_err(storage)?;
+                        crate::memory::update_index(
+                            &mut index,
+                            namespace,
+                            key,
+                            Some(&record),
+                            None,
+                        )?;
                         subtract(&mut usage, key, &record)?;
                         counters
                             .insert(namespace, encode_usage(&usage).as_slice())
@@ -750,10 +804,10 @@ impl MemoryState {
     }
 }
 
-fn composite(namespace: &str, key: &str) -> String {
+pub(crate) fn composite(namespace: &str, key: &str) -> String {
     format!("{namespace}\0{key}")
 }
-fn expired(record: &Record, now: u64) -> bool {
+pub(crate) fn expired(record: &Record, now: u64) -> bool {
     record.expires_at_ms.is_some_and(|deadline| deadline <= now)
 }
 fn expiry_key(encoded: &str, record: &Record) -> String {
@@ -958,7 +1012,7 @@ fn encode(record: &Record) -> Vec<u8> {
     bytes.extend_from_slice(&record.value);
     bytes
 }
-fn decode(bytes: &[u8]) -> Result<Record> {
+pub(crate) fn decode(bytes: &[u8]) -> Result<Record> {
     if bytes.len() < 32 {
         return Err(storage("truncated record"));
     }

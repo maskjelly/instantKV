@@ -10,11 +10,11 @@ record you ask for, without a model call.
 
 ## Who should use it
 
-Coding agents with long tasks. Remote workers that restart. Swarms that need the
+Local LLM apps and coding agents with long tasks. Workers that restart. Swarms that need the
 same project facts and separate private notes. Developers who already have an
 agent runtime and want to add a small memory service to it.
 
-Run the native binary or Docker container on a machine you control. Connect
+Run the native binary beside your model. Docker is optional. Connect
 through HTTP, the CLI or MCP. A checkpoint holds the goal and next action;
 larger details stay in records until the agent needs them.
 
@@ -24,16 +24,18 @@ larger details stay in records until the agent needs them.
   vector or graph database is needed.
 - **Exact recall.** Read the saved record by key. Use revisions to spot changes
   and avoid overwriting someone else's update.
+- **Simple discovery.** The source MVP adds indexed topic/tag/time retrieval and
+  bounded content keywords, with custom metadata. No embeddings are required.
 - **Checkpoints built in.** The context note and the session's latest checkpoint
   commit together. A restore reports changed, missing or inaccessible references.
 - **Shared facts, private work.** Give workers read-only project knowledge and
   separate namespaces (storage sections with their own permissions) for notes.
   Permissions apply to every request.
 - **No model calls for memory.** Storing and reading records require no LLM or embedding
-  calls. The self-hosted software has no per-agent or per-request fee; you still
-  pay for infrastructure and upkeep.
+  calls. The local-first software has no per-agent or per-request fee; you still
+  use your own hardware and handle backups.
 
-That combination is the pitch: a small service you can run beside your agents,
+That combination is the pitch: a local memory process you can run beside your model,
 with the save/restore plumbing already written.
 
 ## How the alternatives compare
@@ -48,7 +50,7 @@ judgment about fit, not a result from testing those products.
 | [Letta](https://docs.letta.com/agent-sdk) | A stateful agent SDK with [persistent memory](https://docs.letta.com/agent-sdk/memory), git-backed files and background memory updates | You want the agent runtime and memory system together |
 | [Upstash Redis](https://upstash.com/redis) | Managed Redis over HTTP or TCP, durable storage and multi-region replication | You want someone else to operate the database, or your application needs Redis features |
 | [Valkey](https://valkey.io/topics/transactions/) | A general-purpose key/value server with transactions, [persistence](https://valkey.io/topics/persistence/) and [clustering](https://valkey.io/topics/cluster-tutorial/) | You need its broader database features and want to build the agent handoff logic yourself |
-| instantKV | Exact records, durable checkpoints, shared/private permissions, HTTP/CLI/MCP in one self-hosted Rust service | You know what the agent should save and want a direct way to store it and resume work |
+| instantKV | Exact records, durable checkpoints, shared/private permissions, HTTP/CLI/MCP in one local-first Rust process | You know what the agent should save and want a direct way to store it and resume work |
 
 Several alternatives can be self-hosted. Mem0's components can use local models,
 and its behavior depends on configuration. Self-hosting and exact retrieval are

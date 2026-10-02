@@ -5,7 +5,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Self-hosted agent memory with durable compaction checkpoints and MCP tools"
+description = "Local-first agent memory with durable checkpoints and offline MCP tools"
 readme = "../../README.md"
 publish.workspace = true
 

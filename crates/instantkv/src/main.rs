@@ -1,6 +1,7 @@
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand, ValueEnum};
 use instantkv::{auth::read_secrets, client::Client, server};
+use instantkv_core::memory::{MemoryInput, MemoryQuery, RememberRequest};
 use instantkv_core::{config::Config, model::CheckpointRequest};
 use std::{
     fs,
@@ -13,7 +14,7 @@ mod workflows;
 #[derive(Parser)]
 #[command(
     version,
-    about = "Self-hosted memory for AI agents. Save, compact, restore."
+    about = "Local-first memory for AI agents. Save, compact, restore offline."
 )]
 struct Cli {
     #[arg(long, global = true, default_value = "http://127.0.0.1:8080")]
@@ -27,11 +28,44 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Save an indexed fact, preference or observation. Create-only unless --if-revision is supplied.
+    Remember {
+        content: String,
+        #[arg(long, default_value = "knowledge")]
+        namespace: String,
+        #[arg(long)]
+        key: Option<String>,
+        #[arg(long)]
+        topic: Option<String>,
+        #[arg(long = "tag")]
+        tags: Vec<String>,
+        /// App-defined JSON object; not searched by the MVP.
+        #[arg(long, default_value = "{}")]
+        metadata: String,
+        #[arg(long)]
+        occurred_at_ms: Option<u64>,
+        #[arg(long)]
+        ttl: Option<u64>,
+        #[arg(long, requires = "key")]
+        if_revision: Option<u64>,
+    },
+    /// Retrieve structured memory by topic, tag, time range or keywords.
+    Recall(Retrieval),
+    /// Browse structured memories newest first; follow next_cursor until null.
+    Browse(Retrieval),
+    /// Delete a structured memory and its indexes atomically.
+    Forget {
+        key: String,
+        #[arg(long, default_value = "knowledge")]
+        namespace: String,
+        #[arg(long)]
+        if_revision: Option<u64>,
+    },
     /// Create a ready-to-run config and private credentials. Never overwrites files.
     Init {
         #[arg(long, default_value = ".")]
         dir: PathBuf,
-        #[arg(long, value_enum, default_value = "agent")]
+        #[arg(long, value_enum, default_value = "local")]
         profile: Profile,
     },
     /// Start the memory server with persistent knowledge and disposable scratch.
@@ -129,8 +163,11 @@ enum Command {
     },
     /// Expose memory tools over MCP stdio; all operations use the authenticated HTTP API.
     Mcp,
-    /// Print the checkpoint JSON Schema for editors and agent integrations.
-    Schema,
+    /// Print authoritative JSON schemas for editors and agent integrations.
+    Schema {
+        #[arg(long, default_value = "checkpoint", value_parser = ["checkpoint", "memory"])]
+        kind: String,
+    },
     /// Measure real HTTP latency and throughput, with durable writes kept durable.
     Bench {
         #[arg(long, default_value = "scratch")]
@@ -148,13 +185,38 @@ enum Command {
     },
 }
 
+#[derive(clap::Args)]
+struct Retrieval {
+    /// All whitespace-separated terms must occur in content (case-insensitive).
+    #[arg(long)]
+    query: Option<String>,
+    #[arg(long, default_value = "knowledge")]
+    namespace: String,
+    #[arg(long)]
+    topic: Option<String>,
+    #[arg(long)]
+    tag: Option<String>,
+    /// Inclusive event time in Unix milliseconds.
+    #[arg(long)]
+    since_ms: Option<u64>,
+    #[arg(long)]
+    until_ms: Option<u64>,
+    #[arg(long, default_value_t = 20)]
+    limit: usize,
+    #[arg(long, default_value_t = 16384)]
+    max_bytes: usize,
+    #[arg(long)]
+    cursor: Option<String>,
+}
+
 #[derive(Clone, Copy, ValueEnum)]
 enum Profile {
+    Local,
     Agent,
     Swarm,
 }
 
-#[tokio::main]
+#[tokio::main(worker_threads = 2)]
 async fn main() -> std::process::ExitCode {
     tracing_subscriber::fmt()
         .with_writer(std::io::stderr)
@@ -206,7 +268,16 @@ async fn run(cli: Cli) -> Result<()> {
                 workflows::demo().await
             }
         }
-        Command::Schema => print_json(&schemars::schema_for!(CheckpointRequest)),
+        Command::Schema { kind } => {
+            if kind == "memory" {
+                print_json(
+                    &serde_json::json!({"remember": schemars::schema_for!(RememberRequest),
+                    "recall": schemars::schema_for!(MemoryQuery)}),
+                )
+            } else {
+                print_json(&schemars::schema_for!(CheckpointRequest))
+            }
+        }
         command => {
             let secrets = read_secrets(&cli.secrets_file)?;
             let token = std::env::var("INSTANTKV_TOKEN")
@@ -215,6 +286,65 @@ async fn run(cli: Cli) -> Result<()> {
                 .or_else(|| secrets.get("INSTANTKV_APP_TOKEN").cloned());
             let client = Client::new(&cli.url, token)?;
             match command {
+                Command::Remember {
+                    content,
+                    namespace,
+                    key,
+                    topic,
+                    tags,
+                    metadata,
+                    occurred_at_ms,
+                    ttl,
+                    if_revision,
+                } => {
+                    let metadata = serde_json::from_str(&metadata)
+                        .context("metadata must be a JSON object")?;
+                    print_json(
+                        &client
+                            .remember(
+                                &namespace,
+                                &RememberRequest {
+                                    key,
+                                    memory: MemoryInput {
+                                        content,
+                                        topic,
+                                        tags,
+                                        metadata,
+                                        occurred_at_ms,
+                                    },
+                                    ttl_seconds: ttl,
+                                    if_revision,
+                                },
+                            )
+                            .await?,
+                    )
+                }
+                Command::Recall(input) | Command::Browse(input) => print_json(
+                    &client
+                        .recall(
+                            &input.namespace,
+                            &MemoryQuery {
+                                topic: input.topic,
+                                tag: input.tag,
+                                query: input.query,
+                                since_ms: input.since_ms,
+                                until_ms: input.until_ms,
+                                limit: input.limit,
+                                max_bytes: input.max_bytes,
+                                cursor: input.cursor,
+                            },
+                        )
+                        .await?,
+                ),
+                Command::Forget {
+                    key,
+                    namespace,
+                    if_revision,
+                } => {
+                    client.forget(&namespace, &key, if_revision).await?;
+                    println!("Forgotten");
+                    Ok(())
+                }
                 Command::Mcp => instantkv::mcp::serve(client).await,
                 Command::Doctor { config, offline } => {
                     let parsed = load_config(&config)?;
@@ -376,6 +506,7 @@ fn init(dir: &Path, profile: Profile) -> Result<()> {
         )
     };
     let template = match profile {
+        Profile::Local => include_str!("../../../config/local.toml"),
         Profile::Agent => include_str!("../../../config/instantkv.example.toml"),
         Profile::Swarm => include_str!("../../../config/swarm.toml"),
     }

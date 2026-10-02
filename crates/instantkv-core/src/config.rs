@@ -9,8 +9,29 @@ pub struct Config {
     pub version: u32,
     pub server: Server,
     pub storage: Storage,
+    #[serde(default)]
+    pub memory: MemoryPolicy,
     pub auth: Auth,
     pub namespaces: Vec<Namespace>,
+}
+
+/// Bounded work and output for structured memory retrieval.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct MemoryPolicy {
+    pub max_candidates: usize,
+    pub max_scan_bytes: usize,
+    pub max_result_bytes: usize,
+}
+
+impl Default for MemoryPolicy {
+    fn default() -> Self {
+        Self {
+            max_candidates: 1000,
+            max_scan_bytes: 4 * 1024 * 1024,
+            max_result_bytes: 65536,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -26,6 +47,9 @@ pub struct Server {
 #[serde(deny_unknown_fields)]
 pub struct Storage {
     pub data_dir: PathBuf,
+    /// Optional redb page-cache budget; does not cap total process memory.
+    #[serde(default)]
+    pub cache_size_bytes: Option<usize>,
     pub cleanup_interval_seconds: u64,
     pub cleanup_batch_entries: u32,
 }
@@ -194,6 +218,15 @@ impl Config {
         )?;
         if self.storage.data_dir.as_os_str().is_empty() {
             return Err("storage.data_dir must not be empty".into());
+        }
+        if self.storage.cache_size_bytes == Some(0) {
+            return Err("storage.cache_size_bytes must be greater than zero".into());
+        }
+        if !(1..=100_000).contains(&self.memory.max_candidates)
+            || !(65536..=64 * 1024 * 1024).contains(&self.memory.max_scan_bytes)
+            || !(1024..=1024 * 1024).contains(&self.memory.max_result_bytes)
+        {
+            return Err("memory budgets: max_candidates 1..100000, max_scan_bytes 65536..67108864, max_result_bytes 1024..1048576".into());
         }
         if self.namespaces.is_empty() {
             return Err("at least one namespace is required".into());

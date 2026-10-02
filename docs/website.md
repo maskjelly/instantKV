@@ -2,7 +2,8 @@
 
 The public site introduces instantKV, hosts the setup/feature/contributor docs
 and publishes reproducible benchmarks. The Rust memory service remains a
-separately self-hosted process. Managed hosting is in development.
+local-first process. The hosted website/demo is optional; local storage and
+recall do not depend on it.
 
 ## Stack and boundaries
 
@@ -10,7 +11,7 @@ Astro + TypeScript builds static HTML. Cloudflare Workers Static Assets serves
 the files. A small Worker proxies only `/api/demo/*` to the isolated Rust-backed
 [live demo](live-demo.md); documentation needs no database. Pagefind generates
 browser-local search. Application scripts provide search, code copying,
-benchmark chart controls and announcement pause/play. Fonts and images are
+benchmark chart controls. Fonts and images are
 served locally. Cloudflare's existing zone-level Web Analytics injects its beacon;
 the CSP permits only its specific script/collection hosts alongside local code.
 
@@ -22,28 +23,26 @@ transactions use instantKV's storage engine.
 
 ## Website design
 
-The website uses a white technical blueprint theme. Blue ink, fine rules,
-square controls and graph-paper diagrams give it the feel of an early product
-sketch. The split-K mark keeps its original shape in a flat blue variant.
-There are no 3D objects, shader effects or background animations.
+The website uses white surfaces, neutral borders and locally served Geist
+variable typography. The split-K mark is black. The homepage has a short
+local-first explanation, a real CLI save/recall example, measured footprint and
+one installation path. It has no moving banner, decorative grid or hero diagram.
 
-The homepage explains the service, shows measured performance, gives a working
-install command and diagrams shared knowledge with private worker namespaces.
-The same typography and controls carry through the demo, benchmarks and guides.
-This is a self-hosted product page: install, read the docs, try the demo.
-Managed hosting stays a labeled future offering.
+The same type and surface rules apply to the demo, benchmarks and documentation.
+Docs are grouped by task, and technical diagrams expand on request. Search,
+code copying, recorded/live demo modes and benchmark controls remain functional.
 
-Theme tokens live in `site/src/styles/global.css`. Technical diagrams use native
-SVG components in `site/src/components/diagrams/`; the homepage request path is
-`MemoryBlueprint.astro`. The shared/private memory diagram uses responsive
-HTML/CSS, so its labels wrap at readable sizes on mobile. The dashed server
-boundary contains shared knowledge, two private namespaces and the scoped API;
-cloud workers sit outside it. [Logo](assets/blueprint-mark.svg) and [social image source](assets/blueprint-social.svg)
-are editable SVG. The social preview also has a 1200 × 630 PNG export.
+Theme tokens and responsive layout live in `site/src/styles/global.css`.
+Technical diagrams use native SVG/HTML components in
+`site/src/components/diagrams/`. The [mark](assets/blueprint-mark.svg) and
+[social preview](assets/blueprint-social.svg) are editable SVG; the latter also
+has a 1200 × 630 PNG export. Font source and license are in
+[the font directory](assets/fonts/README.md).
 
-[Redis](https://redis.io/) and [Valkey](https://valkey.io/) were reviewed for clear
-product explanations and direct installation/documentation paths. The artwork
-and layout are original. Benchmark claims stay tied to their actual workloads.
+The references were [Vercel](https://vercel.com/),
+[Cloudflare](https://www.cloudflare.com/) and [Google Cloud](https://cloud.google.com/):
+clear navigation, restrained typography and concrete product explanations.
+The layout and assets are original. Measurements stay tied to their workloads.
 
 ## One documentation source
 
@@ -117,6 +116,12 @@ run `npm run deploy:domain` from a reviewed checkout. Do not store an expiring
 interactive OAuth token in GitHub secrets.
 
 ## Verification and rollback
+
+The homepage and benchmark page read the new structured-memory report directly.
+The memory guide, performance plan and roadmap are included in browser search and
+`llms-full.txt`. `llms.txt` names the four tools, states that the MVP is unreleased
+and separates Mac evidence from planned native mobile work. The optional Ollama
+example and generated memory schemas are downloadable under `/examples/`.
 
 Verify HTTPS at `/`, `/docs/quickstart/`, `/benchmarks/`, `/llms.txt` and a missing
 route after publishing. Run the live demo in both cache and durable modes,

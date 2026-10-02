@@ -178,6 +178,7 @@ for setup and latency emphasis; [Turso](https://turso.tech) for code-first onboa
 and per-agent architecture; [Valkey](https://valkey.io) for clear access to docs,
 downloads and a runnable service. The later website redesign also reviewed
 [Redis](https://redis.io/) and Valkey for clear product and installation paths.
-instantKV now uses a white technical blueprint theme: blue ink, square controls
-and original diagrams. Its homepage and navigation lead directly to setup,
-working storage and evidence, with no signup flow or copied product artwork.
+instantKV now uses a minimal white layout, neutral type and diagrams that expand
+when needed. Its homepage leads with local memory, runnable examples and measured
+results. Native phone integrations and device performance goals are marked as
+planned work.

@@ -1,17 +1,69 @@
 # Quick setup
 
-Install a checksummed binary on Linux x86_64 or Apple Silicon macOS, or use
-Docker Compose. You only need Rust 1.98+ if you're building from source.
+Run the native binary beside your model. Storage and recall work offline once
+installed. Rust 1.98+ is needed only for a source build; Docker is optional.
 
 Want to see it first? The [browser demo](https://instantkv.com/demo/) writes real
 records and lets you read them back, with no account or setup.
 
 For shared knowledge and private agent namespaces, use `INSTANTKV_PROFILE=swarm` on the
 first Docker setup or `instantkv init --profile swarm` in a fresh binary setup.
-Follow [the cloud-agent guide](cloud-agents.md) for scopes and worker provisioning.
-The examples below use the default single-agent profile.
+Follow [the local-agent guide](cloud-agents.md) for scopes and worker provisioning.
+The examples below use the default local profile.
 
-## Docker: no Rust install needed
+The structured-memory MVP is in this source checkout and is unreleased. Build
+from this source for `remember`, `recall`, `browse` and `forget`; earlier archives
+contain the original KV/checkpoint tools. [MVP guide](memory-mvp.md).
+
+## Native binary first
+
+From this checkout, with Rust 1.98+:
+
+```sh
+cargo install --path crates/instantkv --locked
+mkdir my-local-memory
+cd my-local-memory
+instantkv init
+instantkv serve
+```
+
+Or install the published source with
+`cargo install --git https://github.com/maskjelly/instantKV --locked instantkv`.
+Source installs need network access for dependencies once. After installation,
+local storage and recall run offline.
+
+In another terminal in the same directory:
+
+```sh
+instantkv remember "Prefer Rust for local tools" --topic preferences --tag local
+instantkv recall --topic preferences --query Rust
+instantkv browse --limit 10
+instantkv doctor
+```
+
+`init` creates `instantkv.toml` and private, randomly generated credentials in
+`.instantkv/credentials.env`. The default `local` profile uses smaller budgets
+and binds to `127.0.0.1:8080`. The server and CLI read the credential file
+automatically. Data stays in `.instantkv/data`; preserve that directory across
+upgrades. Setup never overwrites existing files. Use `init --profile agent` for
+the earlier larger quotas. [Local memory and ARM limits](local-first.md).
+
+## Checksummed release binary
+
+Published Linux x86_64 and Apple Silicon macOS archives need no compiler:
+
+```sh
+git clone https://github.com/maskjelly/instantKV.git
+cd instantKV
+./scripts/install.sh "$HOME/.local/bin"
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+The installer verifies SHA-256. Linux ARM64 detection and packaging are implemented;
+its archive must be built and published before downloads work. Use the native
+source build above until then. [Platform status](local-first.md#arm-means-a-processor-family-not-one-operating-system).
+
+## Docker is optional
 
 ```sh
 git clone https://github.com/maskjelly/instantKV.git
@@ -21,50 +73,13 @@ cd instantKV
 ./scripts/kv.sh get knowledge project/storage
 ```
 
-The host port is loopback-only. Set `INSTANTKV_PORT=8095 ./scripts/quickstart.sh`
-when 8080 is taken. Keep that variable set for later Compose commands, or put
-`INSTANTKV_PORT=8095` in a private `.env` file. Re-running setup retains state.
-On x86_64 Linux Docker hosts, setup downloads the checksummed release binary.
-Other platforms, unavailable releases, or `INSTANTKV_BUILD_SOURCE=source-build`
-use a source build; that initial compilation can take several minutes.
-Release download time depends on the network; the installer shows progress and
-verifies the archive before use.
-
-## Binary: no compiler needed on supported platforms
-
-Linux x86_64 and Apple Silicon macOS:
-
-```sh
-git clone https://github.com/maskjelly/instantKV.git
-cd instantKV
-./scripts/install.sh "$HOME/.local/bin"
-export PATH="$HOME/.local/bin:$PATH"
-instantkv init
-instantkv serve
-```
-
-The installer checks the archive SHA-256 before installing. For other platforms,
-or to compile from source, use Rust 1.98+:
-
-```sh
-cargo install --git https://github.com/maskjelly/instantKV --locked instantkv
-instantkv init
-instantkv serve
-```
-
-In another terminal in the same directory:
-
-```sh
-instantkv put knowledge project/storage --value '{"kind":"decision","content":"Use Rust + redb"}'
-instantkv get knowledge project/storage
-instantkv list knowledge --prefix project/
-instantkv doctor
-```
-
-`init` creates `instantkv.toml` and private, randomly generated credentials in
-`.instantkv/credentials.env`. The server and CLI read that file automatically;
-there is no token-copy step. It never overwrites an existing setup. Data stays
-in `.instantkv/data`; preserve that directory across upgrades.
+Docker defaults to the local profile too. The host port is loopback-only and the
+database persists in a named volume. Set `INSTANTKV_PORT=8095` when 8080 is taken;
+keep it set for later commands or save it in a private `.env`. Setup retains state.
+On supported x86_64/ARM64 Docker hosts, it attempts the checksummed Linux archive
+and falls back to source compilation if the archive is unavailable.
+`INSTANTKV_BUILD_SOURCE=source-build` forces that path. Initial compilation and
+image/release downloads need internet; the running local node does not.
 
 ## Run the demo without setup
 

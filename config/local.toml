@@ -1,0 +1,90 @@
+# Local-first agent memory. Default for new setups; existing configs are unchanged.
+# Offline storage and recall, scoped credentials and loopback-only access.
+version = 1
+
+[server]
+bind = "127.0.0.1:8080"
+max_request_body_bytes = 65536 # 64 KiB; includes checkpoint JSON
+max_in_flight_requests = 32
+request_timeout_seconds = 10
+
+[storage]
+data_dir = "./data"
+cache_size_bytes = 8388608 # 8 MiB redb page cache; not a total RSS cap
+cleanup_interval_seconds = 5
+cleanup_batch_entries = 100
+
+# Query work/output caps, separate from storage quotas and total RAM.
+[memory]
+max_candidates = 1000
+max_scan_bytes = 4194304 # 4 MiB of encoded records per query page
+max_result_bytes = 65536 # 64 KiB including returned metadata and cursor
+
+[auth]
+mode = "api_key"
+
+[[auth.principals]]
+name = "app"
+token_env = "INSTANTKV_APP_TOKEN"
+namespaces = ["knowledge", "checkpoints", "scratch"]
+operations = ["get", "put", "delete", "list", "stats"]
+
+[[auth.principals]]
+name = "reader"
+token_env = "INSTANTKV_READER_TOKEN"
+namespaces = ["knowledge"]
+operations = ["get", "list"]
+
+[[namespaces]]
+name = "knowledge"
+mode = "durable"
+
+[namespaces.retention]
+require_ttl = false
+
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 65536
+
+[namespaces.capacity]
+max_entries = 10000
+max_total_bytes = 67108864 # 64 MiB logical key + value bytes
+on_full = "reject"
+
+[[namespaces]]
+name = "checkpoints"
+purpose = "checkpoints"
+mode = "durable"
+
+[namespaces.retention]
+require_ttl = false
+
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 65536
+
+[namespaces.capacity]
+max_entries = 1000
+max_total_bytes = 16777216 # 16 MiB; never evict durable restore points
+on_full = "reject"
+
+[[namespaces]]
+name = "scratch"
+mode = "memory"
+
+[namespaces.retention]
+require_ttl = true
+default_ttl_seconds = 300
+max_ttl_seconds = 3600
+
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 16384
+
+[namespaces.capacity]
+max_entries = 1024
+max_total_bytes = 4194304 # 4 MiB logical bytes; index/allocation overhead is extra
+on_full = "evict_oldest"

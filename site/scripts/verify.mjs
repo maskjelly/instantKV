@@ -22,8 +22,8 @@ for (const file of htmlFiles) {
   );
   assert(html.includes('name="description"'), `${page}: description metadata`);
   assert(
-    html.includes('MANAGED HOSTING IS IN DEVELOPMENT'),
-    `${page}: honest hosting status`,
+    html.includes('Local-first agent memory.'),
+    `${page}: local-first product positioning`,
   );
   assert(
     !/<script\b(?![^>]*\bsrc=)[^>]*>/i.test(html),
@@ -58,6 +58,28 @@ const reports = files(resolve(root, 'benchmark-data'))
   .filter((path) => /-\d\.json$/.test(path))
   .map((path) => JSON.parse(readFileSync(path, 'utf8')));
 assert.equal(reports.length, 15);
+const memoryReport = JSON.parse(
+  readFileSync(resolve(root, 'benchmark-data/memory/mac-arm64.json'), 'utf8'),
+);
+assert.equal(memoryReport.runs.length, 3);
+assert.equal(
+  memoryReport.runs.reduce(
+    (n, run) => n + run.exact_memories_after_kill_restart,
+    0,
+  ),
+  30000,
+);
+assert(
+  memoryReport.runs.every((run) => run.errors === 0 && run.mcp_bridge_verified),
+);
+const agentDocs = readFileSync(resolve(root, 'llms-full.txt'), 'utf8');
+assert(agentDocs.includes('# Memory for local LLMs'));
+assert(agentDocs.includes('# Performance: measured and planned'));
+assert(agentDocs.includes('unreleased'));
+const memorySchema = JSON.parse(
+  readFileSync(resolve(root, 'examples/memory.schema.json'), 'utf8'),
+);
+assert(memorySchema.remember && memorySchema.recall);
 assert.equal(
   reports.reduce((sum, report) => sum + report.successful_requests, 0),
   157500,

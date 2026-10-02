@@ -5,7 +5,7 @@ It writes up to 100,000 synthetic cache records or 10,000 durable records to
 the actual Rust service, then recalls exact keys in an independent reader.
 [Architecture, limits and timing methodology](live-demo.md).
 
-## Shared knowledge and private cloud agents
+## Shared knowledge and private local agents
 
 ```sh
 instantkv demo --swarm
@@ -15,7 +15,7 @@ instantkv demo --swarm
 Verified on the local macOS release build and Rove's Linux Docker instance:
 
 ```text
-01  SHARED    both cloud agents recall the same shared baseline
+01  SHARED    both agents recall the same shared baseline
 02  PRIVATE   agents write independently; cross-agent reads and shared writes return 403
 03  HANDOFF   saved private capsule; cleared simulated context; locator lives outside it
 04  RESTORE   after real server restart, Alpha restores its capsule and both knowledge sources

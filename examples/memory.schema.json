@@ -1,0 +1,155 @@
+{
+  "recall": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "cursor": {
+        "default": null,
+        "description": "Opaque continuation; reuse the same filters. Pages are not a snapshot.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "limit": {
+        "default": 20,
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "max_bytes": {
+        "default": 16384,
+        "description": "Total serialized response budget, including metadata and cursor.",
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "query": {
+        "default": null,
+        "description": "All whitespace-separated terms must occur in content, case-insensitively.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "since_ms": {
+        "default": null,
+        "description": "Inclusive event-time range in Unix milliseconds.",
+        "format": "uint64",
+        "minimum": 0,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "tag": {
+        "default": null,
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "topic": {
+        "default": null,
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "until_ms": {
+        "default": null,
+        "format": "uint64",
+        "minimum": 0,
+        "type": [
+          "integer",
+          "null"
+        ]
+      }
+    },
+    "title": "MemoryQuery",
+    "type": "object"
+  },
+  "remember": {
+    "$defs": {
+      "MemoryInput": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "description": "A fact, preference, decision or observation; at most 16 KiB of UTF-8.",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "default": {},
+            "description": "App-defined JSON fields; stored and returned, not searched by the MVP.",
+            "type": "object"
+          },
+          "occurred_at_ms": {
+            "description": "Event time in Unix milliseconds. Omit to use the server's write time.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "tags": {
+            "default": [],
+            "description": "Up to eight exact, case-insensitive labels.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "topic": {
+            "description": "Exact topic label, case-insensitive. At most 64 bytes after normalization.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "if_revision": {
+        "description": "Omit for create-only; supply the observed revision to update a memory.",
+        "format": "uint64",
+        "minimum": 0,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "key": {
+        "description": "Omit to create a new UUID key; provide a stable key for retryable saves.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "memory": {
+        "$ref": "#/$defs/MemoryInput"
+      },
+      "ttl_seconds": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": [
+          "integer",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "memory"
+    ],
+    "title": "RememberRequest",
+    "type": "object"
+  }
+}

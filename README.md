@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/assets/brand.png" width="900" alt="instantKV Monolith identity: a split chrome K on graphite, memory for cloud agents"></p>
+<p align="center"><img src="docs/assets/blueprint-social.svg" width="900" alt="instantKV: local-first memory for AI agents"></p>
 
 <p align="center">
 <a href="https://github.com/maskjelly/instantKV/actions/workflows/ci.yml"><img src="https://github.com/maskjelly/instantKV/actions/workflows/ci.yml/badge.svg" alt="Rust checks"></a>
@@ -11,30 +11,45 @@
 [Website](https://instantkv.com) · [Start guide](https://instantkv.com/docs/quickstart/)
 · [Memory demo](https://instantkv.com/demo/) · [Benchmarks](https://instantkv.com/benchmarks/) · [Documentation](https://instantkv.com/docs/)
 
-**Your agent did the work. Give it somewhere to keep it.**
+**Local-first memory for AI agents. Keep the work on your device.**
 
-instantKV stores the facts and unfinished work your agents need after compaction
-or a restart. Save a decision under a key like `project/storage`. Save a checkpoint
-with the goal and next step. When the agent returns, load that checkpoint and
-fetch the details it needs.
+instantKV keeps facts, preferences and unfinished tasks beside your local model.
+Use **remember, recall, browse and forget**. Retrieve by **topic, tag, event time
+or literal keywords**, then checkpoint the goal and next step before compaction.
+Storage and recall work
+offline once installed: no account, cloud service, embedding model or LLM API is
+required. The memory service makes no telemetry calls.
 
-Run it on your own machine or VPS. Give the swarm shared project knowledge and
-each agent a private namespace: a section of storage with its own permissions.
-Workers can read the shared facts while keeping their notes and checkpoints separate.
+One Rust binary with an embedded database. The default local profile binds to
+loopback, generates private credentials and uses smaller resource budgets.
+Connect through HTTP, CLI or eleven MCP tools. For Rust applications,
+`instantkv-core` also exposes the storage engine directly, without an HTTP server.
 
-One Rust binary. No model calls to store or retrieve memory. Connect through HTTP,
-the CLI, or seven MCP tools. The software is MIT licensed; you pay for the machine
-and its upkeep.
+Apple Silicon macOS is tested locally. Linux ARM64 has a native CI build and
+packaging path; device validation is still needed. Native iOS/Android integration
+is planned. See [local use, ARM targets and limits](docs/local-first.md).
+MIT licensed; run it on hardware you already own.
+
+**Source MVP, unreleased:** the indexed-memory API is implemented in this checkout.
+Build from source; older release archives do not include it.
+[Memory API and local model integration](docs/memory-mvp.md) ·
+[Measured performance and next targets](docs/performance.md) · [Roadmap](docs/roadmap.md).
+
+Three fresh 10,000-memory runs on an M4 Pro measured topic-query p95 at
+**0.134–0.190 ms** and largest sampled server RSS at **19.5 MiB**. All 30,000
+memories were verified after abrupt restarts. Synthetic, warm, sequential local
+HTTP; excludes the model and phones. [Raw evidence](docs/benchmarks/2026-10-03-memory/mac-arm64.json).
 
 ## Who it's for
 
-- Coding agents that need to keep decisions and pick up unfinished tasks.
-- Cloud workers that restart or regularly run out of context.
-- Swarms that share project facts but need separate working notes.
-- Developers who want to add memory to an agent runtime they already use.
+- Local LLM apps that need persistent facts outside the context window.
+- Coding agents that need to resume unfinished tasks after compaction or restart.
+- Multiple local agents sharing project facts with separate private notes.
+- Developers adding memory to an existing runtime through MCP, HTTP or Rust.
 
-You choose what to save and how to name it. Retrieval uses exact keys or prefixes;
-semantic search and automatic memory extraction are future work.
+Your runtime chooses what to save. Structured memory supports indexed topic/tag/time
+retrieval and bounded content keyword filtering. Exact-key/prefix KV APIs remain.
+Semantic search and automatic memory extraction are future work.
 [How instantKV compares with other memory tools →](docs/choosing-instantkv.md)
 
 ## The swarm memory model
@@ -45,36 +60,52 @@ Working today: agents read shared knowledge, write their own notes and save dura
 checkpoints. Each request checks that worker's permissions. Add namespaces and
 credentials for more agents. All workers use one server today; independent replicas
 and automatic consolidation are planned below.
-[Cloud-agent setup and permissions →](docs/cloud-agents.md)
+[Local agents and shared memory →](docs/cloud-agents.md)
 
-## Start using it
+## Start locally
 
-With Docker and Compose, on a fresh checkout and volume:
-
-```sh
-git clone https://github.com/maskjelly/instantKV.git
-cd instantKV
-INSTANTKV_PROFILE=swarm ./scripts/quickstart.sh
-./scripts/kv.sh put shared project/storage --value '{"content":"Use Rust + redb"}'
-./scripts/kv.sh get shared project/storage
-./scripts/kv.sh demo --swarm
-```
-
-Or install with Rust 1.98+:
+With Rust 1.98+, install the native binary from this checkout:
 
 ```sh
-cargo install --git https://github.com/maskjelly/instantKV --locked instantkv
-instantkv init --profile swarm
+cargo install --path crates/instantkv --locked
+mkdir my-local-memory
+cd my-local-memory
+instantkv init
 instantkv serve
 # In another terminal, in the same directory:
-instantkv put shared project/storage --value '{"content":"Use Rust + redb"}'
-instantkv get shared project/storage
+instantkv remember "Prefer Rust for local tools" --topic preferences --tag local
+instantkv recall --topic preferences --query Rust
+instantkv browse --limit 10
 ```
 
-Setup generates private credentials automatically. The commands above use the
-operator credential; give each worker only its scoped token through its secret
-store. Docker retains the database in a named volume. Existing setups keep their
-original profile. [Quick setup and binary install →](docs/quickstart.md)
+Setup creates credentials automatically and stores data in `.instantkv/data`.
+After installation, these operations need no internet connection.
+[Binary install, Docker and first checkpoint →](docs/quickstart.md)
+
+The default `local` profile budgets an 8 MiB redb cache and 4 MiB of logical scratch
+data, with 32 in-flight requests. Those are component budgets, not a total RAM cap.
+The new [M4 Pro memory runs](docs/performance.md) measured an 8.0 MiB native binary,
+6.17–6.20 MiB idle RSS and 19.5 MiB largest sampled RSS. These measurements are
+specific to that workload, not a device-independent RAM guarantee.
+
+## Where we are going
+
+1. **Real local-agent recall:** evaluate saved preferences and task continuation
+   after fresh context and restarts. An [Ollama tool-loop example](examples/local-llm.py)
+   is included; real model-quality results are pending.
+2. **Native mobile embedding:** Swift/Kotlin bindings, app lifecycle, sandbox
+   storage, backup/encryption design and battery measurements. The Rust core is
+   embeddable today; native phone integration is planned.
+3. **Portable, hackable memory:** app-defined metadata works now. Export/import,
+   schema migration tooling and optional richer local retrieval are next.
+
+Initial targets on a named 4 GiB Linux ARM64 board: indexed recall p95 ≤5 ms,
+durable save p95 ≤20 ms, idle RSS ≤12 MiB and loaded RSS ≤32 MiB under the
+documented 10,000-memory workload. **Goals, not measured ARM/phone results.**
+[Workload, acceptance gates and limits](docs/performance.md#next-device-targets--not-yet-measured).
+
+Use `init --profile agent` for larger quotas or `init --profile swarm` for shared
+knowledge and separate worker credentials. Existing configurations stay unchanged.
 
 ## See it work
 
@@ -138,11 +169,11 @@ each worker. Default `instantkv init` gives a single agent `knowledge`,
 - **Small restores:** essential context inline; versioned references fetched on demand.
 - **Controlled sharing:** per-namespace permissions and conditional revision writes.
 - **Bounded storage:** quotas, size/TTL limits, indexed expiry and admission limits.
-- **Agent access:** seven typed MCP tools; HTTP and CLI use the same policies.
+- **Agent access:** eleven typed MCP tools; HTTP and CLI use the same policies.
 
 ## Architecture
 
-<img src="docs/assets/architecture.png" width="1100" alt="Remote agents use HTTP, CLI or MCP; grants and bounded policy route durable knowledge/checkpoints to redb and optional scratch to RAM; stored record and atomic checkpoint schema">
+<img src="docs/assets/architecture.png" width="1100" alt="Local or remote agents use HTTP, CLI or MCP; grants and bounded policy route durable knowledge/checkpoints to redb and optional scratch to RAM; stored record and atomic checkpoint schema">
 
 **Rust + Tokio + Axum + redb.** Rust suits the bounded storage and concurrency
 core; redb supplies durable transactions without a separate database service.
@@ -174,7 +205,14 @@ medians of three runs, zero errors:
 These loopback measurements include existing host load. They do not measure
 public HTTPS or distributed swarms. Raw reports and environment are linked above.
 
-## Next: distributed knowledge consolidation
+## Next: smaller local integrations
+
+The priority is to validate Linux ARM64 hardware, measure memory and battery use
+under real local-agent workloads, and integrate the core into native mobile apps.
+A real-model save → compact → restore → continue evaluation comes before claims
+about better recall. The proposed multi-device workflow below remains optional.
+
+### Optional multi-device knowledge consolidation
 
 <img src="docs/assets/distributed.png" width="1100" alt="Future proposal: canonical knowledge base sends a versioned baseline to independent workers; completed runs submit shareable deltas; durable consolidation validates sources and conflicts before publishing the next baseline; quality metrics track sources, freshness and recall">
 

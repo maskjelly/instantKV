@@ -1,5 +1,12 @@
 # Benchmark: HTTP request paths
 
+For the **new structured-memory API**, read [performance and device targets](performance.md):
+three 10,000-memory runs with topic/tag/time retrieval, RSS samples, durable saves
+and exact recovery. The older raw-KV/cache measurements below describe separate
+request paths; their throughput does not apply to indexed-memory queries.
+
+For the smaller default local profile, see the [measured Mac footprint](local-first.md#measured-mac-footprint): binary size, sampled RSS and abrupt-restart recovery.
+
 ## Mac demo: 330,000 writes, zero errors
 
 On 2026-10-02, the actual browser-demo storage workload ran locally on an

@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     steps:
@@ -20,26 +20,44 @@ jobs:
       - run: cargo +1.98 fmt --all -- --check
       - run: cargo +1.98 clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo +1.98 test --workspace --locked
+      - run: python3 scripts/test-local-llm.py
       - run: cargo +1.98 build --workspace --release --locked
       - run: ./target/release/instantkv demo
       - run: ./target/release/instantkv demo --swarm
       - run: ./target/release/instantkv check-config --config config/swarm.toml
       - run: ./target/release/instantkv check-config --config config/instantkv.example.toml
       - run: ./target/release/instantkv check-config --config config/local-cache.toml
+      - run: ./target/release/instantkv check-config --config config/local.toml
+      - name: Verify default local setup
+        run: |
+          mkdir /tmp/instantkv-local
+          ./target/release/instantkv init --dir /tmp/instantkv-local
+          cd /tmp/instantkv-local
+          "$GITHUB_WORKSPACE/target/release/instantkv" doctor --offline
       - name: Verify generated schema and scripts
         run: |
           ./target/release/instantkv schema > /tmp/checkpoint.schema.json
           diff -u examples/checkpoint.schema.json /tmp/checkpoint.schema.json
+          ./target/release/instantkv schema --kind memory > /tmp/memory.schema.json
+          diff -u examples/memory.schema.json /tmp/memory.schema.json
           bash -n scripts/*.sh
       - name: Build portable Linux binary
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y musl-tools
-          rustup target add --toolchain 1.98 x86_64-unknown-linux-musl
-          cargo +1.98 build --release --locked --target x86_64-unknown-linux-musl -p instantkv
-          ./target/x86_64-unknown-linux-musl/release/instantkv demo
-          ./target/x86_64-unknown-linux-musl/release/instantkv demo --swarm
+          case "$(uname -m)" in
+            x86_64) target=x86_64-unknown-linux-musl ;;
+            aarch64) target=aarch64-unknown-linux-musl ;;
+          esac
+          rustup target add --toolchain 1.98 "$target"
+          CC=musl-gcc CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc cargo +1.98 build --release --locked --target "$target" -p instantkv
+          ./target/"$target"/release/instantkv demo
+          ./target/"$target"/release/instantkv demo --swarm
+      - name: Verify local profile and record footprint
+        run: python3 scripts/local-smoke.py --records 100 --output dist/local-footprint-${{ runner.arch }}.json
+      - name: Verify indexed memory recovery
+        run: python3 scripts/memory-bench.py --records 100 --runs 1 --queries 10 --output dist/memory-smoke-${{ runner.arch }}.json
       - name: Package verified binary
         run: bash scripts/package-release.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

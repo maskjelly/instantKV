@@ -166,7 +166,7 @@ pub async fn swarm_demo() -> Result<()> {
         .await?;
     assert_eq!(alpha.get("shared", "project/storage").await?.0, baseline);
     assert_eq!(beta.get("shared", "project/storage").await?.0, baseline);
-    println!("01  SHARED    both cloud agents recall the same shared baseline");
+    println!("01  SHARED    both agents recall the same shared baseline");
     let alpha_note = br#"{"content":"Alpha verified the HTTP contract"}"#.to_vec();
     let own = alpha
         .put(

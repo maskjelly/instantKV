@@ -1,16 +1,44 @@
-# Implemented and next
+# Local memory roadmap
 
-## Working now
+The source MVP is implemented and unreleased. Next milestones focus on a small
+memory layer that local apps can embed, configure and extend. Native phone support
+and model-quality improvements still need validation.
+
+## Direction and acceptance gates
+
+| Stage | Current status | Evidence needed |
+|---|---|---|
+| Structured local memory | Implemented in source | Topic/tag/time retrieval, bounded keywords, update/delete/expiry/restart tests |
+| Actual local-agent use | Ollama tool-loop example available; evaluation pending | Preferences/tasks used correctly after fresh context + restart; model and tool success reported |
+| Linux ARM64 validation | Native CI/build/package path added; device validation pending | Named-board benchmarks, cold/warm latency, RSS and recovery |
+| Native phone embedding | Rust core available; Swift/Kotlin bindings planned | Android/iOS build, sandbox paths, suspension/relaunch, backup/encryption design, battery profile |
+| Portable app memory | Custom metadata works; export/import and migrations planned | Versioned bundles, size limits, provenance, round-trip integrity, index rebuild |
+| Richer optional retrieval | Ranked lexical search and local embeddings proposed | Task-recall improvement, dependency/index size, latency and power costs |
+
+The [performance plan](performance.md) gives measured Mac results and unverified
+ARM-board targets. Initial goals for its 10,000-memory workload: indexed recall
+p95 ≤5 ms, immediate durable save p95 ≤20 ms, idle RSS ≤12 MiB and loaded RSS
+≤32 MiB. These are engineering goals for a defined workload. Model inference and
+app overhead are separate.
+
+Keep everyday use to four tools. Extend through app-defined JSON metadata, small
+typed APIs and configurable budgets. Preserve a fully offline memory path.
+
+## Working in this source checkout
 
 - [x] Rust workspace, strict configuration and CI.
 - [x] Durable redb knowledge and bounded RAM scratch cache.
 - [x] Atomic quotas, indexed TTL cleanup, FIFO eviction, revision conditions.
 - [x] Exact recall and bounded prefix metadata pages.
+- [x] Structured remember/recall/browse/forget through core, HTTP, CLI and MCP.
+- [x] Ordered topic/tag/time indexes with atomic record/index updates and cleanup.
+- [x] Bounded keyword filtering, response byte budget and filter-bound cursors.
+- [x] Custom metadata, explicit event time, create-only saves and revision protection.
 - [x] Immutable checkpoint + latest pointer in one immediate transaction.
 - [x] Idempotent retries, bounded restore, visible stale/missing/forbidden references.
 - [x] Old-checkpoint deletion protecting the latest restore point.
-- [x] Scoped credentials, HTTP, CLI setup/doctor, seven MCP stdio tools.
-- [x] Shared knowledge and isolated cloud agents using per-namespace grants.
+- [x] Scoped credentials, HTTP, CLI setup/doctor, eleven MCP stdio tools.
+- [x] Shared knowledge and isolated agents using per-namespace grants.
 - [x] Ready-made swarm init profile and two-agent HTTP isolation/restart demo.
 - [x] Demo with simulated compaction and real server kill/restart.
 - [x] HTTP benchmark client for recall, save, checkpoint and restore.
@@ -19,6 +47,7 @@
 - [x] Three VPS benchmark runs per workload with raw reports and environment.
 - [x] Cloudflare website with setup, feature, contributor and benchmark pages.
 - [x] Live Rust-backed demo with independent writer/reader, temporary workloads and measured latency.
+- [x] Three 10,000-memory local HTTP runs and exact recovery after abrupt restarts.
 
 Deployment and measured results are recorded in [operations](operations.md),
 [benchmarks](benchmarks.md) and [verification checkpoints](checkpoints.md).
@@ -34,16 +63,26 @@ Deployment and measured results are recorded in [operations](operations.md),
 | Performance | Longer repeated runs across key counts, payloads, TTL backlogs, disk/RSS growth and concurrency |
 | Observability | Latency histograms, expiry lag, rejection counters and storage health probes |
 
-## Managed hosting is in development
+## Local-first priorities
 
-For managed hosting, we'll run the node and you'll connect your agents to it.
-Today you can self-host or try the public demo with temporary synthetic records.
-Hosting for your own agents isn't available yet, and we haven't announced a date
-or price.
+1. Validate the Linux ARM64 build on real devices, including low-memory boards.
+2. Measure idle/loaded RSS, disk growth, latency and energy use with local LLM apps.
+3. Integrate `instantkv-core` into native apps. Validate iOS/Android storage,
+   lifecycle, sandbox paths and device-level backup before claiming phone support.
+4. Run a real local-agent save → compact → restore → continue evaluation. The
+   Ollama example provides the tool loop; actual inference results are pending.
+5. Add optional export/import before multi-device synchronization.
 
-Before launch: scoped credential provisioning, persistent tenant isolation,
-resource budgets, verified backup/recovery, TLS, operational monitoring and the
-failure-injection gates above. The open-source self-hosted service stays available.
+The default local profile has smaller budgets, loopback access and private
+credentials. The core is already an in-process Rust library; native mobile
+bindings, packaging and device tests remain work to do. See [local-first use](local-first.md).
+
+## Optional hosting
+
+Local operation is the priority. Managed hosting is a possible later offering,
+with no availability date or price. Today's public demo uses temporary synthetic
+records and is separate from your own local memory. Any hosted service would need
+scoped provisioning, tenant isolation, backups and operational monitoring.
 
 ## Distributed knowledge consolidation
 

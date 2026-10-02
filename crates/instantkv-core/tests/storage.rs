@@ -93,6 +93,55 @@ fn durable_records_and_checkpoint_survive_reopen() {
 }
 
 #[test]
+fn local_profile_restores_checkpoint_and_exact_memory_with_small_cache() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut config = Config::parse(include_str!("../../../config/local.toml")).unwrap();
+    config.storage.data_dir = dir.path().into();
+    {
+        let engine = Engine::open(config.clone()).unwrap();
+        let record = engine
+            .put(
+                "knowledge",
+                "local/fact",
+                br#"{"offline":true}"#.to_vec(),
+                None,
+                Condition::Absent,
+            )
+            .unwrap();
+        engine
+            .put(
+                "scratch",
+                "temporary",
+                b"true".to_vec(),
+                None,
+                Condition::Any,
+            )
+            .unwrap();
+        let mut request = checkpoint("local-checkpoint", None);
+        request.references.push(MemoryReference {
+            namespace: "knowledge".into(),
+            key: "local/fact".into(),
+            revision: record.revision,
+        });
+        engine.checkpoint("checkpoints", &request).unwrap();
+    }
+    let engine = Engine::open(config).unwrap();
+    let restored = engine
+        .restore_latest("checkpoints", "demo-agent", "task-1", 32768, None)
+        .unwrap();
+    assert_eq!(restored.checkpoint_id, "local-checkpoint");
+    assert!(matches!(
+        restored.references[0].status,
+        ReferenceStatus::Available
+    ));
+    assert_eq!(
+        engine.get("knowledge", "local/fact").unwrap().value,
+        br#"{"offline":true}"#
+    );
+    assert_eq!(engine.usage("scratch").unwrap().entries, 0);
+}
+
+#[test]
 fn ttl_boundary_and_overwrite_cleanup_are_correct_in_both_backends() {
     for namespace in ["knowledge", "scratch"] {
         let (_dir, config, clock) = setup();

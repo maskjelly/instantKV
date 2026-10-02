@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 case "$(uname -s)/$(uname -m)" in
   Linux/x86_64) platform=linux-x86_64; binary=target/x86_64-unknown-linux-musl/release/instantkv ;;
+  Linux/aarch64|Linux/arm64) platform=linux-arm64; binary=target/aarch64-unknown-linux-musl/release/instantkv ;;
   Darwin/arm64) platform=darwin-arm64; binary=target/release/instantkv ;;
   *) printf '%s\n' 'Unsupported release platform' >&2; exit 1 ;;
 esac

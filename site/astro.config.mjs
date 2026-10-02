@@ -6,6 +6,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
@@ -38,6 +39,10 @@ function repositoryLinks() {
           /\.(png|svg)$/.test(source)
         )
           node.url = '/assets/' + source.slice('docs/assets/'.length);
+        else if (source.startsWith('docs/benchmarks/2026-10-03-memory/'))
+          node.url = '/benchmark-data/memory/' + source.split('/').at(-1);
+        else if (source.startsWith('docs/benchmarks/2026-10-02-local/'))
+          node.url = '/benchmark-data/local/' + source.split('/').at(-1);
         else if (
           source.startsWith('docs/benchmarks/') &&
           source.endsWith('.json')
@@ -66,8 +71,21 @@ function prepareAssets() {
     resolve(target, 'benchmark-data'),
     { recursive: true },
   );
+  cpSync(
+    resolve(root, 'docs/benchmarks/2026-10-02-local'),
+    resolve(target, 'benchmark-data/local'),
+    { recursive: true },
+  );
+  cpSync(
+    resolve(root, 'docs/benchmarks/2026-10-03-memory'),
+    resolve(target, 'benchmark-data/memory'),
+    { recursive: true },
+  );
+  // This directory is generated; remove stale build artifacts before copying sources.
+  rmSync(resolve(target, 'examples'), { recursive: true, force: true });
   cpSync(resolve(root, 'examples'), resolve(target, 'examples'), {
     recursive: true,
+    filter: (path) => !path.includes('__pycache__'),
   });
   const recordings = resolve(root, 'docs/demo-results/2026-10-02-mac');
   cpSync(recordings, resolve(target, 'recordings/mac'), { recursive: true });
@@ -75,7 +93,22 @@ function prepareAssets() {
     resolve(target, 'recordings/mac/replay.json'),
     JSON.stringify(buildReplay(recordings)),
   );
-  const index = `# instantKV\n\nSelf-hosted knowledge memory for cloud agents. Current release: single-node 0.1.2. Managed hosting and distributed replication are in development.\n\n## Documentation\n\n${docs.map((d) => `- [${d.title}](https://instantkv.com/docs/${d.slug}/): ${d.description}`).join('\n')}\n\n- [Recorded Mac and live Rust-backed demo](https://instantkv.com/demo/)\n- [Measured benchmarks](https://instantkv.com/benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`;
+  const memoryReport = JSON.parse(
+    readFileSync(
+      resolve(root, 'docs/benchmarks/2026-10-03-memory/mac-arm64.json'),
+      'utf8',
+    ),
+  );
+  const p95 = memoryReport.runs.map((run) => run.queries.topic.latency_ms.p95);
+  const topicRange = `${Math.min(...p95).toFixed(3)}–${Math.max(...p95).toFixed(3)}`;
+  const sampledRam = (
+    Math.max(...memoryReport.runs.map((run) => run.largest_sampled_rss_bytes)) /
+    1024 ** 2
+  ).toFixed(1);
+  const recovered = memoryReport.runs
+    .reduce((n, run) => n + run.exact_memories_after_kill_restart, 0)
+    .toLocaleString('en-US');
+  const index = `# instantKV\n\nLocal-first memory for local LLMs. Source MVP, unreleased; earlier 0.1.2 archives lack the new memory tools. remember/recall/browse/forget through Rust, HTTP, CLI and MCP. Indexed topics, tags and Unix-ms event times; bounded literal keyword filtering, not semantic search. Custom JSON metadata, namespace grants, configurable query and storage budgets. Offline operation requires no model or embedding service. The runtime decides what to save and inserts recalled facts into context.\n\nThree 10,000-memory warm synthetic Mac runs: topic query p95 ${topicRange} ms, largest sampled server RSS ${sampledRam} MiB, all ${recovered} memories recovered after abrupt restart. Excludes inference, energy and phones. Native Swift/Kotlin bindings and real local-model quality evaluation remain planned. ARM-board goals are explicitly unverified. Browser replay is the older raw-KV workload, not indexed retrieval.\n\n## Documentation\n\n${docs.map((d) => `- [${d.title}](https://instantkv.com/docs/${d.slug}/): ${d.description}`).join('\n')}\n\n- [Structured-memory raw report](https://instantkv.com/benchmark-data/memory/mac-arm64.json)\n- [Recorded KV demo](https://instantkv.com/demo/)\n- [Measured benchmarks](https://instantkv.com/benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`;
   writeFileSync(resolve(target, 'llms.txt'), index);
   writeFileSync(
     resolve(target, 'llms-full.txt'),

@@ -3,6 +3,35 @@ use instantkv_core::config::{AuthMode, Config, OnFull, StorageMode};
 const AGENT: &str = include_str!("../../../config/instantkv.example.toml");
 const CACHE: &str = include_str!("../../../config/local-cache.toml");
 const SWARM: &str = include_str!("../../../config/swarm.toml");
+const LOCAL: &str = include_str!("../../../config/local.toml");
+
+#[test]
+fn local_profile_bounds_resources_without_expiring_durable_memory() {
+    let config = Config::parse(LOCAL).unwrap();
+    assert_eq!(config.auth.mode, AuthMode::ApiKey);
+    assert!(config.server.bind.ip().is_loopback());
+    assert_eq!(config.storage.cache_size_bytes, Some(8 * 1024 * 1024));
+    assert!(
+        Config::parse(&LOCAL.replace("cache_size_bytes = 8388608", "cache_size_bytes = 0"))
+            .is_err()
+    );
+    assert_eq!(Config::parse(AGENT).unwrap().storage.cache_size_bytes, None);
+    for namespace in config
+        .namespaces
+        .iter()
+        .filter(|ns| ns.mode == StorageMode::Durable)
+    {
+        assert_eq!(namespace.capacity.on_full, OnFull::Reject);
+        assert!(!namespace.retention.require_ttl);
+        assert!(namespace.retention.default_ttl_seconds.is_none());
+    }
+    let scratch = config
+        .namespaces
+        .iter()
+        .find(|ns| ns.name == "scratch")
+        .unwrap();
+    assert_eq!(scratch.capacity.max_total_bytes, 4 * 1024 * 1024);
+}
 
 #[test]
 fn swarm_grants_reject_ambiguous_or_invalid_permissions() {
@@ -121,4 +150,21 @@ fn explicit_ttl_without_default_is_valid_when_required() {
     let config = Config::parse(&input).unwrap();
     assert!(config.namespaces[0].retention.require_ttl);
     assert!(config.namespaces[0].retention.default_ttl_seconds.is_none());
+}
+#[test]
+fn memory_query_budgets_default_for_old_configs_and_reject_invalid_bounds() {
+    let mut config = instantkv_core::config::Config::parse(include_str!(
+        "../../../config/instantkv.example.toml"
+    ))
+    .unwrap();
+    assert_eq!(config.memory.max_candidates, 1000);
+    assert_eq!(config.memory.max_result_bytes, 65536);
+    config.memory.max_candidates = 0;
+    assert!(config.validate().is_err());
+    config.memory.max_candidates = 100;
+    config.memory.max_scan_bytes = 1;
+    assert!(config.validate().is_err());
+    config.memory.max_scan_bytes = 65536;
+    config.memory.max_result_bytes = 1048577;
+    assert!(config.validate().is_err());
 }

@@ -16,8 +16,10 @@ or opening storage. `instantkv doctor` also checks the local setup and live heal
 [Agent profile](../config/instantkv.example.toml),
 [swarm profile](../config/swarm.toml), and
 [disposable loopback cache](../config/local-cache.toml) are checked in CI.
-`init` copies the agent profile; `init --profile swarm` creates a shared namespace,
-Alpha/Beta private knowledge and separate checkpoint namespaces. Both use
+`init` copies the smaller [local profile](../config/local.toml), with an 8 MiB
+database cache, 4 MiB logical scratch budget and 32 in-flight requests.
+`init --profile agent` retains the larger agent profile; `init --profile swarm`
+creates a shared namespace, Alpha/Beta private knowledge and separate checkpoint namespaces. All use
 `.instantkv/data` and generate credentials for every configured principal.
 
 ## Rules and units
@@ -25,6 +27,8 @@ Alpha/Beta private knowledge and separate checkpoint namespaces. Both use
 - Version is `1`. Sizes are bytes; duration fields are positive integer seconds.
 - Bind uses IP:port, with brackets for IPv6. Disabled auth requires loopback.
 - Relative storage paths resolve against the process working directory.
+- Optional `storage.cache_size_bytes` sets a positive redb page-cache budget.
+  It does not cap total RSS; omitted values retain redb's default.
 - `max_request_body_bytes` bounds the entire HTTP body, including checkpoint JSON.
   Namespace `max_value_bytes` must fit that bound.
 - `max_in_flight_requests` bounds active requests and submitted blocking work;
@@ -38,6 +42,28 @@ Alpha/Beta private knowledge and separate checkpoint namespaces. Both use
 - `value_kind = "bytes" | "utf8" | "json"` checks ordinary value format.
 - `on_full = "evict_oldest"` is RAM-only FIFO; reads/live overwrites do not reorder.
 - Generic keys starting `__` are reserved. Record key limits apply after decoding.
+
+## Structured memory query budgets
+
+The source MVP adds optional `[memory]` settings. Older configs use the same
+defaults; new local setups include them explicitly:
+
+```toml
+[memory]
+max_candidates = 1000
+max_scan_bytes = 4194304
+max_result_bytes = 65536
+```
+
+Candidate cap: 1–100,000. Encoded-record scan bytes: 64 KiB–64 MiB. Serialized
+response cap: 1 KiB–1 MiB. Each request supplies `limit` (1–100) and `max_bytes`
+(default 16 KiB, at most the configured cap). A low configured output cap requires
+clients to lower their request budget too. These caps bound work/output, not total
+RAM. The full memory JSON counts toward logical quotas; index overhead is extra.
+
+Shape limits: 16 KiB content, 8 KiB metadata, eight tags. Retrieval needs both
+`get` and `list`; metadata-only list permission cannot read values through the
+memory API. [Query contract](memory-mvp.md).
 
 ## TTL resolution
 

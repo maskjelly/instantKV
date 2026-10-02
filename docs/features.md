@@ -1,15 +1,21 @@
 # What you can do today
 
-instantKV 0.1.2 stores agent knowledge and checkpoints on a server you run.
+instantKV 0.1.2 stores agent knowledge and checkpoints locally, beside your model.
 Use the [quick start](quickstart.md) to set it up, or try the
 [live browser demo](https://instantkv.com/demo/) first. The demo uses real Rust
-storage with temporary synthetic records. Hosting for your own agents is still
-in development.
+storage with temporary synthetic records; your own installation keeps memory
+on your machine and works offline.
+
+The four structured-memory tools below are implemented in the unreleased source
+MVP. Build this checkout to try them. [Guide](memory-mvp.md),
+[measured performance and targets](performance.md), [next milestones](roadmap.md).
 
 ## Record memory
 
 | Feature | How to use it |
 |---|---|
+| Structured memory (source MVP) | `remember` / `recall` / `browse` / `forget`; topic, tags, event time, custom metadata |
+| Indexed retrieval (source MVP) | Ordered topic/tag/time indexes; bounded literal keyword filtering and paginated values |
 | Exact recall | `put` and `get` with namespace + descriptive key |
 | Prefix discovery | `list --prefix` returns metadata pages; values remain separate |
 | Conditional creation | `put --if-absent` rejects overwriting an existing live key |
@@ -48,13 +54,13 @@ The swarm profile gives Alpha and Beta read-only shared knowledge plus private
 knowledge and checkpoint namespaces. An operator publishes shared facts. Workers
 cannot read sibling scopes or write shared knowledge. Add namespace/grant pairs
 and restart to provision more workers. These are API permissions on one shared
-process, not physical database replicas. See [cloud agents](cloud-agents.md).
+process, not physical database replicas. See [local agents](cloud-agents.md).
 
 ## Three ways to connect
 
 - [CLI](cli.md): setup, doctor, record/checkpoint operations, demos and benchmarks.
 - [HTTP](http.md): bearer-authenticated routes with the same namespace policies.
-- [MCP stdio](agents.md): seven typed model-callable tools; connects to an existing server.
+- [MCP stdio](agents.md): eleven typed model-callable tools in the source MVP; connects to an existing server.
 
 All access paths use the same HTTP authorization and storage engine. Auth tokens
 belong in a secret environment or private credentials file, never memory records.
@@ -72,8 +78,9 @@ temporary volume. Follow [operations](operations.md) before upgrading.
 
 ## Planned
 
-We're working toward managed hosting, independent replicas and a way to review
-and merge findings after agents finish their runs. Semantic search, online
+Local ARM device validation, native mobile integration and real-agent lifecycle
+evaluation come first. Independent replicas and reviewing shared findings remain
+optional future work. Semantic search, online
 snapshots, final-session retirement and knowledge quality metrics are also
 planned. See the [roadmap](roadmap.md) and
 [distributed proposal](distributed-memory.md) for what must pass before they ship.

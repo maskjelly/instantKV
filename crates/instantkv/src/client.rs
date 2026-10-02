@@ -1,4 +1,5 @@
 use anyhow::{Context, Result, bail};
+use instantkv_core::memory::{MemoryHit, MemoryPage, MemoryQuery, RememberRequest};
 use instantkv_core::model::{CheckpointReceipt, CheckpointRequest, Page, Restore, Usage};
 use reqwest::{Client as HttpClient, Url};
 use serde::de::DeserializeOwned;
@@ -173,6 +174,54 @@ impl Client {
     pub async fn stats(&self, namespace: &str) -> Result<Usage> {
         self.json_get(&["v1", "namespaces", namespace, "stats"])
             .await
+    }
+    pub async fn remember(&self, namespace: &str, input: &RememberRequest) -> Result<MemoryHit> {
+        Self::checked(
+            self.request(
+                reqwest::Method::POST,
+                &["v1", "namespaces", namespace, "memories"],
+            )?
+            .json(input)
+            .send()
+            .await?,
+        )
+        .await?
+        .json()
+        .await
+        .context("invalid memory response")
+    }
+
+    pub async fn recall(&self, namespace: &str, query: &MemoryQuery) -> Result<MemoryPage> {
+        Self::checked(
+            self.request(
+                reqwest::Method::GET,
+                &["v1", "namespaces", namespace, "memories"],
+            )?
+            .query(query)
+            .send()
+            .await?,
+        )
+        .await?
+        .json()
+        .await
+        .context("invalid memory page")
+    }
+
+    pub async fn memory_get(&self, namespace: &str, key: &str) -> Result<MemoryHit> {
+        self.json_get(&["v1", "namespaces", namespace, "memories", key])
+            .await
+    }
+
+    pub async fn forget(&self, namespace: &str, key: &str, revision: Option<u64>) -> Result<()> {
+        let mut request = self.request(
+            reqwest::Method::DELETE,
+            &["v1", "namespaces", namespace, "memories", key],
+        )?;
+        if let Some(revision) = revision {
+            request = request.header("if-match", format!("\"{revision}\""));
+        }
+        Self::checked(request.send().await?).await?;
+        Ok(())
     }
     pub async fn checkpoint(
         &self,

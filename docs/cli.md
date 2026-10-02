@@ -1,9 +1,32 @@
 # CLI reference
 
-Examples use a locally installed `instantkv` and the default single-agent profile.
+Examples use a locally installed `instantkv` and the default local profile.
 For Docker use `./scripts/kv.sh` in its place. For swarm calls pass `alpha`, `beta`
 or `shared` explicitly, and `--namespace alpha_checkpoints` for Alpha handoffs.
 Run `instantkv COMMAND --help` for the authoritative option list.
+
+## Structured memory — source MVP
+
+Build the current checkout for these unreleased commands:
+
+```sh
+instantkv remember "Prefer Rust for local tools" --topic preferences --tag local
+instantkv recall --topic preferences --query Rust
+instantkv browse --limit 10
+instantkv forget RETURNED_KEY
+instantkv schema --kind memory
+```
+
+`remember` accepts `--key`, `--namespace`, `--topic`, repeated `--tag`,
+`--metadata` (JSON object), `--occurred-at-ms`, `--ttl`, and `--if-revision`.
+New keys are create-only. Updating requires a stable key and its observed revision.
+`forget --if-revision N` protects against deleting another update.
+
+`recall` and `browse` accept `--namespace`, `--topic`, `--tag`, `--query`,
+`--since-ms`, `--until-ms`, `--limit`, `--max-bytes`, and `--cursor`. Times are
+inclusive Unix milliseconds. All keyword terms must occur in content,
+case-insensitively. Use the same filters with each cursor, including empty pages.
+[Shapes, integration example and limits](memory-mvp.md).
 
 ## Connection and credentials
 
@@ -20,7 +43,7 @@ instantkv --url http://127.0.0.1:8095 --secrets-file /private/credentials.env ge
 
 | Command | Behavior |
 |---|---|
-| `init [--dir PATH] [--profile agent\|swarm]` | Creates config and unique private credentials; refuses overwrites |
+| `init [--dir PATH] [--profile local\|agent\|swarm]` | Creates config and unique private credentials; refuses overwrites |
 | `serve [--config PATH] [--bind IP:PORT] [--data-dir PATH]` | Runs the server; validates configuration and credentials |
 | `check-config --config PATH` | Validates TOML policies without opening storage or reading secrets |
 | `doctor [--config PATH] [--offline]` | Checks setup and live health; offline skips server connectivity |
@@ -67,7 +90,7 @@ See [the complete schema and semantics](agent-memory.md).
 
 ## MCP and demos
 
-`instantkv mcp` serves seven MCP tools over stdin/stdout and connects to your
+`instantkv mcp` serves eleven MCP tools in the source MVP over stdin/stdout and connects to your
 running HTTP node. Diagnostics stay on stderr. See [agent setup](agents.md).
 `instantkv demo` and `instantkv demo --swarm` create isolated temporary instances,
 verify behavior over real HTTP and clean up after themselves.

@@ -1,6 +1,30 @@
 export const repository = 'https://github.com/maskjelly/instantKV';
 export const docs = [
   {
+    slug: 'memory-mvp',
+    title: 'Memory API & local models',
+    group: 'Start here',
+    source: 'docs/memory-mvp.md',
+    description:
+      'Remember, recall, browse and forget. Topic/tag/time retrieval, bounded keywords and a local-model example.',
+  },
+  {
+    slug: 'performance',
+    title: 'Performance & device targets',
+    group: 'Start here',
+    source: 'docs/performance.md',
+    description:
+      'Measured 10,000-memory Mac runs, unverified ARM goals and native mobile acceptance gates.',
+  },
+  {
+    slug: 'local-first',
+    title: 'Local memory & ARM',
+    group: 'Start here',
+    source: 'docs/local-first.md',
+    description:
+      'Offline operation, smaller budgets, embedded Rust and device support limits.',
+  },
+  {
     slug: 'choosing-instantkv',
     title: 'Why instantKV',
     group: 'Start here',
@@ -42,7 +66,7 @@ export const docs = [
   },
   {
     slug: 'cloud-agents',
-    title: 'Cloud agents & swarms',
+    title: 'Local agents & swarms',
     group: 'Use the service',
     source: 'docs/cloud-agents.md',
     description:
@@ -54,7 +78,7 @@ export const docs = [
     group: 'Use the service',
     source: 'docs/agents.md',
     description:
-      'Seven typed memory tools and a save/restore contract for agents.',
+      'Four everyday memory tools plus seven KV/checkpoint tools and a save/restore contract.',
   },
   {
     slug: 'cli',
@@ -146,7 +170,7 @@ export const docs = [
     group: 'Project',
     source: 'docs/roadmap.md',
     description:
-      'What works today and what must pass before the next features ship.',
+      'Source MVP, real local-agent evaluation, native mobile embedding and optional richer retrieval.',
   },
   {
     slug: 'distributed-memory',
