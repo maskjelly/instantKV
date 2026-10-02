@@ -1,0 +1,21 @@
+{
+  "measured_at": "2026-10-02T03:10:07.981Z",
+  "hardware": {
+    "cpu": "Apple M4 Pro",
+    "physical_cores": 14,
+    "ram_bytes": 25769803776,
+    "macos": "27.0"
+  },
+  "runtime_version": "instantkv 0.1.2",
+  "runtime_source": "6eceb8bdd2450cc9977d0fd3c4b3627a9bf0a032",
+  "recorder_source": "a2a03dbf8c380aeec81320e96d931c90ec0c6c10",
+  "binary_sha256": "cd43d8e74ad9f0546f35de97f70ce6f5f4a2ad4310e8db09517c2116e5810269",
+  "transport": "Loopback HTTP/1.1; coordinator-to-Rust keep-alive; no Cloudflare or public network",
+  "concurrency": 16,
+  "batch_size": 512,
+  "context_characters": 512,
+  "cpu_container_limit": null,
+  "ttl_seconds": 900,
+  "runs_per_mode": 3,
+  "notes": "One fresh dedicated database; six sessions in sequence, reads immediately after each run. No warmup, pauses or session creation in write timing. Other Mac applications remained running. Payload excludes keys and storage overhead. RAM FIFO may evict older sessions. Samples preserve real GET responses; these are synthetic agent fixtures, not model quality tests."
+}
