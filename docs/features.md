@@ -1,60 +1,60 @@
 # What you can do today
 
-instantKV 0.1.2 stores agent knowledge and checkpoints locally, beside your model.
-Use the [quick start](quickstart.md) to set it up, or try the
-[live browser demo](https://instantkv.com/demo/) first. The demo uses real Rust
-storage with temporary synthetic records; your own installation keeps memory
-on your machine and works offline.
+The current source stores local-agent knowledge and task checkpoints.
+The four structured-memory tools are implemented but unreleased.
+Earlier 0.1.2 archives contain only the original KV and checkpoint tools.
+[Quick start](quickstart.md) · [Memory guide](memory-mvp.md) · [Performance](performance.md).
 
-The four structured-memory tools below are implemented in the unreleased source
-MVP. Build this checkout to try them. [Guide](memory-mvp.md),
-[measured performance and targets](performance.md), [next milestones](roadmap.md).
+The [browser demo](https://instantkv.com/demo/) uses temporary synthetic records on a hosted Rust server.
+Your own installation keeps memory on your machine and works offline.
+[Next milestones](roadmap.md).
 
 ## Record memory
 
-| Feature | How to use it |
-|---|---|
-| Structured memory (source MVP) | `remember` / `recall` / `browse` / `forget`; topic, tags, event time, custom metadata |
+| Feature                        | How to use it                                                                          |
+| ------------------------------ | -------------------------------------------------------------------------------------- |
+| Structured memory (source MVP) | `remember` / `recall` / `browse` / `forget`; topic, tags, event time, custom metadata  |
 | Indexed retrieval (source MVP) | Ordered topic/tag/time indexes; bounded literal keyword filtering and paginated values |
-| Exact recall | `put` and `get` with namespace + descriptive key |
-| Prefix discovery | `list --prefix` returns metadata pages; values remain separate |
-| Conditional creation | `put --if-absent` rejects overwriting an existing live key |
-| Revision-safe update/delete | Use the observed revision with `--if-revision` |
-| Explicit forgetting | `delete` removes an ordinary record and reclaims logical quota |
-| Optional expiry | `put --ttl SECONDS`, subject to the namespace policy |
-| Input checks | Choose JSON, UTF-8 or raw bytes per namespace; set key and value size limits |
+| Exact recall                   | `put` and `get` with namespace + descriptive key                                       |
+| Prefix discovery               | `list --prefix` returns metadata pages; values remain separate                         |
+| Conditional creation           | `put --if-absent` rejects overwriting an existing live key                             |
+| Revision-safe update/delete    | Use the observed revision with `--if-revision`                                         |
+| Explicit forgetting            | `delete` removes an ordinary record and reclaims logical quota                         |
+| Optional expiry                | `put --ttl SECONDS`, subject to the namespace policy                                   |
+| Input checks                   | Choose JSON, UTF-8 or raw bytes per namespace; set key and value size limits           |
 
-The default profile has durable `knowledge` and `checkpoints`, plus RAM `scratch`.
-Scratch uses TTL and FIFO eviction; it is empty after process restart. Durable
-knowledge has no default TTL. Quotas count logical key/value bytes and entries,
-not process RAM or physical database size. See [configuration](configuration.md).
+The default profile provides durable `knowledge`, durable `checkpoints` and RAM `scratch`.
+Scratch uses TTL and first-in, first-out eviction. It is empty after a restart.
+Durable knowledge has no default TTL.
+Quotas count logical key/value bytes and entries, not total RAM or physical database size.
+[Configuration](configuration.md).
 
 ## Compaction handoffs
 
-A checkpoint saves the context needed to continue a task: the goal, summary,
-constraints, decisions, open tasks and next action. This note is the `capsule`
-field in the API. Detailed facts stay in separate records, referenced by
-namespace, key and expected revision. The checkpoint, session's latest pointer
-and usage counters commit together in one database transaction.
+A checkpoint stores the goal, summary, constraints, decisions, open tasks and next action.
+The API calls this context note a `capsule`.
+Detailed facts stay in records referenced by namespace, key and expected revision.
+The checkpoint, latest pointer and usage counters commit in one transaction.
 
-Restore by checkpoint ID or by agent/session latest. The response has a byte
-budget and reports `available`, `stale`, `missing` or `forbidden` references.
-Expired referenced records are reported as missing.
-References do not preserve historical record values. Identical checkpoint retries
-are idempotent; stale latest-pointer revisions or conflicting payloads fail.
+Restore accepts a checkpoint ID or the latest pointer for an agent/session.
+The response has a byte budget.
+References report `available`, `stale`, `missing` or `forbidden`. Expired references report `missing`.
+References do not preserve old record values.
+Identical checkpoint retries are idempotent; stale pointer revisions and conflicting payloads fail.
 
-Delete old checkpoints deliberately with `delete-checkpoint`; the latest capsule
-for each session is protected. Keep the checkpoint locator in runtime metadata
-outside the compacted prompt. Automatic runtime compaction hooks are future work.
-See [the memory contract](agent-memory.md).
+Use `delete-checkpoint` to remove an old checkpoint.
+Keep the checkpoint locator in runtime metadata outside the prompt.
+
+The latest checkpoint for each session is protected. Automatic compaction hooks are planned.
+[Checkpoint contract](agent-memory.md).
 
 ## Shared knowledge and private agents
 
-The swarm profile gives Alpha and Beta read-only shared knowledge plus private
-knowledge and checkpoint namespaces. An operator publishes shared facts. Workers
-cannot read sibling scopes or write shared knowledge. Add namespace/grant pairs
-and restart to provision more workers. These are API permissions on one shared
-process, not physical database replicas. See [local agents](cloud-agents.md).
+The swarm profile provides read-only shared facts and private knowledge/checkpoint namespaces for Alpha and Beta.
+An operator writes shared facts. Workers cannot read sibling namespaces or write shared knowledge.
+Additional workers need namespaces, grants, credentials and a restart.
+All workers use one process and database.
+[Swarm setup](cloud-agents.md).
 
 ## Three ways to connect
 
@@ -62,25 +62,23 @@ process, not physical database replicas. See [local agents](cloud-agents.md).
 - [HTTP](http.md): bearer-authenticated routes with the same namespace policies.
 - [MCP stdio](agents.md): eleven typed model-callable tools in the source MVP; connects to an existing server.
 
-All access paths use the same HTTP authorization and storage engine. Auth tokens
-belong in a secret environment or private credentials file, never memory records.
+CLI and MCP calls use HTTP authorization and the same storage engine.
+Tokens belong in a private environment or credentials file, never memory records.
+Rust apps can also call the core directly; the app must provide its own authorization.
 
 ## Operating the service
 
-One Rust binary, strict TOML and one data directory. The non-root Docker setup
-uses a persistent volume, read-only root filesystem and loopback host binding.
-`check-config` validates policies; `doctor`, `/healthz`, namespace stats and
-authenticated aggregate `/metrics` help verify the node.
+The service uses one Rust binary, TOML configuration and one data directory.
+Docker uses a persistent volume, a read-only root filesystem and a loopback host port.
+`check-config` validates policies. `doctor`, `/healthz`, namespace stats and authenticated `/metrics` help verify the node.
 
-An offline backup helper preserves configuration, credentials and database in a
-private archive. The restore drill verifies a known checkpoint in an isolated
-temporary volume. Follow [operations](operations.md) before upgrading.
+The offline backup helper saves configuration, credentials and the database in a private archive.
+The restore test loads a known checkpoint in a temporary volume.
+[Upgrade and backup steps](operations.md).
 
 ## Planned
 
-Local ARM device validation, native mobile integration and real-agent lifecycle
-evaluation come first. Independent replicas and reviewing shared findings remain
-optional future work. Semantic search, online
-snapshots, final-session retirement and knowledge quality metrics are also
-planned. See the [roadmap](roadmap.md) and
-[distributed proposal](distributed-memory.md) for what must pass before they ship.
+The priorities are physical ARM-device tests, native phone integration and real-model evaluation.
+Optional future work includes replicas, reviewed shared findings and semantic search.
+Online snapshots, final-session retirement and knowledge-quality metrics are also planned.
+[Roadmap](roadmap.md) · [Distributed proposal](distributed-memory.md).

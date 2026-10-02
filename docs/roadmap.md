@@ -1,28 +1,33 @@
 # Local memory roadmap
 
-The source MVP is implemented and unreleased. Next milestones focus on a small
-memory layer that local apps can embed, configure and extend. Native phone support
-and model-quality improvements still need validation.
+The source MVP is implemented and unreleased.
+The priority is a small memory layer that local apps can embed, configure and extend.
+Native phone support and model-quality improvements need further tests.
 
 ## Direction and acceptance gates
 
-| Stage | Current status | Evidence needed |
-|---|---|---|
-| Structured local memory | Implemented in source | Topic/tag/time retrieval, bounded keywords, update/delete/expiry/restart tests |
-| Actual local-agent use | Ollama tool-loop example available; evaluation pending | Preferences/tasks used correctly after fresh context + restart; model and tool success reported |
-| Linux ARM64 validation | Native CI/build/package path added; device validation pending | Named-board benchmarks, cold/warm latency, RSS and recovery |
-| Native phone embedding | Rust core available; Swift/Kotlin bindings planned | Android/iOS build, sandbox paths, suspension/relaunch, backup/encryption design, battery profile |
-| Portable app memory | Custom metadata works; export/import and migrations planned | Versioned bundles, size limits, provenance, round-trip integrity, index rebuild |
-| Richer optional retrieval | Ranked lexical search and local embeddings proposed | Task-recall improvement, dependency/index size, latency and power costs |
+| Stage                     | Current status                                              | Evidence needed                                                                                  |
+| ------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Structured local memory   | Implemented in source                                       | Topic/tag/time retrieval, bounded keywords, update/delete/expiry/restart tests                   |
+| Actual local-agent use    | Ollama tool-loop example available; evaluation pending      | Preferences/tasks used correctly after fresh context + restart; model and tool success reported  |
+| Linux ARM64 validation    | Native CI and packaging passed; device measurements pending | Named-board benchmarks, cold/warm latency, RSS and recovery                                      |
+| Native phone embedding    | Rust core available; Swift/Kotlin bindings planned          | Android/iOS build, sandbox paths, suspension/relaunch, backup/encryption design, battery profile |
+| Portable app memory       | Custom metadata works; export/import and migrations planned | Versioned bundles, size limits, provenance, round-trip integrity, index rebuild                  |
+| Richer optional retrieval | Ranked lexical search and local embeddings proposed         | Task-recall improvement, dependency/index size, latency and power costs                          |
 
-The [performance plan](performance.md) gives measured Mac results and unverified
-ARM-board targets. Initial goals for its 10,000-memory workload: indexed recall
-p95 ≤5 ms, immediate durable save p95 ≤20 ms, idle RSS ≤12 MiB and loaded RSS
-≤32 MiB. These are engineering goals for a defined workload. Model inference and
-app overhead are separate.
+The [performance plan](performance.md) records Mac measurements and unverified ARM-board targets.
+Its 10,000-memory workload has these initial targets:
 
-Keep everyday use to four tools. Extend through app-defined JSON metadata, small
-typed APIs and configurable budgets. Preserve a fully offline memory path.
+- Indexed recall p95: at most 5 ms.
+- Immediate durable save p95: at most 20 ms.
+- Idle server RSS: at most 12 MiB.
+- Loaded server RSS: at most 32 MiB.
+
+These targets exclude model inference and app overhead.
+
+Daily memory operations use four tools.
+Custom JSON metadata, typed APIs and configurable limits provide extension points.
+The memory service remains usable offline.
 
 ## Working in this source checkout
 
@@ -54,14 +59,14 @@ Deployment and measured results are recorded in [operations](operations.md),
 
 ## Next release gates
 
-| Work | Acceptance evidence |
-|---|---|
-| Concrete agent runtime hooks | Real task → save → compact → restore → continue; locator survives outside prompt |
-| Failure injection | Kill during save, disk-full and commit failure; latest pointer always old or complete new |
-| Retired sessions | Explicit session retirement; reclaim final bundle/pointer without surprising active agents |
-| Storage operations | Online backup/export, migration tooling and larger database recovery tests |
-| Performance | Longer repeated runs across key counts, payloads, TTL backlogs, disk/RSS growth and concurrency |
-| Observability | Latency histograms, expiry lag, rejection counters and storage health probes |
+| Work                         | Acceptance evidence                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| Concrete agent runtime hooks | Real task → save → compact → restore → continue; locator survives outside prompt                |
+| Failure injection            | Kill during save, disk-full and commit failure; latest pointer always old or complete new       |
+| Retired sessions             | Explicit session retirement; reclaim final bundle/pointer without surprising active agents      |
+| Storage operations           | Online backup/export, migration tooling and larger database recovery tests                      |
+| Performance                  | Longer repeated runs across key counts, payloads, TTL backlogs, disk/RSS growth and concurrency |
+| Observability                | Latency histograms, expiry lag, rejection counters and storage health probes                    |
 
 ## Local-first priorities
 
@@ -73,40 +78,39 @@ Deployment and measured results are recorded in [operations](operations.md),
    Ollama example provides the tool loop; actual inference results are pending.
 5. Add optional export/import before multi-device synchronization.
 
-The default local profile has smaller budgets, loopback access and private
-credentials. The core is already an in-process Rust library; native mobile
-bindings, packaging and device tests remain work to do. See [local-first use](local-first.md).
+The default local profile uses smaller limits, loopback access and private credentials.
+The Rust core already works as an embedded library.
+Native mobile bindings, packaging and device tests remain planned.
+[Local-first use](local-first.md).
 
 ## Optional hosting
 
-Local operation is the priority. Managed hosting is a possible later offering,
-with no availability date or price. Today's public demo uses temporary synthetic
-records and is separate from your own local memory. Any hosted service would need
-scoped provisioning, tenant isolation, backups and operational monitoring.
+Local operation is the priority. Managed hosting is a possible later service.
+There is no availability date or price.
+The public demo uses temporary synthetic records, separate from your local memory.
+Hosting would need tenant isolation, backups, scoped setup and operational monitoring.
 
 ## Distributed knowledge consolidation
 
-Fork a past memory snapshot into several independent agent branches. Agents can
-take different directions, keep private notes and share findings while they work.
+The proposal starts independent agent branches from a saved memory snapshot.
+Agents can keep private notes and submit shared findings while they work.
 A review service checks sources and conflicts before updating shared knowledge.
-Connected agents follow those accepted updates and can see which peers are
-working, finished or behind. Completion flushes any remaining findings.
-[Design, schema and failure cases](distributed-memory.md).
+Connected agents can follow accepted updates and inspect permitted peer status.
+[Design and failure cases](distributed-memory.md).
 
-| Stage | Scope | Status |
-|---|---|---|
-| Shared knowledge + private namespaces | One server; read-only shared knowledge for workers | Implemented |
-| Authorized export/import | Explicit portable knowledge bundles with source/hash validation | Proposed |
-| Baseline + private overlay | Immutable baseline manifest on independent worker nodes | Proposed |
-| Historical memory branches | Fork any retained, authorized snapshot; preserve parent lineage and independent private work | Proposed |
-| Incremental findings | Idempotent batches during a run, review before publication, final completion flush | Proposed |
-| Run-completion jobs | Idempotent uploads, durable state, retries and leases | Proposed |
-| Consolidation | Deduplicate, summarize with sources, review conflicts, conditional publication | Proposed |
-| Distributed sync | Restartable pull replication, offline/reconnect and tombstones | Proposed |
-| Connected agents + peer awareness | Ordered replayable updates, saved cursors, scoped task status and stale-peer leases | Proposed |
-| Knowledge quality metrics | Validated facts, source coverage, freshness, conflicts and evaluated recall | Proposed |
+| Stage                                 | Scope                                                                                        | Status      |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- | ----------- |
+| Shared knowledge + private namespaces | One server; read-only shared knowledge for workers                                           | Implemented |
+| Authorized export/import              | Explicit portable knowledge bundles with source/hash validation                              | Proposed    |
+| Baseline + private overlay            | Immutable baseline manifest on independent worker nodes                                      | Proposed    |
+| Historical memory branches            | Fork any retained, authorized snapshot; preserve parent lineage and independent private work | Proposed    |
+| Incremental findings                  | Idempotent batches during a run, review before publication, final completion flush           | Proposed    |
+| Run-completion jobs                   | Idempotent uploads, durable state, retries and leases                                        | Proposed    |
+| Consolidation                         | Deduplicate, summarize with sources, review conflicts, conditional publication               | Proposed    |
+| Distributed sync                      | Restartable pull replication, offline/reconnect and tombstones                               | Proposed    |
+| Connected agents + peer awareness     | Ordered replayable updates, saved cursors, scoped task status and stale-peer leases          | Proposed    |
+| Knowledge quality metrics             | Validated facts, source coverage, freshness, conflicts and evaluated recall                  | Proposed    |
 
-This is a distributed knowledge workflow proposal, not a shipped consensus KV.
-Choose automatic failover only after availability requirements justify it.
-Semantic search, a custom WAL and Redis wire compatibility are separate choices;
-focus on gaps found in real tasks and limits we've measured.
+This distributed workflow is a proposal. It does not provide a current consensus database.
+Automatic failover, a custom write-ahead log and Redis compatibility need separate designs and evidence.
+Future work should address gaps found in real tasks and measurements.

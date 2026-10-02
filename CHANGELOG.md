@@ -2,14 +2,20 @@
 
 ## Unreleased
 
-- Structured local-memory MVP: remember, recall, browse and forget through Rust, HTTP, CLI and MCP. Topics, tags, explicit event times and custom JSON metadata.
-- Atomic ordered time/topic/tag indexes maintained alongside record updates, replacement, deletion and expiry cleanup. Bounded literal keyword filtering with filter-bound cursors.
-- Configurable candidate, scan-byte and serialized-response limits. Create-only saves and revision-protected edits/deletes; queries require both get and list grants.
-- Four new MCP tools alongside the seven existing KV/checkpoint tools. Generated memory schemas, embedded Rust example and optional Ollama tool loop.
-- Smaller default local profile with loopback access, private credentials and an 8 MiB database cache. Linux ARM64 build/installer path; device validation pending.
-- Three 10,000-memory Mac runs with raw latency/RSS evidence and exact recovery after abrupt restart. Native mobile integration and ARM performance targets remain planned/unverified.
-- Minimal Astro website: neutral surfaces, locally served Geist, simpler docs and expandable diagrams. Homepage and benchmarks emphasize the source MVP, measurements and next milestones.
-- Existing live KV demo, recorded Mac replay, benchmark controls and browser-local search retained. That demo measures raw KV workloads rather than the new memory API.
+- Add `remember`, `recall`, `browse` and `forget` through Rust, HTTP, CLI and MCP.
+- Store content, topics, tags, event time and custom JSON metadata.
+- Maintain ordered topic/tag/time indexes with record changes in one transaction.
+- Limit keyword scan work and response size. Bind cursors to their namespace and filters.
+- Require create-only saves or observed revisions for updates. Retrieval requires get and list grants.
+- Add four MCP tools, generated schemas, an embedded example and an optional Ollama tool loop.
+- Use a smaller default local profile: loopback, private credentials and an 8 MiB redb cache.
+- Build and test Linux ARM64 in native CI. Physical-device measurements remain pending.
+- Record three 10,000-memory Mac runs and exact recovery of all 30,000 memories after abrupt restarts.
+- Use a minimal website with local fonts, grouped guides and expandable diagrams.
+- Shorten the README and simplify product, setup and benchmark wording with ASD-STE100 principles.
+- Keep raw KV replay and older benchmarks separate from structured-memory measurements.
+
+Native phone integration, real-model quality evaluation and ARM performance targets remain unverified.
 
 ## 0.1.2 — 2026-10-01
 

@@ -108,7 +108,22 @@ function prepareAssets() {
   const recovered = memoryReport.runs
     .reduce((n, run) => n + run.exact_memories_after_kill_restart, 0)
     .toLocaleString('en-US');
-  const index = `# instantKV\n\nLocal-first memory for local LLMs. Source MVP, unreleased; earlier 0.1.2 archives lack the new memory tools. remember/recall/browse/forget through Rust, HTTP, CLI and MCP. Indexed topics, tags and Unix-ms event times; bounded literal keyword filtering, not semantic search. Custom JSON metadata, namespace grants, configurable query and storage budgets. Offline operation requires no model or embedding service. The runtime decides what to save and inserts recalled facts into context.\n\nThree 10,000-memory warm synthetic Mac runs: topic query p95 ${topicRange} ms, largest sampled server RSS ${sampledRam} MiB, all ${recovered} memories recovered after abrupt restart. Excludes inference, energy and phones. Native Swift/Kotlin bindings and real local-model quality evaluation remain planned. ARM-board goals are explicitly unverified. Browser replay is the older raw-KV workload, not indexed retrieval.\n\n## Documentation\n\n${docs.map((d) => `- [${d.title}](https://instantkv.com/docs/${d.slug}/): ${d.description}`).join('\n')}\n\n- [Structured-memory raw report](https://instantkv.com/benchmark-data/memory/mac-arm64.json)\n- [Recorded KV demo](https://instantkv.com/demo/)\n- [Measured benchmarks](https://instantkv.com/benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`;
+  const index = [
+    '# instantKV',
+    'instantKV stores local-agent memory in one Rust process. The source MVP is unreleased. Earlier 0.1.2 archives do not include the new memory tools.',
+    'Use remember, recall, browse and forget through Rust, HTTP, CLI or MCP. Queries use ordered topic/tag/time indexes and bounded literal keyword filtering. Custom JSON metadata and configurable limits support app-specific use. Retrieval requires both get and list grants.',
+    'The service needs no cloud API or embedding model. The runtime selects what to save and adds retrieved facts to model context.',
+    `Three warm synthetic Mac runs stored 10,000 memories each. Topic query p95 was ${topicRange} ms. The largest sampled server RSS was ${sampledRam} MiB. All ${recovered} memories were recovered after abrupt restarts. These results exclude inference, energy use and phones.`,
+    'Linux x86_64, Linux ARM64 and macOS ARM64 passed source MVP CI. ARM-board performance targets remain unverified. Native Swift/Kotlin bindings and real-model quality evaluation are planned. Browser replay uses an older raw KV workload; it does not measure structured-memory retrieval.',
+    '## Documentation',
+    docs
+      .map(
+        (d) =>
+          `- [${d.title}](https://instantkv.com/docs/${d.slug}/): ${d.description}`,
+      )
+      .join('\n'),
+    `- [Structured-memory raw report](https://instantkv.com/benchmark-data/memory/mac-arm64.json)\n- [Recorded KV demo](https://instantkv.com/demo/)\n- [Measured benchmarks](https://instantkv.com/benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`,
+  ].join('\n\n');
   writeFileSync(resolve(target, 'llms.txt'), index);
   writeFileSync(
     resolve(target, 'llms-full.txt'),

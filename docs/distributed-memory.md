@@ -1,151 +1,129 @@
 # Distributed agent memory: design proposal
 
-Status: **proposal, not implemented**. Updated: 2026-10-02. Audience: builders and
-operators. Owners: instantKV maintainers. This document defines a path from the
-working [single-server swarm profile](cloud-agents.md) to independent worker nodes.
+Status: proposal, not implemented. Updated: 2026-10-03.
+Audience: builders and operators. Owners: instantKV maintainers.
+This design extends the working [single-server swarm](cloud-agents.md) to independent worker nodes.
 
 ## Objective
 
-Start agents from a chosen historical memory snapshot. Give several agents the
-same starting point, or let each pick a different one. Each agent gets a private
-branch and can explore its own direction. While they work, they can submit
-findings and follow accepted updates from the shared knowledge base. A final
-submission closes the run. Keep sources and disagreements visible throughout.
+Each agent starts from a selected historical memory snapshot and gets a private branch.
+Agents can choose the same or different snapshots.
+They can submit findings during a run and follow accepted shared updates.
+A final submission closes the run. Sources and disagreements remain visible.
 
-For example, two agents start from snapshot 3: one investigates a failing build,
-the other updates the setup guide. The first publishes a verified fix. The second
-receives that update and corrects the guide without waiting for the first run to
-end. Their private notes stay private. Historical snapshot 3 remains unchanged.
+Two agents start from snapshot 3. One investigates a build failure; the other updates the setup guide.
+The first publishes a verified fix. The second receives it before the first run ends.
+Private notes remain private, and snapshot 3 remains unchanged.
 
 ![Proposed snapshot branches and continuous shared updates](assets/memory-branches.svg)
 
-Current code provides durable records, scoped namespaces, conditional revisions
-and atomic handoff capsules. It does not provide snapshot manifests, replication,
-change feeds, run-completion jobs, automatic summaries or knowledge quality metrics.
+Current code provides durable records, namespace grants, conditional writes and atomic checkpoints.
+Snapshots, replication, change feeds, completion jobs and automatic summaries remain proposed.
 
 ## Proposed ownership and flow
 
-1. **Publish baseline.** The canonical knowledge service publishes an immutable manifest with a
-   baseline ID, schema version, record content hashes and source revisions.
-2. **Fork a snapshot.** Select any retained, authorized historical baseline.
-   Record a branch ID, parent snapshot, agent and task. Several branches can share
-   a parent without sharing private writes. Each worker fetches a projection
-   into a local KV replica. Private writes land in a separate overlay; they do not
-   mutate the baseline or another worker's findings.
-3. **Work independently.** Local knowledge, scratch and capsules support compaction
-   and network outages. The run records which baseline it used.
-4. **Share during the run.** Submit explicit batches of shareable changes with a
-   branch ID, monotonically increasing sequence and content digest. Receipt is
-   durable before acknowledgement. Retrying an identical batch is idempotent;
-   reusing its sequence with different content is a conflict. Private records
-   are excluded unless the run explicitly permits export. Completion submits a
-   final batch and the last acknowledged sequence so interrupted runs can resume.
-5. **Consolidate.** A durable job imports candidates, deduplicates exact content,
-   checks provenance and policy, and surfaces disagreements. An optional model
-   may propose a summary; acceptance requires validation and source retention.
-6. **Publish baseline revision.** Reviewed facts update the canonical knowledge base with conditional
-   revisions. A new manifest records the accepted changes. The next swarm starts
-   from it. Unfinished or rejected jobs never partially publish a baseline.
-7. **Follow accepted updates.** Connected workers follow an authorized change
-   feed and apply accepted facts to a separate shared-updates overlay. Their
-   pinned parent snapshot and private branch remain intact. Offline workers
-   replay from a saved cursor; streams only notify them that committed events
-   are available. Peers can see authorized branch status and publication progress.
+1. **Publish a baseline.** The canonical service publishes an immutable manifest.
+   It includes a baseline ID, schema version, record hashes and source revisions.
+2. **Create a branch.** A worker selects an authorized retained snapshot and records its parent, agent and task.
+   It stores private writes in a separate overlay. Those writes do not change the baseline or sibling branches.
+3. **Work locally.** Local records, scratch and checkpoints support context resets and network outages.
+4. **Submit findings.** Each batch includes its branch ID, sequence and content digest.
+   Acknowledgement follows durable receipt. Identical retries are idempotent; different content at the same sequence conflicts.
+   Private records require explicit export permission. The final batch records the last acknowledged sequence.
+5. **Review findings.** A durable job deduplicates content, verifies sources and exposes conflicts.
+   An optional model can propose a summary; acceptance requires validation and retained sources.
+6. **Publish updates.** Accepted facts use conditional revisions and form a new manifest.
+   Failed or rejected jobs cannot partially publish a baseline.
+7. **Follow updates.** Workers apply accepted facts to a separate shared-updates overlay.
+   The parent snapshot and private branch remain unchanged. Offline workers resume from a saved cursor.
 
-This is a proposed distributed knowledge workflow with a canonical publisher.
-It is not a promise of a multi-writer consensus database. The first replication
-step should use export/import and restartable pull sync; choose consensus only
-if availability requirements later require automatic leader failover.
+The design uses one canonical publisher. It does not promise a multi-writer consensus database.
+The first replication stage uses export/import and restartable pull synchronization.
+Automatic leader failover needs separate availability requirements.
 
 ## Proposed interchange schema
 
 These are design shapes, not accepted endpoints or the current record format:
 
-| Object | Proposed fields | Invariant |
-|---|---|---|
-| BaselineManifest | `baseline_id`, `schema_version`, `created_at`, authorized record descriptors `{key, revision, content_hash}`, `manifest_hash` | Immutable; published only after referenced records are available |
-| BranchManifest | `branch_id`, `parent_snapshot_id`, `agent_id`, `task`, `created_at`, `sharing_policy`, `last_submitted_sequence`, `shared_feed_cursor` | Parent is pinned; independent private overlay; only authorized historical snapshots can be forked |
-| FindingBatch | `branch_id`, `sequence`, `content_hash`, `changes[]`, `source_locators[]`, `base_revisions[]` | Same branch + sequence + digest is idempotent; changed digest conflicts; durable receipt precedes acknowledgement |
-| SharedEvent | `event_id`, `sequence`, `scope`, `kind`, `key`, `revision`, `origin_branch`, `published_baseline_id` | Canonical publisher assigns order; durable replay; consumers persist cursor only after applying an event |
-| AgentPresence | `agent_id`, `branch_id`, `task`, `state`, `lease_deadline`, `last_published_sequence`, `observed_feed_cursor` | Authorized metadata only; expired lease means stale/unknown, never proof of completion |
-| RunCompletion | `run_id`, `branch_id`, `agent_id`, `baseline_id`, `checkpoint_locator`, `last_submitted_sequence`, `delta_hash`, `shareable_changes[]` | Same run ID + digest is idempotent; changed digest is a conflict; completion waits for preceding finding batches |
-| KnowledgeCandidate | `candidate_id`, `key`, `content`, `source_locators[]`, `observed_at`, `run_id`, `base_revision`, `content_hash`, `visibility` | Sources, origin and sharing policy survive summarization |
-| ConsolidationJob | `job_id`, `run_id`, `branch_id`, `batch_sequence`, `state`, `attempt`, `lease_deadline`, `accepted[]`, `rejected[]`, `conflicts[]`, `published_baseline_id` | Durable state transitions; expired leases are reclaimable |
-| PublishedFact | `key`, `revision`, `content`, `source_locators[]`, `origin_runs[]`, `validated_at`, `supersedes[]` | Conflicting content is reviewed; updates use revision checks |
+| Object             | Proposed fields                                                                                                                                             | Invariant                                                                                                         |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| BaselineManifest   | `baseline_id`, `schema_version`, `created_at`, authorized record descriptors `{key, revision, content_hash}`, `manifest_hash`                               | Immutable; published only after referenced records are available                                                  |
+| BranchManifest     | `branch_id`, `parent_snapshot_id`, `agent_id`, `task`, `created_at`, `sharing_policy`, `last_submitted_sequence`, `shared_feed_cursor`                      | Parent is pinned; independent private overlay; only authorized historical snapshots can be forked                 |
+| FindingBatch       | `branch_id`, `sequence`, `content_hash`, `changes[]`, `source_locators[]`, `base_revisions[]`                                                               | Same branch + sequence + digest is idempotent; changed digest conflicts; durable receipt precedes acknowledgement |
+| SharedEvent        | `event_id`, `sequence`, `scope`, `kind`, `key`, `revision`, `origin_branch`, `published_baseline_id`                                                        | Canonical publisher assigns order; durable replay; consumers persist cursor only after applying an event          |
+| AgentPresence      | `agent_id`, `branch_id`, `task`, `state`, `lease_deadline`, `last_published_sequence`, `observed_feed_cursor`                                               | Authorized metadata only; expired lease means stale/unknown, never proof of completion                            |
+| RunCompletion      | `run_id`, `branch_id`, `agent_id`, `baseline_id`, `checkpoint_locator`, `last_submitted_sequence`, `delta_hash`, `shareable_changes[]`                      | Same run ID + digest is idempotent; changed digest is a conflict; completion waits for preceding finding batches  |
+| KnowledgeCandidate | `candidate_id`, `key`, `content`, `source_locators[]`, `observed_at`, `run_id`, `base_revision`, `content_hash`, `visibility`                               | Sources, origin and sharing policy survive summarization                                                          |
+| ConsolidationJob   | `job_id`, `run_id`, `branch_id`, `batch_sequence`, `state`, `attempt`, `lease_deadline`, `accepted[]`, `rejected[]`, `conflicts[]`, `published_baseline_id` | Durable state transitions; expired leases are reclaimable                                                         |
+| PublishedFact      | `key`, `revision`, `content`, `source_locators[]`, `origin_runs[]`, `validated_at`, `supersedes[]`                                                          | Conflicting content is reviewed; updates use revision checks                                                      |
 
-Job states: `received -> importing -> validating -> awaiting_review -> publishing
--> published`. Failures retain their last durable state and retry metadata.
-Transport acknowledgements mean receipt or committed publication explicitly;
-they must not imply the other. Model output is untrusted candidate content.
+Job states: `received → importing → validating → awaiting_review → publishing → published`.
+Failures retain the last durable state and retry metadata.
+An acknowledgement must specify receipt or committed publication. The two meanings are not interchangeable.
+Model output remains untrusted candidate content.
 
 ## Compaction and conflict policy
 
-Context compaction and knowledge consolidation have different purposes. A
-handoff capsule preserves enough context to continue one task. Consolidation
-extracts reusable knowledge from findings shared during or after runs. It must preserve original source
-locators and cannot replace private capsules silently.
+Compaction preserves enough context to continue one task.
+Consolidation creates reusable knowledge from submitted findings.
+It preserves source locators and cannot silently replace private checkpoints.
 
-Deduplicate exact content first. A change based on an older baseline revision
-becomes a conflict when the canonical value changed. Surface both candidates
-with their sources; do not silently apply last-writer-wins. Deletions require
-explicit tombstones and authorization. Revoked scopes stop future sync/import;
-already downloaded replicas require a separate retention/revocation policy.
+Exact duplicate content is removed first. A candidate conflicts if its base revision no longer matches the canonical record.
+Both candidates and sources remain visible for review.
+Deletions require explicit tombstones and authorization.
+Revoked grants stop future sync/import; downloaded replicas need a separate retention and revocation policy.
 
 ## Continuous sync and peer awareness
 
-Findings may enter review during a run as well as at completion. A received
-candidate is visible as pending only to authorized reviewers; it is not yet a
-shared fact. Acceptance publishes a canonical revision and a durable event.
-Workers discover new events through bounded polling or a streaming connection.
-Neither an open socket nor a reconnect alone proves that they are up to date.
+Findings can enter review during a run or at completion.
+Pending candidates are visible only to authorized reviewers. Acceptance publishes a canonical revision and durable event.
+Workers discover events through bounded polling or a stream.
+An open or reconnected socket does not prove that a worker is current.
 
-The canonical event log provides ordered replay, event IDs and revision checks.
-Clients tolerate duplicates, save their cursor after applying updates, and retry
-after disconnection. An expired replay cursor requires a fresh authorized
-snapshot plus events after its watermark. Tombstones carry the same ordering and
-permission checks as writes. Publication jobs run independently of subscriptions.
-Bounded subscriber queues disconnect slow consumers and let them catch up later.
+The event log provides ordered replay, event IDs and revision tests.
+Clients accept duplicates and save their cursor only after applying an update.
+An expired cursor requires a fresh authorized snapshot and events after its watermark.
+Tombstones use the same ordering and permission rules as writes.
+Publication jobs run independently of subscriptions.
+Slow consumers disconnect when their bounded queues fill and resume through replay.
 
-Keep the parent snapshot immutable. Accepted updates go into a distinct overlay,
-so an agent can inspect what changed and choose when to use it. A local finding
-based on a superseded revision enters conflict review; sync cannot overwrite it.
-Switching the branch's baseline is an explicit rebase with recorded lineage.
+The parent snapshot remains immutable. Accepted updates use a separate overlay.
+The agent can inspect changes before using them.
+A finding based on a superseded revision enters conflict review. Synchronization cannot overwrite private work.
+A baseline change is an explicit rebase with recorded lineage.
 
-Peer awareness means a scoped roster of tasks, branch state and the last update
-each agent has observed. Use renewable leases to mark stale peers. Do not expose
-private notes, credentials or unreviewed findings through presence. Recheck grants
-on subscription and replay, and stop delivery when access is revoked. Agents can
-lag while offline; the first version promises resumable convergence, not
-instantaneous agreement between every worker.
+Peer status lists permitted tasks, branch state and observed update sequences.
+Renewable leases identify stale peers. Presence does not expose private notes, credentials or unreviewed findings.
+Subscriptions and replay recheck grants; revoked access stops delivery.
+Offline agents can fall behind. The design promises resumable convergence, not immediate agreement.
 
 ## Knowledge quality metrics
 
-Track checked facts, source coverage, freshness and unresolved conflicts. Test
-recall against a fixed set of tasks and show what changed between baselines.
-Record validation dates. More stored text alone doesn't show better knowledge;
-the current namespace stats endpoint counts only entries, bytes and revisions.
+Quality metrics record verified facts, source coverage, freshness and unresolved conflicts.
+A fixed task set measures recall changes between baselines.
+More stored text does not establish better knowledge.
+Current namespace stats report only entries, bytes and revisions.
 
 ## Failure boundaries and rollout gates
 
-| Stage | Required evidence before shipping |
-|---|---|
-| 1. Explicit export/import | Round trip authorized records with hashes, revisions and sources; deny private-scope export |
-| 2. Baseline + overlay | Two workers start from one manifest, write independently, and retain the correct base revision |
-| 2a. Historical branches | Workers fork the same and different retained snapshots; lineage survives restart; unauthorized or expired snapshots are denied |
-| 3. Completion queue | Duplicate/reordered uploads, interrupted transfer, lease expiry and worker restart never double-publish |
-| 3a. Incremental findings | A finding is reviewed and published before its run ends; retries and final flush neither drop nor double-publish changes |
-| 4. Reviewed consolidation | Conflicting agent findings remain visible; rejected or unsupported summaries do not enter the canonical knowledge base |
-| 5. Distributed pull sync | Offline/reconnect, tombstones, revoked grants and partial baselines behave as documented |
-| 5a. Connected agents | Disconnect/replay, duplicate events, expired cursors, slow consumers and lease expiry preserve private work and expose stale peers accurately |
-| 6. Knowledge quality metrics | Fixed recall evaluation and quality counters show useful improvements rather than only database growth |
+| Stage                        | Required evidence before shipping                                                                                                             |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Explicit export/import    | Round trip authorized records with hashes, revisions and sources; deny private-scope export                                                   |
+| 2. Baseline + overlay        | Two workers start from one manifest, write independently, and retain the correct base revision                                                |
+| 2a. Historical branches      | Workers fork the same and different retained snapshots; lineage survives restart; unauthorized or expired snapshots are denied                |
+| 3. Completion queue          | Duplicate/reordered uploads, interrupted transfer, lease expiry and worker restart never double-publish                                       |
+| 3a. Incremental findings     | A finding is reviewed and published before its run ends; retries and final flush neither drop nor double-publish changes                      |
+| 4. Reviewed consolidation    | Conflicting agent findings remain visible; rejected or unsupported summaries do not enter the canonical knowledge base                        |
+| 5. Distributed pull sync     | Offline/reconnect, tombstones, revoked grants and partial baselines behave as documented                                                      |
+| 5a. Connected agents         | Disconnect/replay, duplicate events, expired cursors, slow consumers and lease expiry preserve private work and expose stale peers accurately |
+| 6. Knowledge quality metrics | Fixed recall evaluation and quality counters show useful improvements rather than only database growth                                        |
 
-Roll out behind an opt-in protocol version on separate data stores. Keep the
-single-node HTTP/MCP contract working. Back up the canonical database and keep
-the previous immutable manifest before publishing. Roll back by selecting that
-manifest and pausing consolidation; never rewrite worker history to hide a merge.
+Rollout uses an optional protocol version and separate data stores.
+The existing single-node HTTP/MCP contract remains available.
+Before publication, operators back up the canonical database and retain the previous manifest.
+Rollback selects that manifest and pauses consolidation. Worker history remains intact.
 
-Open decisions: manifest size/pagination, per-team projections, conflict review
-ownership, completed-run retention, tombstone lifetime, model validation policy,
-historical snapshot retention, event replay windows, rebase policy, presence
-visibility, and whether pull-sync availability warrants leader election. Resolve these with
-concrete multi-agent workloads before adding a consensus or custom storage layer.
+Open decisions include manifest size, pagination, team scopes and conflict-review ownership.
+Retention policies must cover completed runs, snapshots, tombstones and event replay.
+Model validation, rebase policy, peer visibility and leader election also need decisions.
+Real multi-agent workloads must guide those choices.

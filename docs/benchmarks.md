@@ -1,26 +1,27 @@
 # Benchmark: HTTP request paths
 
-For the **new structured-memory API**, read [performance and device targets](performance.md):
-three 10,000-memory runs with topic/tag/time retrieval, RSS samples, durable saves
-and exact recovery. The older raw-KV/cache measurements below describe separate
-request paths; their throughput does not apply to indexed-memory queries.
+The [structured-memory results](performance.md) cover three 10,000-memory runs, indexed retrieval, RSS samples and exact restart recovery.
+The raw KV and cache results below use different APIs and workloads.
+Their throughput does not measure structured-memory queries.
 
-For the smaller default local profile, see the [measured Mac footprint](local-first.md#measured-mac-footprint): binary size, sampled RSS and abrupt-restart recovery.
+The [earlier local-profile test](local-first.md#measured-mac-footprint) records raw KV binary size, sampled RSS and restart recovery.
 
 ## Mac demo: 330,000 writes, zero errors
 
-On 2026-10-02, the actual browser-demo storage workload ran locally on an
-**Apple M4 Pro / 24 GiB Mac**: three 100,000-record RAM runs and three 10,000-record
-durable runs. The median throughput run reached **42,517 RAM writes/s**, with
-backend PUT p50 **0.328 ms** and p99 **0.726 ms**. The median durable run reached
-**225 writes/s**, with p50 **70.349 ms** and p99 **81.229 ms**. All 24 sampled
-reads exactly matched their fixtures.
+Six demo runs used an Apple M4 Pro with 24 GiB memory on 2026-10-02.
+Three RAM runs wrote 100,000 records each; three durable runs wrote 10,000 each.
+All 24 sampled reads matched their original values.
 
-These are new unique-record demo workloads over local HTTP, without public
-network latency or container CPU limits. They differ from the hot-key workloads
-below. The site replays these real results at 2× animation speed and caches four
-saved responses per mode; it never divides measured latencies or doubles measured
-throughput. [Conditions, reproduction and all six reports](demo-results/2026-10-02-mac/README.md).
+| Median-throughput run | Writes/s |   PUT p50 |   PUT p99 |
+| --------------------- | -------: | --------: | --------: |
+| RAM                   |   42,517 |  0.328 ms |  0.726 ms |
+| Durable               |      225 | 70.349 ms | 81.229 ms |
+
+These tests created unique records through local HTTP, without public-network latency or container CPU limits.
+They differ from the hot-key tests below.
+Replay runs at 2× animation speed and caches four saved responses per mode.
+Measured latency and throughput remain unchanged.
+[Conditions and all six reports](demo-results/2026-10-02-mac/README.md).
 
 ## Rove HTTP workloads — 2026-10-01
 
@@ -29,13 +30,13 @@ Measured on Rove on 2026-10-01, using verified source
 Three runs per profile; **157,500 successful measured requests, zero errors**.
 Table values are medians of the three run results, not pooled percentiles.
 
-| Workload | Requests/run | Concurrency | Successful req/s | p50 ms | p95 ms | p99 ms |
-|---|---:|---:|---:|---:|---:|---:|
-| Scratch GET | 20,000 | 16 | 3,708 | 1.88 | 10.55 | 47.36 |
-| Knowledge GET | 20,000 | 16 | 4,010 | 1.73 | 9.11 | 47.20 |
-| Durable PUT | 2,000 | 8 | 744 | 5.80 | 51.62 | 57.65 |
-| Checkpoint save | 500 | 8 | 474 | 8.98 | 56.08 | 64.97 |
-| Restore | 10,000 | 16 | 3,324 | 2.24 | 12.25 | 48.54 |
+| Workload        | Requests/run | Concurrency | Successful req/s | p50 ms | p95 ms | p99 ms |
+| --------------- | -----------: | ----------: | ---------------: | -----: | -----: | -----: |
+| Scratch GET     |       20,000 |          16 |            3,708 |   1.88 |  10.55 |  47.36 |
+| Knowledge GET   |       20,000 |          16 |            4,010 |   1.73 |   9.11 |  47.20 |
+| Durable PUT     |        2,000 |           8 |              744 |   5.80 |  51.62 |  57.65 |
+| Checkpoint save |          500 |           8 |              474 |   8.98 |  56.08 |  64.97 |
+| Restore         |       10,000 |          16 |            3,324 |   2.24 |  12.25 |  48.54 |
 
 ## Environment and interpretation
 
@@ -44,12 +45,12 @@ physical RAM. Ubuntu 20.04 host, Linux 5.15, Docker 28.1.1 / Compose 2.35.1;
 Debian 12 runtime image. Namespace-scoped auth was enabled. Durable writes used
 redb 4.3.0 immediate commits throughout.
 
-This was a **shared, busy VPS** with existing services and shortener load generators
-running. Host load averages were 4.24 before and 5.44 after on four vCPUs. We did
-not stop those services. Client and server shared a container and CPU over loopback
-HTTP/1.1 keep-alive, without pipelining. These are workload observations, not an
-isolated engine benchmark, public HTTPS capacity, maximum throughput or an SLA.
-The table includes the roughly 40–65 ms p99 times as well as the faster median.
+The VPS was shared and busy. Existing services and load generators stayed active.
+Load averages were 4.24 before and 5.44 after, on four vCPUs.
+Client and server shared a container and used loopback HTTP/1.1 with keep-alive and no pipelining.
+
+The results do not measure public HTTPS capacity, isolated engine speed or maximum throughput.
+The table includes p99 latency as well as median latency.
 
 ## Workload details
 
@@ -66,15 +67,12 @@ The table includes the roughly 40–65 ms p99 times as well as the faster median
 - Ordinary keys are deleted afterward. Checkpoint records remain in the disposable
   benchmark volume. The usable VPS instance gets a separate volume and credentials.
 
-The post-run Docker memory snapshot was 10.3 MiB and the database file 3,379,200
-bytes. This is a snapshot, not peak RSS or a long-term storage-growth test.
+The post-run Docker memory snapshot was 10.3 MiB. The database file was 3,379,200 bytes.
+These observations do not measure peak RSS or long-term database growth.
 
-[All 15 raw reports](benchmarks/2026-10-01-rove/) and
-[environment metadata](benchmarks/2026-10-01-rove/environment.json)
-are committed alongside this page. CPU metadata retains only benchmark-relevant
-fields. Every report records request counts, duration, successful throughput,
-latencies, transport and durability description. Binary/image hashes are in the
-metadata; source files were checked against the recorded commit before running.
+[All 15 reports](benchmarks/2026-10-01-rove/) and [environment metadata](benchmarks/2026-10-01-rove/environment.json) are committed.
+Reports include request counts, durations, throughput, latency, transport and durability.
+Metadata includes binary/image hashes. Source files matched the recorded commit before the tests.
 
 ## Reproduce
 
@@ -86,12 +84,11 @@ INSTANTKV_BIN=./scripts/kv.sh ./scripts/benchmark-suite.sh /absolute/results
 INSTANTKV_BIN=instantkv ./scripts/benchmark-suite.sh /absolute/results
 ```
 
-Checkpoint/restore runs retain snapshots; do not use a busy production namespace.
-The default suite adds 3,096 checkpoint namespace records (bundle/pointer pairs)
-and keeps them for inspection. Run larger/concurrent workloads only within your
-configured quota. Preserve the config, hardware, revision and load conditions
-when sharing numbers.
+Use a disposable checkpoint namespace; the suite retains checkpoint records.
+Keep requests within the configured quotas.
+Preserve the configuration, hardware, source revision and host load with your results.
 
-Next measurements: larger key populations, real capsule/reference distributions,
-repeated-session saves, expiry backlogs, contention curves, longer runs, peak RSS
-and disk growth. Those workloads still need measurement.
+The default suite adds 3,096 checkpoint records, including bundles and pointers.
+
+Planned tests cover larger key sets, realistic capsules and references, repeated sessions and expiry backlogs.
+Longer runs must measure contention, peak RSS and disk growth.

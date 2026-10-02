@@ -2,11 +2,13 @@
 
 ## Docker setup and health
 
-`./scripts/quickstart.sh` builds the image, initializes a new volume once, starts
-with health checks, and runs `doctor`. Existing config/data are never overwritten.
-The process is UID 10001, capabilities are dropped, the root filesystem is read
-only, and `/tmp` is a small disposable mount. Only clients on the host can connect
-directly; use the remote-access setup below for other machines.
+`./scripts/quickstart.sh` builds an image, initializes a new volume and starts the service with health checks.
+It then runs `doctor`. Existing configuration and data remain unchanged.
+For the source MVP, set `INSTANTKV_BUILD_SOURCE=source-build` during setup.
+
+The container uses UID 10001, dropped capabilities and a read-only root filesystem.
+A small `/tmp` mount holds temporary files.
+Only clients on the host can connect directly.
 
 ```sh
 docker compose ps
@@ -15,10 +17,10 @@ docker compose logs --tail 50 instantkv
 ./scripts/kv.sh stats knowledge
 ```
 
-`/healthz` reports a running service after startup config, credentials and database
-validation; it does not probe disk writes on every check. `/metrics` requires a
-stats grant and exports aggregate request/failure counters. Detailed latency,
-expiry-lag and storage-health metrics are planned.
+`/healthz` reports a running service after startup validation.
+It does not test disk writes on each request.
+`/metrics` requires a stats grant and reports aggregate requests and failures.
+Detailed latency, expiry-lag and storage-health metrics are planned.
 
 ## Remote access
 
@@ -29,9 +31,10 @@ INSTANTKV_PORT=8095 ./scripts/quickstart.sh
 ssh -N -L 8080:127.0.0.1:8095 your-vps
 ```
 
-For external multi-user deployment, terminate TLS at your reverse proxy and keep
-scoped API tokens enabled. Do not expose disabled-auth mode beyond loopback.
-Credentials never belong in repository config or request query strings.
+For remote clients, terminate TLS at your reverse proxy.
+Keep scoped API tokens enabled.
+Keep disabled authentication restricted to loopback.
+Never store credentials in repository configuration or request URLs.
 
 ## Offline backup and restore
 
@@ -42,14 +45,15 @@ stops the Compose service, copies all state, and restarts it:
 ./scripts/backup.sh /absolute/private/instantkv-backup
 ```
 
-The backup contains config, credentials and the database: keep it private and
-protect it with your existing encrypted backup system. If the helper fails, inspect
-and remove the partial backup before retrying. It refuses an existing destination.
-An online snapshot/export API is not implemented.
+The backup contains configuration, credentials and the database.
 
-The backup is `state.tar`, retaining ownership metadata rather than assigning
-all files to the host's copy user. This uses Docker's documented
-[tar-stream copy mode](https://docs.docker.com/reference/cli/docker/container/cp/).
+Keep it private and protect it with your encrypted backup system.
+If the helper fails, inspect the partial backup before retrying.
+
+The helper refuses an existing destination. Online snapshots and export are planned.
+
+The `state.tar` archive preserves file ownership metadata.
+It uses Docker's [tar-stream copy mode](https://docs.docker.com/reference/cli/docker/container/cp/).
 
 Verify a known checkpoint in a separate temporary volume:
 
@@ -59,29 +63,38 @@ Verify a known checkpoint in a separate temporary volume:
 ./scripts/restore-drill.sh /absolute/private/instantkv-backup alpha-first-handoff alpha_checkpoints
 ```
 
-The helper extracts into a new volume, sets ownership for UID 10001, starts an
-isolated loopback-only container, checks health, restores the checkpoint, and
-removes its temporary container/volume. The archive and live instance are retained.
-The optional third argument selects a checkpoint namespace; it defaults to
-`checkpoints` for the single-agent profile.
-A missing or unreadable checkpoint fails the drill. Use the same binary version;
-keep the original backup until verification passes. Never open one data file with
-two processes.
+The restore helper creates a temporary volume and assigns UID 10001 ownership.
+It starts an isolated loopback container, verifies health and restores the checkpoint.
+It then removes the temporary container and volume.
+The backup and live instance remain.
+The optional third argument selects the checkpoint namespace; its default is `checkpoints`.
+
+A missing or unreadable checkpoint fails the test.
+Use the same binary version as the backup.
+Keep the backup until verification succeeds.
+Never open one data file with two processes.
 
 ## Retention and upgrades
 
-Knowledge has no default expiry. Delete deliberately; scratch expires and can
-evict within quota. Old checkpoints can be pruned with `delete-checkpoint ID`;
-the latest per session is protected. Final-session retirement is future work.
-A namespace's quota includes its checkpoint pointer and bundle records.
+Knowledge has no default expiry. Scratch expires and can evict records within its quota.
+`delete-checkpoint ID` removes an old checkpoint. The latest checkpoint for each session is protected.
+Final-session retirement is planned. Quotas count checkpoint bundles and pointers.
 
-Back up, build a reviewed commit, then `docker compose up -d --wait`. Check
-`doctor`, recall known data and restore a known capsule. Config loads on startup;
-credential rotation needs a restart. Storage format is versioned; incompatible
-namespace mode/purpose/removal changes are rejected instead of silently losing data.
+1. Save an offline backup.
+2. Build the reviewed source commit.
+3. Run `docker compose up -d --wait`.
+4. Run `doctor`.
+5. Retrieve a known record.
+6. Restore a known checkpoint.
 
-On HTTP timeouts, a submitted write may still commit. Inspect the revision or
-retry the exact checkpoint ID and payload. On storage errors no success response
-is sent; resolve disk/permission problems before retrying. Process-restart recovery
-is tested; broad disk-full, power-loss and kill-during-commit fault testing remains
-on the roadmap.
+Configuration loads at startup. Credential rotation requires a restart.
+The server rejects incompatible namespace changes instead of silently discarding data.
+Older binaries do not maintain the MVP memory indexes.
+To downgrade from the MVP, restore the backup made before the upgrade.
+
+A submitted write can commit after an HTTP timeout.
+Inspect its revision, or retry the same checkpoint ID and payload.
+
+Storage errors do not return success. Resolve disk or permission failures before retrying.
+Process-restart recovery is tested.
+Disk-full, power-loss and kill-during-commit tests remain planned.

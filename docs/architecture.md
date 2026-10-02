@@ -1,30 +1,28 @@
 # Architecture and storage schema
 
-Status: implemented single-node design with unreleased memory MVP, 2026-10-03. Future proposals are separated
-below. See [verification history](checkpoints.md) for checks actually run.
+Status: single-node implementation with an unreleased memory MVP. Updated: 2026-10-03.
+[Verification history](checkpoints.md) records completed checks. Future work appears below.
 
-The request path and the stored schema are drawn below the title: three
-client surfaces, the grants and limits that bound every request, and the
-durable and RAM tiers they route to.
+Clients connect through HTTP, CLI or MCP. Permissions and limits apply before storage access.
+Durable records use redb; scratch uses RAM. Rust apps can also embed the core directly.
 
 ## Stack decision
 
-| Layer | Choice | Why / constraint |
-|---|---|---|
-| Core | Rust 2024, minimum Rust 1.98 | Ownership and explicit memory/concurrency bounds |
-| HTTP | Tokio + Axum | Async networking, middleware, graceful shutdown |
-| Durable storage | redb | Pure Rust, embedded ACID transactions; one writer |
-| Scratch | Per-namespace Mutex + ordered maps | Atomic quotas; ordered prefix, deadline and FIFO indexes |
-| Configuration | Serde + TOML | Strict fields and startup validation |
-| Agent tools | Official rmcp SDK, stdio → HTTP | Same auth and policy as every client |
-| Deployment | Binary / non-root Docker + volume | No database service or orchestration dependency |
-| Verification | Fake-clock invariant tests + HTTP/MCP tests + CLI load client | Deterministic lifecycle checks and measured request paths |
+| Layer           | Choice                                                        | Why / constraint                                          |
+| --------------- | ------------------------------------------------------------- | --------------------------------------------------------- |
+| Core            | Rust 2024, minimum Rust 1.98                                  | Ownership and explicit memory/concurrency bounds          |
+| HTTP            | Tokio + Axum                                                  | Async networking, middleware, graceful shutdown           |
+| Durable storage | redb                                                          | Pure Rust, embedded ACID transactions; one writer         |
+| Scratch         | Per-namespace Mutex + ordered maps                            | Atomic quotas; ordered prefix, deadline and FIFO indexes  |
+| Configuration   | Serde + TOML                                                  | Strict fields and startup validation                      |
+| Agent tools     | Official rmcp SDK, stdio → HTTP                               | Same auth and policy as every client                      |
+| Deployment      | Binary / non-root Docker + volume                             | No database service or orchestration dependency           |
+| Verification    | Fake-clock invariant tests + HTTP/MCP tests + CLI load client | Deterministic lifecycle checks and measured request paths |
 
-We chose Rust for control over memory and concurrency. Go could also do this job;
-Rust asks for more development effort in exchange for those controls. redb handles
-transactions and persistence inside the process, so we can ship one binary.
-Valkey would also be a sensible backend if a separate database service suited
-the deployment. Language choice alone doesn't establish a speed advantage.
+Rust provides explicit control over memory and concurrency.
+redb handles transactions and persistence inside the process, which permits one binary.
+Go could also implement the service. Valkey could provide storage when a separate database is acceptable.
+Language choice alone does not prove a speed advantage.
 
 Sources: [Rust ownership](https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html),
 [Axum](https://docs.rs/axum/latest/axum/),
@@ -32,51 +30,52 @@ Sources: [Rust ownership](https://doc.rust-lang.org/book/ch04-00-understanding-o
 
 ## Boundaries and request paths
 
-`instantkv-core` owns policy, admission, clocks, quota accounting, storage and
-checkpoint transactions. `instantkv` owns HTTP, authentication, CLI, MCP, demo
-and benchmark workflows. HTTP, CLI and MCP clients use the same permission layer. An embedding Rust app
-can call the core directly and owns authorization itself. See [local integration](local-first.md#embed-the-existing-rust-core).
+`instantkv-core` owns configuration policy, input validation, clocks, quotas, indexes, storage and checkpoint transactions.
+`instantkv` provides HTTP, authentication, CLI, MCP, demos and benchmarks.
+HTTP, CLI and MCP use the same permission layer.
+An app that embeds the core must provide its own authorization.
+[Local integration](local-first.md#embed-the-existing-rust-core).
 
-Write: authorization → bounded body → format/TTL/size checks → conditional
-revision and quota checks → transaction or namespace lock → acknowledge.
-A failed write preserves the old live value; admission may reclaim expired data.
+Write flow: authorization → body limit → format/TTL/size validation → revision and quota validation → commit → success response.
+A failed write preserves the old live value. Input validation can reclaim expired data.
 
-Read: authorize → lookup → expiry check → bytes and revision. Lists return
-metadata only, up to 1,000 items per page, with bounded scans. An extra empty page
-is possible; follow `next_cursor` until null. Lists are not stable snapshots.
+Read flow: authorization → lookup → expiry test → value and revision.
+Raw record lists return metadata only, with at most 1,000 items and bounded scans.
+An extra empty page is possible. Continue until `next_cursor` is null.
+Pages do not form a stable snapshot across writes.
 
-A semaphore bounds admitted requests and cleanup work. Synchronous storage runs
-on `spawn_blocking`; a submitted task retains its permit even if the HTTP deadline
-expires. There is no unbounded writer queue. A response timeout can have an unknown
-write outcome: inspect revision or retry the same checkpoint ID and payload.
-[Tokio blocking-task behavior](https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html)
-explains why dropping the response does not cancel a running commit.
+A semaphore limits active requests and cleanup work.
+Synchronous storage runs on `spawn_blocking`. A submitted task keeps its permit even after the HTTP deadline.
+There is no unbounded writer queue.
+A timed-out write can still commit.
+[Tokio blocking-task behavior](https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html) explains this boundary.
+
+After a timeout, inspect the revision or retry the same checkpoint ID and payload.
 
 ## Stored schema: format 1
 
-All tables live in `instantkv.redb`. Integers in record/counter values are
-little-endian u64. Namespace and ordinary keys prohibit NUL, so the composite key
-is unambiguous.
+All tables use `instantkv.redb`. Record and counter integers use little-endian u64 encoding.
+Namespace names and ordinary keys cannot contain NUL. The composite record key is therefore unambiguous.
 
-| Table | Key | Value |
-|---|---|---|
-| `records_v1` | `namespace + NUL + key` | 32-byte header + raw value bytes |
-| `usage_v1` | namespace | entry count, key/value bytes, revision high-water mark |
-| `expiry_v1` | padded UTC deadline + revision + composite key | composite record key |
-| `metadata_v1` | format / namespace identity | format version / storage mode + purpose |
-| `memory_index_v1` | namespace + index kind + optional normalized label + event time + key | composite structured-memory record key |
+| Table             | Key                                                                   | Value                                                  |
+| ----------------- | --------------------------------------------------------------------- | ------------------------------------------------------ |
+| `records_v1`      | `namespace + NUL + key`                                               | 32-byte header + raw value bytes                       |
+| `usage_v1`        | namespace                                                             | entry count, key/value bytes, revision high-water mark |
+| `expiry_v1`       | padded UTC deadline + revision + composite key                        | composite record key                                   |
+| `metadata_v1`     | format / namespace identity                                           | format version / storage mode + purpose                |
+| `memory_index_v1` | namespace + index kind + optional normalized label + event time + key | composite structured-memory record key                 |
 
-Record header: revision, write time, expiry time (0 means absent), insertion order.
-You choose the fields in ordinary JSON values, including how to record sources.
-The server doesn't require a fixed wrapper. Raw bytes and UTF-8 are configurable
-alternatives.
+The record header contains revision, write time, expiry time and insertion order.
+An expiry of zero means no expiry.
+Ordinary JSON records accept your own fields without a fixed wrapper.
+Namespaces can also accept raw bytes or UTF-8 text.
 
-Structured-memory APIs add a `_instantkv_memory: 1` envelope in ordinary durable
-JSON records. Its time/topic/tag indexes update in the same transaction as the
-record, quotas and expiry entries. Delete, replacement and expiry cleanup remove
-old indexes. Recall reads indexes and values in one snapshot, with configurable
-candidate/scan/output caps. Keywords filter content literally; no vector index or
-model is involved. [Full shape and cursor contract](memory-mvp.md).
+Structured-memory APIs use a `_instantkv_memory: 1` envelope in durable JSON records.
+Time, topic and tag indexes change in the same transaction as records, quotas and expiry entries.
+Deletion, replacement and expiry cleanup remove old index entries.
+Recall reads indexes and values in one snapshot, with candidate, scan-byte and response limits.
+Keyword filtering uses literal content; it requires no vector index or model.
+[Memory shape and cursor contract](memory-mvp.md).
 
 Checkpoint namespace reserved records:
 
@@ -85,65 +84,62 @@ __checkpoint/<id>            -> JSON CheckpointRequest (immutable capsule + refe
 __latest/<agent>/<session>    -> checkpoint ID bytes
 ```
 
-Bundle, latest pointer, and usage updates share one redb write transaction.
-`expected_latest_revision = null` means no prior pointer; subsequent saves use the
-last acknowledged pointer revision. Identical ID/payload retries never rewind the
-pointer. Old bundles can be explicitly deleted, but the current latest cannot.
-IDs must remain unique: deletion removes the saved retry history.
+The bundle, latest pointer and usage counters share one redb write transaction.
+`expected_latest_revision = null` requires no prior pointer. Later saves use the last returned pointer revision.
+Identical ID/payload retries do not rewind the pointer.
+Old bundles can be deleted, but the current latest bundle is protected.
+Deletion removes retry history; checkpoint IDs must remain unique.
 
-redb's default immediate durability is retained. Success follows commit; guarantees
-still depend on the filesystem and storage honoring synchronization. See
-[redb durability](https://docs.rs/redb/latest/redb/enum.Durability.html).
-Restore reads bundle and pointer in one snapshot. Reference status checks happen
-separately and are advisory observations, not a snapshot of all referenced keys.
+Writes retain redb's [immediate durability](https://docs.rs/redb/latest/redb/enum.Durability.html).
+Success follows commit. The filesystem and storage device must honor synchronization.
+Restore reads the bundle and pointer in one snapshot.
+Reference tests run separately and report current observations, not a snapshot of all referenced keys.
 
 ## Retention and accounting
 
-Memory TTL uses a monotonic deadline; persisted TTL uses UTC and is sensitive to
-wall-clock changes. Reads hide expired data immediately. Indexed cleanup has a
-batch cap; expired entries count against quota until removed. Memory PUT also
-runs a bounded cleanup batch. Durable admission does not perform a full sweep.
+RAM expiry uses a monotonic deadline. Durable expiry uses UTC and can change with the wall clock.
+Reads hide expired records immediately. Cleanup has a batch limit.
+Expired records count toward quota until removal.
+RAM writes also run a bounded cleanup batch. Durable input validation does not scan all expired records.
 
-FIFO scratch eviction uses insertion order. Reads and live overwrites do not
-reorder an entry; recreating an expired entry is a new insertion. Durable data
-rejects over-quota writes and never auto-evicts. Revisions do not reset after
-delete, so a stale conditional update cannot succeed after delete/recreate.
+Scratch eviction follows insertion order. Reads and live overwrites do not change that order.
+Recreating an expired entry gives it a new insertion order.
+Durable storage rejects over-quota writes and does not auto-evict.
+Revisions do not reset after deletion, so stale conditions cannot match a recreated key.
 
-Quotas count stored key and value bytes, including checkpoint bundles/pointers.
-They do not bound allocator overhead, RSS, indexes, or physical database size.
-Disk pages may be reused after deletion; secure erasure is not provided.
+Quotas count stored key/value bytes and entries, including checkpoint bundles and pointers.
+They exclude allocator overhead, process RSS, indexes and physical database size.
+Deleted disk pages can be reused. Deletion does not provide secure erasure.
 
 ## Access and operations
 
-Namespaces are the isolation boundary. Agent/session labels are metadata.
-Private agents need separate scopes; grants apply to reference lookup as well as
-record access. Secrets are loaded at startup and compared as fixed-size hashes.
-The swarm profile uses per-namespace grants: `shared` is read-only for workers,
-while each worker's records and checkpoints are writable by only its principal
-and the operator. Legacy namespace/operation shorthand remains supported; mixing
-it with explicit grants fails validation. Checkpoint saves require readable
-reference scopes; restores recheck current GET grants. See
-[the swarm topology](cloud-agents.md) for a deployable profile.
-Disabled auth requires loopback. Remote access uses SSH tunneling or HTTPS at a
-proxy. Logs avoid request bodies and tokens; metrics expose aggregate counters.
+Namespaces define API access boundaries. Agent and session labels are metadata.
+Private workers need separate namespace grants. Grants also apply to referenced records.
+The server loads credentials at startup and compares fixed-size token hashes.
+The swarm profile gives workers read-only `shared` access and private record/checkpoint access.
+The operator can access all swarm namespaces.
 
-Health reports a running listener after successful startup validation/database
-open; it is not a periodic storage write probe. Framework parsing rejections can
-be plain text; service errors use a JSON error object. One process owns a data
-file. [Operations](operations.md) covers backup and upgrade boundaries.
+Legacy namespace/operation shorthand remains supported. It cannot be combined with explicit grants.
+Checkpoint saves require readable reference namespaces. Restore uses current GET grants.
+[Swarm setup](cloud-agents.md).
+
+Disabled authentication requires loopback. Remote access uses SSH tunneling or an HTTPS proxy.
+Logs exclude request bodies and tokens. Metrics report aggregate counters.
+
+Health reports a running listener after successful startup validation and database opening.
+It does not periodically test disk writes.
+Framework parsing errors can be plain text; service errors use a JSON object.
+One process must own each data file.
+[Backup and upgrades](operations.md).
 
 ## Future proposals
 
-1. Integrate a concrete runtime's compaction lifecycle and evaluate real task recall.
-2. Add retired-session deletion, online backup, and deeper fault-injection tests.
-3. Measure contention, expiry lag and memory growth before adding sharding or a
-   dedicated write executor. Keep overload rejection bounded.
-4. Build the [distributed memory proposal](distributed-memory.md) in stages:
-   authorized export/import, immutable baselines, private worker overlays,
-   restartable run-completion jobs, reviewed consolidation, then pull sync.
-   Preserve source provenance and conflicts; measure knowledge quality with a
-   fixed recall evaluation. These are not current endpoints or replicas.
-5. Evaluate ranked lexical search and optional local embeddings against real tasks.
-   Topic/tag/time indexes and bounded keyword filtering are implemented in the
-   source MVP. Semantic search, consensus failover, custom WAL and Redis protocol
-   need their own evidence and designs.
+1. Connect a real runtime's compaction hooks and evaluate task continuation.
+2. Add session retirement, online backup and deeper fault tests.
+3. Measure writer contention, expiry delay and memory growth before adding storage concurrency features.
+4. Implement the [distributed proposal](distributed-memory.md) in stages.
+   Start with export/import, immutable baselines and private overlays. Add reviewed publication before synchronization.
+5. Evaluate ranked keyword search and local embeddings with real tasks.
+
+Topic/tag/time indexes and bounded literal keywords work in the source MVP.
+Semantic search, automatic failover, a custom write-ahead log and Redis compatibility remain separate design choices.

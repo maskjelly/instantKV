@@ -13,10 +13,11 @@ import DemoFlowDiagram from '../components/diagrams/DemoFlowDiagram.astro';
         <p class="eyebrow" id="demo-source-label">
           <b>Recorded Mac run</b> / real Rust engine
         </p>
-        <h1>Try the memory store.</h1>
+        <h1>Store a record. Read it back.</h1>
         <p>
-          Replay a measured Mac run, then recall a saved response from the
-          reader. Switch to Live VPS to write your own synthetic records.
+          Replay a measured Mac KV run and retrieve a cached response. Select
+          Live VPS to write temporary records to the Rust server. This demo uses
+          the raw KV API.
         </p>
       </div>
       <p class="data-label">
@@ -76,7 +77,7 @@ import DemoFlowDiagram from '../components/diagrams/DemoFlowDiagram.astro';
             RECORDED PUT TRACE
           </span>
         </div>
-        <h2>Give the fleet a memory.</h2>
+        <h2>Store the context.</h2>
         <label for="memory-content">Context to store in each record</label>
         <textarea
           id="memory-content"
@@ -271,32 +272,29 @@ This reader fetches the saved value from instantKV's Rust service. You can also 
 
     <section class="demo-notes">
       <p>
-        <strong>Recorded Mac mode.</strong> Three full runs of each workload on
-        a Mac, with the middle throughput run used for replay. Responses were
-        fetched from Rust during that run and are now cached in this browser.
-        Recall offers four saved samples; it makes no new storage request. The
-        cache lookup time is separate from the recorded backend read time.
+        <strong>Recorded Mac mode.</strong> Replay uses the median-throughput
+        Mac run for each mode. Four responses fetched during that run are cached
+        in the browser. Recorded recall makes no new storage request. Cache
+        lookup time and recorded backend read time are separate.
         <a href="/recordings/mac/replay.json">Download the replay data</a>.
       </p>
       <p>
-        <strong>Reading the timings.</strong> Browser time covers the full trip
-        through Cloudflare and back. Backend time covers the coordinator’s HTTP
-        request to Rust, including response parsing. Half the measured writes
-        finish within p50; 99% finish within p99. These are the successful
-        writes measured in Live VPS mode. Recorded mode shows local HTTP timings
-        from the Mac, without Cloudflare or internet latency. Neither mode
-        measures engine-only time or predicts another deployment's speed.
+        <strong>Reading the timings.</strong> Live browser time includes
+        Cloudflare and the network. Backend time measures the
+        coordinator-to-Rust HTTP request and response parsing. Half the measured
+        writes finish within p50; 99% finish within p99. Recorded mode shows
+        local Mac HTTP timing. Neither mode measures engine-only time or
+        predicts another device's speed.
       </p>
       <p>
         Live VPS data expires after 15 minutes. RAM cache can be evicted under
         load and clears on restart. Durable mode commits through redb; its demo
         records also expire. This shared sandbox accepts synthetic context only.
-        Static recordings remain available. Managed hosting is still in
-        development.
+        Static recordings remain available. Managed hosting is planned.
       </p>
       <p class="u-cluster">
         <a class="text-link" href="/docs/live-demo/">
-          How it works &amp; how to run it →
+          Demo guide →
         </a>
         <a class="text-link" href="/benchmarks/">
           Controlled benchmarks →

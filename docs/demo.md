@@ -1,9 +1,10 @@
 # Demo: store → compact → restore
 
-For the browser demo, [open instantkv.com/demo](https://instantkv.com/demo/).
-It writes up to 100,000 synthetic cache records or 10,000 durable records to
-the actual Rust service, then recalls exact keys in an independent reader.
-[Architecture, limits and timing methodology](live-demo.md).
+[Open the browser demo](https://instantkv.com/demo/).
+Recorded mode replays Mac measurements. Live VPS mode writes temporary records to the Rust service.
+It supports up to 100,000 cache records or 10,000 durable records.
+The separate reader retrieves exact keys.
+[Architecture, limits and timing](live-demo.md).
 
 ## Shared knowledge and private local agents
 
@@ -22,13 +23,15 @@ Verified on the local macOS release build and Rove's Linux Docker instance:
 PASS: shared knowledge + isolated agents + durable handoff over real HTTP
 ```
 
-The demo creates a fresh swarm profile, seeds shared knowledge as operator, and
-uses separate Alpha/Beta credentials for worker calls. It asserts that each agent
-can read shared knowledge and write privately, cannot read a sibling's facts or checkpoint,
-and cannot overwrite shared knowledge. After context clearing and server kill/restart,
-Alpha restores the exact capsule and reads both referenced knowledge sources.
-The locator is a separate runtime metadata file. No physical replicas or automatic
-consolidation occur. [Deploy this topology](cloud-agents.md).
+The CLI swarm demo creates a fresh profile and seeds shared facts as operator.
+Worker calls use separate Alpha/Beta credentials.
+Tests verify shared reads, private writes and forbidden sibling access.
+They also reject shared writes and out-of-scope checkpoint references.
+After context clearing and a real server restart, Alpha restores its capsule and referenced facts.
+The locator remains in a separate runtime metadata file.
+
+The demo creates no replicas and performs no automatic consolidation.
+[Swarm setup](cloud-agents.md).
 
 ## Single-agent knowledge and scratch
 
@@ -51,18 +54,17 @@ Next action: Implement memory_get and memory_checkpoint tools
 PASS: compaction handoff and database restart via real HTTP requests
 ```
 
-The demo uses an isolated temporary directory, private generated credentials and
-real HTTP requests. It checks capsule equality, known knowledge bytes, latest
-pointer recovery and missing scratch. It kills and waits for its actual server
-child, then starts a new process against the same database. Child processes and
-temporary files are cleaned up when it exits.
+The demo uses a temporary directory, generated private credentials and real HTTP.
+It verifies capsule equality, known record bytes, latest-pointer recovery and empty scratch.
+It terminates its server process, then starts a new process with the same database.
+It removes its child processes and temporary files afterward.
 
-Compaction is simulated by clearing in-process agent context. The locator is
-saved separately in a session metadata file. No LLM call or automatic runtime
-hook is implied. The next action above is synthetic task content being recovered.
-MCP save/restore is separately verified by the integration test negotiating the
-protocol, invoking tools and checking structured results and visible errors.
+Compaction is simulated by clearing the agent's in-process context.
+The locator stays in a separate session metadata file.
+The demo makes no LLM call and uses no automatic runtime hook.
+The recovered next action above is synthetic task content.
+Separate MCP tests negotiate the protocol and verify tool results and visible errors.
 
-For actual agents, follow [MCP setup and lifecycle instructions](agents.md).
-For measured latency, see [benchmark results](benchmarks.md). For durable recovery
-from a backup rather than a restart, use the [restore drill](operations.md).
+[MCP setup](agents.md) explains real-agent integration.
+[Benchmarks](benchmarks.md) records latency measurements.
+The [restore test](operations.md) verifies recovery from an offline backup.

@@ -6,7 +6,7 @@ export const docs = [
     group: 'Start here',
     source: 'docs/memory-mvp.md',
     description:
-      'Remember, recall, browse and forget. Topic/tag/time retrieval, bounded keywords and a local-model example.',
+      'Remember, recall, browse and forget. Find memories by topic, tag, time or keywords. Try the local-model example.',
   },
   {
     slug: 'performance',
@@ -14,7 +14,7 @@ export const docs = [
     group: 'Start here',
     source: 'docs/performance.md',
     description:
-      'Measured 10,000-memory Mac runs, unverified ARM goals and native mobile acceptance gates.',
+      'Mac measurements, unverified ARM targets and required phone tests.',
   },
   {
     slug: 'local-first',
@@ -53,8 +53,7 @@ export const docs = [
     title: 'Features',
     group: 'Start here',
     source: 'docs/features.md',
-    description:
-      'What you can use in the current release, with links to each feature.',
+    description: 'Available features, the source MVP and planned work.',
   },
   {
     slug: 'demo',
@@ -78,7 +77,7 @@ export const docs = [
     group: 'Use the service',
     source: 'docs/agents.md',
     description:
-      'Four everyday memory tools plus seven KV/checkpoint tools and a save/restore contract.',
+      'Four memory tools, seven KV/checkpoint tools and checkpoint instructions.',
   },
   {
     slug: 'cli',
@@ -170,15 +169,14 @@ export const docs = [
     group: 'Project',
     source: 'docs/roadmap.md',
     description:
-      'Source MVP, real local-agent evaluation, native mobile embedding and optional richer retrieval.',
+      'Source MVP status, local-model evaluation, phone integration and optional retrieval plans.',
   },
   {
     slug: 'distributed-memory',
     title: 'Distributed memory proposal',
     group: 'Project',
     source: 'docs/distributed-memory.md',
-    description:
-      'Future historical memory branches, continuous shared updates and peer awareness.',
+    description: 'Proposed snapshot branches, shared updates and peer status.',
   },
   {
     slug: 'changelog',

@@ -1,5 +1,8 @@
 # Verified build checkpoints
 
+The entries below record historical checks. Earlier themes and deployment states are not current product claims.
+The latest source MVP and deployment are recorded in checkpoint 20.
+
 ## 1 — Foundation
 
 Rust workspace, strict deployment policy, architecture, and example profiles.
@@ -78,6 +81,7 @@ Fixed the ready address when a custom host port is supplied through `.env`;
 CI now checks that case. Installer downloads show progress and have bounded
 timeouts. Added SSH MCP instructions; the usable VPS checkout is
 `/srv/instantkv/app`, separate from the retained benchmark state.
+
 ## 9 — Cloud agents and classic desktop identity
 
 Runtime checkpoint `b8f768b`: 28 local tests, formatting, strict Clippy, both HTTP
@@ -344,3 +348,33 @@ no clipped layouts or horizontal overflow, and agents stay outside the server
 boundary. A controlled clock exercised equal timestamps, a small positive
 duration, a normal duration and reset behavior. Saved response integrity passed
 with zero live API calls and zero browser errors. Screenshots were inspected.
+
+## 20 — Local-memory MVP and minimal website
+
+Source checkpoint `d6f08d7` adds four structured-memory tools, ordered indexes and configurable query limits.
+The source MVP remains unreleased; older 0.1.2 archives lack the new tools.
+The default local setup uses loopback, private credentials and smaller limits.
+Native phone integration and real-model quality evaluation remain planned.
+
+Three fresh 10,000-memory runs used an Apple M4 Pro with 24 GiB memory.
+Topic query p95 was 0.134–0.190 ms; largest sampled server RSS was 19.5 MiB.
+All 30,000 saved memories matched their complete receipts after abrupt restarts.
+[Workload and raw evidence](performance.md).
+
+Local checks passed: 42 Rust tests, three Python contract tests and nine website/demo tests.
+Formatting, Clippy, schemas, embedded recovery and the 32-page site build passed.
+[Native and container CI](https://github.com/maskjelly/instantKV/actions/runs/37053181372)
+and [website CI](https://github.com/maskjelly/instantKV/actions/runs/37053181391) passed.
+The native matrix covered Linux x86_64, Linux ARM64 and macOS ARM64.
+
+Cloudflare version `35c40c07-d714-4401-9f84-348bd60aae97` published the minimal site.
+All 44 production checks passed at widths 1440, 768, 390 and 320px.
+Search, copying, menus, diagrams, benchmark controls and recorded recall worked without browser errors.
+Deployed report, schema and agent-doc files matched the source build.
+
+The three existing Rust instances received the CI Linux binary with offline backups.
+Known values and checkpoint restores matched their pre-upgrade checks.
+Filtered memory retrieval, restart recovery and deletion passed on the single-agent and swarm instances.
+The public demo then stored 1,000 cache and 1,000 durable records.
+Exact recall, pause/resume, cleared context, independent readers and mobile layout passed with zero errors.
+These checks are deployment evidence, not new performance measurements.

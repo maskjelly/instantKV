@@ -1,43 +1,37 @@
 # Website and documentation deployment
 
-The public site introduces instantKV, hosts the setup/feature/contributor docs
-and publishes reproducible benchmarks. The Rust memory service remains a
-local-first process. The hosted website/demo is optional; local storage and
-recall do not depend on it.
+The site provides setup guides, product details and benchmark evidence.
+The memory service remains a local process. Storage and retrieval do not depend on the hosted site or demo.
 
 ## Stack and boundaries
 
-Astro + TypeScript builds static HTML. Cloudflare Workers Static Assets serves
-the files. A small Worker proxies only `/api/demo/*` to the isolated Rust-backed
-[live demo](live-demo.md); documentation needs no database. Pagefind generates
-browser-local search. Application scripts provide search, code copying,
-benchmark chart controls. Fonts and images are
-served locally. Cloudflare's existing zone-level Web Analytics injects its beacon;
-the CSP permits only its specific script/collection hosts alongside local code.
+Astro and TypeScript build static HTML. Cloudflare Workers Static Assets serves the files.
+A small Worker forwards `/api/demo/*` to the isolated [live demo](live-demo.md).
+Pagefind provides browser-local search. Local scripts handle search, code copying and benchmark controls.
+Fonts and images are served locally.
 
-This follows [Cloudflare's static Astro deployment guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/astro/).
-[Static asset requests are free and unlimited under current Cloudflare billing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/);
-that applies to the website and does not mean memory-node infrastructure is free.
-The demo's Rust service runs redb on persistent VPS storage. Its records and
-transactions use instantKV's storage engine.
+Cloudflare zone-level Web Analytics adds a beacon.
+The Content Security Policy permits its specific script and collection hosts alongside local code.
+
+The setup follows [Cloudflare's Astro deployment guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/astro/).
+[Static asset billing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/) applies to the website, not the memory-node infrastructure.
+The demo uses real instantKV transactions and redb on persistent VPS storage.
 
 ## Website design
 
-The website uses white surfaces, neutral borders and locally served Geist
-variable typography. The split-K mark is black. The homepage has a short
-local-first explanation, a real CLI save/recall example, measured footprint and
-one installation path. It has no moving banner, decorative grid or hero diagram.
+The website uses white surfaces, neutral borders, a black split-K mark and locally served Geist.
+The homepage shows local memory, a CLI example, measured resource use and installation commands.
+It has no moving banner or decorative grid.
 
-The same type and surface rules apply to the demo, benchmarks and documentation.
-Docs are grouped by task, and technical diagrams expand on request. Search,
-code copying, recorded/live demo modes and benchmark controls remain functional.
+Demo, benchmark and documentation pages use the same design.
+Guides are grouped by task. Technical diagrams expand on request.
+Search, code copying, replay, live storage and benchmark controls remain available.
 
-Theme tokens and responsive layout live in `site/src/styles/global.css`.
-Technical diagrams use native SVG/HTML components in
-`site/src/components/diagrams/`. The [mark](assets/blueprint-mark.svg) and
-[social preview](assets/blueprint-social.svg) are editable SVG; the latter also
-has a 1200 × 630 PNG export. Font source and license are in
-[the font directory](assets/fonts/README.md).
+Theme settings and responsive layout use `site/src/styles/global.css`.
+Diagrams use SVG/HTML components in `site/src/components/diagrams/`.
+The [mark](assets/blueprint-mark.svg) and [social preview](assets/blueprint-social.svg) are editable SVG.
+The preview also has a 1200 × 630 PNG export.
+[Font sources and license](assets/fonts/README.md).
 
 The references were [Vercel](https://vercel.com/),
 [Cloudflare](https://www.cloudflare.com/) and [Google Cloud](https://cloud.google.com/):
@@ -46,16 +40,17 @@ The layout and assets are original. Measurements stay tied to their workloads.
 
 ## One documentation source
 
-`site/src/lib/docs.ts` defines navigation and descriptions. Astro's collection
-reads `docs/*.md`, `CONTRIBUTING.md`, `SECURITY.md` and `CHANGELOG.md` directly.
-Edit those Markdown files; you don't need to maintain a second copy for the site.
-The build rewrites relative repository links for the website, copies artwork,
-examples and all benchmark JSON, and generates `llms.txt`/`llms-full.txt`.
+`site/src/lib/docs.ts` defines navigation and descriptions.
+Astro reads `docs/*.md`, `CONTRIBUTING.md`, `SECURITY.md` and `CHANGELOG.md` directly.
 
-The benchmark page computes medians and totals from the 15 VPS reports and shows
-the median-throughput recordings from six actual Mac runs separately.
-Keep their recorded source revision, transport, hardware and host load visible.
-Only replace a dataset after collecting and verifying a new complete set.
+Edit those Markdown files to update the website documentation.
+
+The build rewrites relative links, copies assets and generates `llms.txt` and `llms-full.txt`.
+
+The homepage and benchmark page compute memory figures from the 2026-10-03 raw report.
+Earlier Mac recordings and 15 VPS reports remain separate.
+Each dataset retains its source revision, transport, hardware and load conditions.
+Replace a dataset only after a complete new measurement and verification.
 
 ## Local development
 
@@ -78,9 +73,8 @@ npm run verify
 npm run preview
 ```
 
-The verifier checks every rendered local link/anchor/asset, the raw reports and
-machine-readable docs. Browser QA should cover desktop/mobile, code copying,
-search, chart controls, reduced motion and the custom 404 response.
+The verifier tests rendered links, anchors, assets, reports and machine-readable docs.
+Browser checks must cover desktop/mobile layout, code copying, search, chart controls, reduced motion and the 404 page.
 
 ## Deploy to Cloudflare
 
@@ -93,40 +87,45 @@ npm run deploy          # workers.dev, before domain activation
 npm run deploy:domain   # instantkv.com
 ```
 
-`deploy` runs type/content checks, builds, verifies and uploads. The production
-Wrangler environment attaches the apex Custom Domain. Cloudflare creates its DNS
-records and certificates; preserve unrelated email/DNS records. If an existing
-CNAME conflicts, inspect it before changing anything. A pending zone must activate
-before Custom Domains can be used. The optional `www` hostname has an externally
-managed DNS conflict and is not configured for this Worker. Keep the canonical
-site at `instantkv.com`; inspect that record with its owner before changing it.
-See [official domain setup](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
+`deploy` runs content/type checks, builds, verifies and uploads.
+The production environment attaches the apex Custom Domain at `instantkv.com`.
+Cloudflare creates the required DNS records and certificates.
+The zone must be active.
+The optional `www` hostname has an externally managed conflict and is not configured.
 
-For continuous deployment, connect this repository to **Workers Builds** with
-root directory `site`, build command `npm run check && npm run build && npm run verify`
-and deploy command `npx wrangler deploy --env production`. Use main as production.
-The checked-in GitHub site workflow runs these checks on pushes and pull requests;
-it does not publish untrusted PR code with deployment credentials.
+Preserve unrelated DNS and email records.
+Inspect conflicting records with their owner before changing them.
+[Official domain setup](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
 
-Continuous deployment is an optional account integration, separate from a manual
-Wrangler publication. A Wrangler OAuth login can publish the website but the
-Builds configuration API requires additional user-token permissions. Connect
-Workers Builds in the dashboard if those permissions are unavailable; until then
-run `npm run deploy:domain` from a reviewed checkout. Do not store an expiring
-interactive OAuth token in GitHub secrets.
+Workers Builds can provide optional continuous deployment. Its settings are:
+
+| Setting           | Value                                              |
+| ----------------- | -------------------------------------------------- |
+| Root directory    | `site`                                             |
+| Production branch | `main`                                             |
+| Build command     | `npm run check && npm run build && npm run verify` |
+| Deploy command    | `npx wrangler deploy --env production`             |
+
+The GitHub website workflow verifies pushes and pull requests. It does not deploy pull-request code with production credentials.
+
+Manual Wrangler deployment and Workers Builds use separate account permissions.
+Wrangler OAuth can publish the site; the Builds API needs additional user-token permissions.
+Until Builds is configured, use `npm run deploy:domain` from a reviewed checkout.
+Do not copy expiring interactive OAuth tokens into GitHub secrets.
 
 ## Verification and rollback
 
-The homepage and benchmark page read the new structured-memory report directly.
-The memory guide, performance plan and roadmap are included in browser search and
-`llms-full.txt`. `llms.txt` names the four tools, states that the MVP is unreleased
-and separates Mac evidence from planned native mobile work. The optional Ollama
-example and generated memory schemas are downloadable under `/examples/`.
+Browser search and `llms-full.txt` include the memory guide, performance plan and roadmap.
+`llms.txt` describes the four tools, unreleased status and measured/planned boundaries.
+The Ollama example and memory schemas are available under `/examples/`.
 
-Verify HTTPS at `/`, `/docs/quickstart/`, `/benchmarks/`, `/llms.txt` and a missing
-route after publishing. Run the live demo in both cache and durable modes,
-including cross-tab recall. Confirm search works under the site's Content Security
-Policy and that the domain serves the new build. There is no website user-data
-migration. To roll back, check out the last reviewed site commit and redeploy its
-static build. Record the deployed commit/version and verification result in
-[checkpoints](checkpoints.md).
+1. Verify HTTPS on `/`, `/docs/quickstart/`, `/benchmarks/` and `/llms.txt`.
+2. Verify the 404 response for a missing route.
+3. Test search, copying and desktop/mobile layout.
+4. Run cache and durable live-demo writes.
+5. Verify exact recall in an independent tab.
+6. Compare deployed report/schema files with the reviewed build.
+
+The static site has no user-data migration.
+To roll back, deploy the last reviewed site commit.
+Record the commit, deployment version and results in [verification history](checkpoints.md).

@@ -1,42 +1,46 @@
 # Live memory demo
 
-[Open the demo](https://instantkv.com/demo/). No account or model API key is
-needed. The default mode replays a recorded Mac run. Select **Live VPS** to
-choose RAM cache or durable storage, edit the synthetic context and start
-the writer. The page displays only acknowledged writes. Clear local context,
-choose a record index and recall it from the separate reader. **Open reader in
-new tab** passes only a session locator. The new page uses it to fetch the saved
-value from the Rust service.
+[Open the demo](https://instantkv.com/demo/). No account or model API key is needed.
+The default mode replays recorded Mac KV measurements.
+Live VPS mode writes temporary synthetic records to the Rust service.
+The page counts only acknowledged writes.
+
+To test live storage:
+
+1. Select **Live VPS** and a storage mode.
+2. Set the synthetic context and start the writer.
+3. Clear local context after writes complete.
+4. Select a record index and recall it in the reader.
+5. Open the reader in a new tab to verify independent retrieval.
+
+The reader-tab link contains only a session locator. It does not contain the saved value.
+This demo uses the raw KV API. The [structured-memory benchmark](performance.md) measures the new retrieval API.
 
 ## Recorded Mac replay
 
-The default view uses actual measurements from an Apple M4 Pro / 24 GiB Mac.
-Three 100,000-record cache runs and three 10,000-record durable runs completed
-with **330,000 acknowledged writes, 24 verified reads and zero errors**. The
-median-throughput run for each mode supplies its own trace, timings and saved
-responses. [All reports and reproduction](demo-results/2026-10-02-mac/README.md).
+The recording uses an Apple M4 Pro with 24 GiB memory.
+Three cache runs stored 100,000 records each; three durable runs stored 10,000 each.
+They completed 330,000 acknowledged writes and 24 exact reads with zero errors.
+Replay selects the median-throughput run for each mode.
+[Raw reports and reproduction](demo-results/2026-10-02-mac/README.md).
 
-The animation plays at 2× speed. Throughput and latency always use the original
-measured times. During playback, p50/p99 describe the latest recorded batch;
-completion shows the whole-run percentiles. There is no 50% performance uplift
-or prediction about other hardware.
+Animation plays at 2× speed. Performance figures use the original measured times.
+During playback, p50/p99 describe the latest batch. At completion, they describe the whole run.
 
-Cloudflare serves a static recording. The browser caches four exact storage
-responses per mode: first, quarter, middle and last. Recall copies a saved
-response from that cache; the page labels its lookup time separately from the
-recorded coordinator-to-Rust GET time. It issues no storage request and writes
-no records during replay. Clearing context clears only the displayed preview;
-the recording remains cached. Use Live VPS to test retrieval from storage
-independent of the browser. A recorded reader tab loads its own copy of the
-static recording, whereas a live reader tab passes only its session locator.
+Cloudflare serves the static recording.
+The browser caches four exact responses per mode: first, quarter, middle and last.
+Recorded recall copies a response from that cache and makes no storage request.
+The page separates browser lookup time from recorded Rust HTTP read time.
+Clearing the displayed context does not remove the recording.
 
-The client cache timer covers finding and copying a saved response in browser
-memory. It excludes the network, Rust storage and display rendering. Browsers
-[reduce clock precision](https://developer.mozilla.org/en-US/docs/Web/API/Performance/now#security_requirements),
-so a short lookup can return the same timestamp before and after the operation.
-The demo shows **Below timer resolution** for that case. It does not display a
-numeric zero or substitute an invented latency. Positive durations below the
-display's precision show **<0.001 ms**; recorded backend timings stay unchanged.
+Live VPS tests retrieval from storage. A live reader tab passes only its locator.
+A recorded reader tab loads its own recording copy.
+
+The client cache timer measures lookup and copy in browser memory.
+It excludes the network, Rust storage and rendering.
+Browsers [reduce clock precision](https://developer.mozilla.org/en-US/docs/Web/API/Performance/now#security_requirements), so short operations can have equal start/end timestamps.
+The page shows **Below timer resolution** for that case.
+Positive values below display precision show **<0.001 ms**. Recorded backend timing remains unchanged.
 
 ```text
 Mac recorder → real Rust PUT/GET → raw reports + verified response samples
@@ -44,10 +48,10 @@ Mac recorder → real Rust PUT/GET → raw reports + verified response samples
 Cloudflare static recording → browser cache → 2× trace playback / saved recall
 ```
 
-RAM median: **42,517 writes/s**, PUT p50/p99 **0.328/0.726 ms**. Immediate durable
-median: **225 writes/s**, PUT p50/p99 **70.349/81.229 ms**. Durable writes were
-slower on this Mac than the earlier VPS demo. Local HTTP measurements cannot
-predict public HTTPS latency; we preserve both datasets and their conditions.
+RAM median: **42,517 writes/s**; PUT p50/p99: **0.328/0.726 ms**.
+Durable median: **225 writes/s**; PUT p50/p99: **70.349/81.229 ms**.
+Durable writes were slower on this Mac than in the earlier VPS demo.
+Both datasets retain their original conditions. Local HTTP does not predict public HTTPS latency.
 
 ## Actual storage path
 
@@ -66,32 +70,29 @@ instantKV Rust HTTP API · separate demo container
   └─ demo_knowledge → redb immediate transactions + 15-minute TTL
 ```
 
-Cloudflare serves the public site and forwards demo requests. The Rust service
-runs on a VPS, storing cache records in RAM and durable records in redb. A small
-Node coordinator generates synthetic values and groups writes into batches.
-Every value is stored and read through instantKV.
+Cloudflare serves the site and forwards live-demo requests.
+The Rust service stores cache records in RAM and durable records in redb on the VPS.
+A Node coordinator generates synthetic values and groups writes into batches.
+Every live value is stored and read through instantKV.
 
 ## What the numbers mean
 
-| Metric | Measurement |
-|---|---|
-| Acknowledged records | Successful Rust PUT responses, advanced only when the complete batch succeeds |
-| Payload written | Actual UTF-8 bytes of JSON values; key/storage/transport overhead excluded |
-| End-to-end rate | Acknowledged records divided by accumulated successful browser write-request time; pauses and session creation excluded |
-| Backend p50/p99 | Percentiles across every successful coordinator-to-Rust PUT in batches measured by this tab; includes HTTP and response parsing, not engine-only time |
-| Live trace | Browser round-trip for each successful 512-record batch; includes Cloudflare, TLS, network, batching and parsing |
-| Read round-trip | Browser request through Cloudflare to the coordinator and back |
-| Backend HTTP read | Coordinator-to-Rust GET plus JSON parsing |
-| Exact verification | Fetched JSON matches the generated value for that record |
-| Failed requests | Rejected browser API responses; failed batch replies also include their backend failure count |
+| Metric               | Measurement                                                                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Acknowledged records | Successful Rust PUT responses, advanced only when the complete batch succeeds                                                                         |
+| Payload written      | Actual UTF-8 bytes of JSON values; key/storage/transport overhead excluded                                                                            |
+| End-to-end rate      | Acknowledged records divided by accumulated successful browser write-request time; pauses and session creation excluded                               |
+| Backend p50/p99      | Percentiles across every successful coordinator-to-Rust PUT in batches measured by this tab; includes HTTP and response parsing, not engine-only time |
+| Live trace           | Browser round-trip for each successful 512-record batch; includes Cloudflare, TLS, network, batching and parsing                                      |
+| Read round-trip      | Browser request through Cloudflare to the coordinator and back                                                                                        |
+| Backend HTTP read    | Coordinator-to-Rust GET plus JSON parsing                                                                                                             |
+| Exact verification   | Fetched JSON matches the generated value for that record                                                                                              |
+| Failed requests      | Rejected browser API responses; failed batch replies also include their backend failure count                                                         |
 
-Context length is a character count for the content field; the complete JSON
-record is larger. Agent IDs cycle across 64 synthetic workers. The shared demo
-does not model namespace isolation between those synthetic workers.
-[The CLI swarm demo](demo.md) tests worker isolation and checkpoint recovery
-after a restart. Use the [controlled benchmark page](benchmarks.md)
-for the separate three-run, hardware-recorded measurements; public demo timings
-vary with where you are, load on the shared server and other visitors.
+Context length counts characters in the content field. The complete JSON record is larger.
+Agent IDs cycle across 64 synthetic workers. Those labels do not provide namespace isolation.
+The [CLI swarm demo](demo.md) tests worker isolation and checkpoint recovery.
+Public-demo timing varies with location, server load and other visitors.
 
 ## Recorded live verification
 
@@ -104,38 +105,38 @@ Durable mode also wrote **10,000 records / 6.82 MiB** with zero failed API reque
 and zero browser errors. After clearing local context, record 9,999 was retrieved
 and exactly verified. [Raw durable verification report](demo-results/2026-10-01-cloudflare-durable.json).
 
-| Public demo run | Records | Payload | End-to-end rate | Backend HTTP PUT p50 / p99 |
-|---|---:|---:|---:|---:|
-| RAM cache | 100,000 | 68.25 MiB | 854 records/s | 5.78 / 88.61 ms |
-| Immediate durable storage | 10,000 | 6.82 MiB | 330 records/s | 26.36 / 127.60 ms |
+| Public demo run           | Records |   Payload | End-to-end rate | Backend HTTP PUT p50 / p99 |
+| ------------------------- | ------: | --------: | --------------: | -------------------------: |
+| RAM cache                 | 100,000 | 68.25 MiB |   854 records/s |            5.78 / 88.61 ms |
+| Immediate durable storage |  10,000 |  6.82 MiB |   330 records/s |          26.36 / 127.60 ms |
 
-These are individual public demonstration runs on a shared VPS with explicit CPU limits;
-the controlled three-run benchmark dataset remains separate.
+These are individual public-demo runs on a shared VPS with explicit CPU limits.
+They remain separate from controlled three-run benchmarks.
 
 ## Resource and data boundaries
 
-RAM workloads support 1,000–100,000 records; durable workloads stop at 10,000.
-Sessions expire after 15 minutes, with at most 12 live sessions and two concurrent
-write batches. Each batch performs up to 16 backend requests in parallel. Records
-are synthetic and temporary: never submit secrets or production memory.
+RAM workloads allow 1,000–100,000 records. Durable workloads allow at most 10,000.
+Sessions expire after 15 minutes, with at most 12 sessions and two concurrent batches.
+Each batch sends at most 16 backend requests in parallel.
 
-The RAM namespace is capped at 128 MiB/150,000 records and may evict older records.
-Durable demo storage is capped at 64 MiB/30,000 records and rejects excess writes.
-Both have indexed TTL cleanup. The memory container is limited to 512 MiB/one CPU;
-the coordinator to 192 MiB/half a CPU. These limits isolate this demo from existing
-agent deployments. Quotas measure key/value bytes, not all process overhead.
+Use only synthetic data. Never submit secrets or production memory.
 
-Session locators are randomly generated 192-bit bearer capabilities. Only someone
-with the locator can read that session through the coordinator. Locators are
-reusable until expiry; they are not production identity or tenant authorization.
-Private engine/gateway/tunnel tokens stay server-side. A Workers VPC service binds
-only the coordinator's loopback port; the origin has no public HTTP route or DNS
-record. Tunnel traffic is encrypted, with a private HTTP hop on the same VPS.
-The Worker permits only four fixed
-operations and checks request origins and body size. Its 240 requests/minute/IP
-limit is location-local, not a global abuse budget; shared networks can share that
-limit. The gateway enforces its own concurrency/session limits globally for this
-single deployment. This is a public sandbox, not the future managed service.
+The RAM namespace allows 128 MiB of logical data and 150,000 records. It can evict older records.
+Durable storage allows 64 MiB and 30,000 records; excess writes fail.
+Both use indexed expiry cleanup.
+The memory container has a 512 MiB/one-CPU limit; the coordinator has a 192 MiB/half-CPU limit.
+Quotas count logical key/value bytes, not all process overhead.
+
+Session locators are random 192-bit bearer capabilities.
+A locator permits reading that session until expiry. It is not production identity or tenant authorization.
+Engine, gateway and tunnel credentials remain server-side.
+The private VPC binding exposes only the coordinator's loopback port.
+There is no public HTTP origin route or DNS record.
+
+The Worker permits four fixed operations and validates origins and body size.
+Its 240-requests/minute/IP limit applies per location; shared networks can share that limit.
+The gateway applies global session and concurrency limits for this deployment.
+This sandbox is separate from a future managed service.
 
 ## Reproduce on your own machine
 
@@ -160,25 +161,19 @@ engine. Do not expose the Rust container port or grant the demo access to existi
 agent namespaces. Stop the isolated Compose project to disable the demo; the docs
 remain usable when the proxy returns a temporary-unavailability response.
 
-The connector image is pinned to cloudflared 2026.9.3. VPC requires QUIC transport
-and outbound UDP port 7844. It is a Cloudflare beta integration; monitor changes
-and preserve the self-hosted HTTP contract. See the [official VPC setup guide](https://developers.cloudflare.com/workers-vpc/get-started/)
-and [tunnel requirements](https://developers.cloudflare.com/workers-vpc/configuration/tunnel/).
+The connector uses cloudflared 2026.9.3. VPC requires QUIC and outbound UDP port 7844.
+This integration is a beta; the self-hosted HTTP API remains separate.
+[Official VPC setup](https://developers.cloudflare.com/workers-vpc/get-started/) ·
+[Tunnel requirements](https://developers.cloudflare.com/workers-vpc/configuration/tunnel/).
 
-Coordinator/proxy tests: `cd site && npm test`. They cover credentials, route and
-body limits, exact write/read integrity, rejected indices, batch failure without
-acknowledgement advancement and retry. Verify the deployed page at desktop and
-mobile sizes, cache/durable modes, context clearing, pause/resume, exact reads,
-cross-tab recall and visible failure states before publishing.
+Run `cd site && npm test` for coordinator/proxy tests.
+They cover credentials, limits, exact integrity, invalid indices and partial batch failure/retry.
+Before deployment, test cache/durable writes, pause/resume, cleared context, independent recall, failure states and mobile layout.
 
 ## Website design references
 
-Reviewed before implementing this demo: [Upstash Redis](https://upstash.com/redis)
-for setup and latency emphasis; [Turso](https://turso.tech) for code-first onboarding
-and per-agent architecture; [Valkey](https://valkey.io) for clear access to docs,
-downloads and a runnable service. The later website redesign also reviewed
-[Redis](https://redis.io/) and Valkey for clear product and installation paths.
-instantKV now uses a minimal white layout, neutral type and diagrams that expand
-when needed. Its homepage leads with local memory, runnable examples and measured
-results. Native phone integrations and device performance goals are marked as
-planned work.
+The initial demo reviewed [Upstash Redis](https://upstash.com/redis), [Turso](https://turso.tech) and [Valkey](https://valkey.io/).
+Later design work reviewed [Redis](https://redis.io/) and Valkey.
+The current site uses a minimal white layout and neutral typography.
+Its homepage leads with local memory, runnable examples and measured results.
+Phone integration and device targets remain planned.

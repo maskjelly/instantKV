@@ -55,3 +55,10 @@ Preserve conditional writes, TTL and checkpoint contracts. Tests must cover
 index consistency after update/delete/expiry, recovery and cursor continuation.
 Do not introduce cloud dependencies, automatic model calls, arbitrary uploaded
 code execution or unsupported phone/performance claims.
+
+## Documentation style
+
+Use short, natural sentences based on ASD-STE100 principles. Full dictionary compliance is not required.
+Keep the README brief. Put detailed procedures and limits in the guides.
+Preserve exact API names, commands, benchmark conditions and source/release distinctions.
+Follow the writing guidance in `CONTRIBUTING.md`.
