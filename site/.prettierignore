@@ -4,6 +4,7 @@ dist/
 .wrangler/
 public/assets/
 public/benchmark-data/
+public/recordings/
 public/examples/
 public/llms*.txt
 package-lock.json

@@ -66,6 +66,26 @@ assert.equal(
   reports.reduce((sum, report) => sum + report.errors, 0),
   0,
 );
+const recordingFiles = files(resolve(root, 'recordings/mac')).filter((path) =>
+  /(?:cache|durable)-\d\.json$/.test(path),
+);
+assert.equal(recordingFiles.length, 6);
+const recordings = recordingFiles.map((path) =>
+  JSON.parse(readFileSync(path, 'utf8')),
+);
+assert.equal(
+  recordings.reduce((sum, report) => sum + report.written, 0),
+  330000,
+);
+assert.equal(
+  recordings.reduce((sum, report) => sum + report.errors, 0),
+  0,
+);
+const replay = JSON.parse(
+  readFileSync(resolve(root, 'recordings/mac/replay.json'), 'utf8'),
+);
+assert.equal(replay.recordings.cache.count, 100000);
+assert.equal(replay.recordings.durable.count, 10000);
 assert(
   existsSync(resolve(root, 'pagefind/pagefind.js')),
   'Search index exists',

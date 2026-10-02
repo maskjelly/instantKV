@@ -68,9 +68,9 @@ These are design shapes, not accepted endpoints or the current record format:
 | FindingBatch | `branch_id`, `sequence`, `content_hash`, `changes[]`, `source_locators[]`, `base_revisions[]` | Same branch + sequence + digest is idempotent; changed digest conflicts; durable receipt precedes acknowledgement |
 | SharedEvent | `event_id`, `sequence`, `scope`, `kind`, `key`, `revision`, `origin_branch`, `published_baseline_id` | Canonical publisher assigns order; durable replay; consumers persist cursor only after applying an event |
 | AgentPresence | `agent_id`, `branch_id`, `task`, `state`, `lease_deadline`, `last_published_sequence`, `observed_feed_cursor` | Authorized metadata only; expired lease means stale/unknown, never proof of completion |
-| RunCompletion | `run_id`, `agent_id`, `baseline_id`, `checkpoint_locator`, `delta_hash`, `shareable_changes[]` | Same run ID + digest is idempotent; changed digest is a conflict |
+| RunCompletion | `run_id`, `branch_id`, `agent_id`, `baseline_id`, `checkpoint_locator`, `last_submitted_sequence`, `delta_hash`, `shareable_changes[]` | Same run ID + digest is idempotent; changed digest is a conflict; completion waits for preceding finding batches |
 | KnowledgeCandidate | `candidate_id`, `key`, `content`, `source_locators[]`, `observed_at`, `run_id`, `base_revision`, `content_hash`, `visibility` | Sources, origin and sharing policy survive summarization |
-| ConsolidationJob | `job_id`, `run_id`, `state`, `attempt`, `lease_deadline`, `accepted[]`, `rejected[]`, `conflicts[]`, `published_baseline_id` | Durable state transitions; expired leases are reclaimable |
+| ConsolidationJob | `job_id`, `run_id`, `branch_id`, `batch_sequence`, `state`, `attempt`, `lease_deadline`, `accepted[]`, `rejected[]`, `conflicts[]`, `published_baseline_id` | Durable state transitions; expired leases are reclaimable |
 | PublishedFact | `key`, `revision`, `content`, `source_locators[]`, `origin_runs[]`, `validated_at`, `supersedes[]` | Conflicting content is reviewed; updates use revision checks |
 
 Job states: `received -> importing -> validating -> awaiting_review -> publishing
@@ -82,7 +82,7 @@ they must not imply the other. Model output is untrusted candidate content.
 
 Context compaction and knowledge consolidation have different purposes. A
 handoff capsule preserves enough context to continue one task. Consolidation
-extracts reusable knowledge from finished runs. It must preserve original source
+extracts reusable knowledge from findings shared during or after runs. It must preserve original source
 locators and cannot replace private capsules silently.
 
 Deduplicate exact content first. A change based on an older baseline revision

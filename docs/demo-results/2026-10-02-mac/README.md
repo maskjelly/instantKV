@@ -3,6 +3,10 @@
 Apple M4 Pro, 14 physical cores, 24 GiB RAM, macOS 27.0. Published instantKV 0.1.2
 binary, runtime source `6eceb8bdd2450cc9977d0fd3c4b3627a9bf0a032`.
 [Environment and binary SHA-256](environment.json).
+The report's `recorder_source` identifies the checkout base at capture; the new
+recorder was committed afterward in `6283ed7`. The coordinator itself was
+unchanged from that checkout. The published binary has its own runtime source
+and SHA-256, recorded separately.
 
 The real demo coordinator wrote unique synthetic records through the Rust HTTP
 API: three runs of 100,000 RAM records and three of 10,000 durable records.

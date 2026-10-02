@@ -1,5 +1,22 @@
 # Benchmark: HTTP request paths
 
+## Mac demo: 330,000 writes, zero errors
+
+On 2026-10-02, the actual browser-demo storage workload ran locally on an
+**Apple M4 Pro / 24 GiB Mac**: three 100,000-record RAM runs and three 10,000-record
+durable runs. The median throughput run reached **42,517 RAM writes/s**, with
+backend PUT p50 **0.328 ms** and p99 **0.726 ms**. The median durable run reached
+**225 writes/s**, with p50 **70.349 ms** and p99 **81.229 ms**. All 24 sampled
+reads exactly matched their fixtures.
+
+These are new unique-record demo workloads over local HTTP, without public
+network latency or container CPU limits. They differ from the hot-key workloads
+below. The site replays these real results at 2× animation speed and caches four
+saved responses per mode; it never divides measured latencies or doubles measured
+throughput. [Conditions, reproduction and all six reports](demo-results/2026-10-02-mac/README.md).
+
+## Rove HTTP workloads — 2026-10-01
+
 Measured on Rove on 2026-10-01, using verified source
 [`28412f4`](https://github.com/maskjelly/instantKV/tree/28412f4e209b98c522846da79d2489f1d970e91f).
 Three runs per profile; **157,500 successful measured requests, zero errors**.

@@ -1,11 +1,45 @@
 # Live memory demo
 
-[Open the live demo](https://instantkv.com/demo/). No account or model API key is
-needed. Choose RAM cache or durable storage, edit the synthetic context and start
+[Open the demo](https://instantkv.com/demo/). No account or model API key is
+needed. The default mode replays a recorded Mac run. Select **Live VPS** to
+choose RAM cache or durable storage, edit the synthetic context and start
 the writer. The page displays only acknowledged writes. Clear local context,
 choose a record index and recall it from the separate reader. **Open reader in
 new tab** passes only a session locator. The new page uses it to fetch the saved
 value from the Rust service.
+
+## Recorded Mac replay
+
+The default view uses actual measurements from an Apple M4 Pro / 24 GiB Mac.
+Three 100,000-record cache runs and three 10,000-record durable runs completed
+with **330,000 acknowledged writes, 24 verified reads and zero errors**. The
+median-throughput run for each mode supplies its own trace, timings and saved
+responses. [All reports and reproduction](demo-results/2026-10-02-mac/README.md).
+
+The animation plays at 2× speed. Throughput and latency always use the original
+measured times. During playback, p50/p99 describe the latest recorded batch;
+completion shows the whole-run percentiles. There is no 50% performance uplift
+or prediction about other hardware.
+
+Cloudflare serves a static recording. The browser caches four exact storage
+responses per mode: first, quarter, middle and last. Recall copies a saved
+response from that cache; the page labels its lookup time separately from the
+recorded coordinator-to-Rust GET time. It issues no storage request and writes
+no records during replay. Clearing context clears only the displayed preview;
+the recording remains cached. Use Live VPS to test retrieval from storage
+independent of the browser. A recorded reader tab loads its own copy of the
+static recording, whereas a live reader tab passes only its session locator.
+
+```text
+Mac recorder → real Rust PUT/GET → raw reports + verified response samples
+                                      ↓ select median throughput run
+Cloudflare static recording → browser cache → 2× trace playback / saved recall
+```
+
+RAM median: **42,517 writes/s**, PUT p50/p99 **0.328/0.726 ms**. Immediate durable
+median: **225 writes/s**, PUT p50/p99 **70.349/81.229 ms**. Durable writes were
+slower on this Mac than the earlier VPS demo. Local HTTP measurements cannot
+predict public HTTPS latency; we preserve both datasets and their conditions.
 
 ## Actual storage path
 

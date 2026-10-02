@@ -9,7 +9,7 @@
 # instantKV
 
 [Website](https://instantkv.com) · [Start guide](https://instantkv.com/docs/quickstart/)
-· [Live demo](https://instantkv.com/demo/) · [Benchmarks](https://instantkv.com/benchmarks/) · [Documentation](https://instantkv.com/docs/)
+· [Memory demo](https://instantkv.com/demo/) · [Benchmarks](https://instantkv.com/benchmarks/) · [Documentation](https://instantkv.com/docs/)
 
 **Your agent did the work. Give it somewhere to keep it.**
 
@@ -78,12 +78,19 @@ original profile. [Quick setup and binary install →](docs/quickstart.md)
 
 ## See it work
 
-[**Open the live memory demo →**](https://instantkv.com/demo/)
-Write up to 100,000 temporary cache records or 10,000 durable records. Clear the
+[**Open the memory demo →**](https://instantkv.com/demo/)
+Replay 100,000 real Mac cache writes at 2× animation speed, then recall a cached
+storage response. The measured result stays **42,517 writes/s**, with **0.328 ms
+PUT p50**; playback never scales performance numbers. Three runs per mode,
+330,000 writes and 24 exact reads, zero errors.
+[Mac hardware, limits and all raw reports](docs/demo-results/2026-10-02-mac/README.md).
+
+Select **Live VPS** to write up to 100,000 temporary cache records or 10,000 durable records. Clear the
 writer's local context, retrieve an exact key in the separate reader, or open the
 reader in a new tab. The demo uses real Rust storage and shows how many records
 were saved, how much data was written and how long requests took. Watch throughput,
-latency percentiles and the live request trace. No account needed.
+latency percentiles and the live request trace. Replay is labeled separately
+from live storage; no account needed.
 
 <img src="docs/assets/live-demo.svg" width="1100" alt="Live demo request flow: browser writer and reader, Cloudflare Worker, private VPC and QUIC tunnel, isolated coordinator, Rust HTTP API and real RAM or durable redb storage">
 

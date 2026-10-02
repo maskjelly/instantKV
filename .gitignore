@@ -22,6 +22,7 @@
 /demo/.tunnel-token
 /site/public/assets/
 /site/public/benchmark-data/
+/site/public/recordings/
 /site/public/examples/
 /site/public/llms.txt
 /site/public/llms-full.txt

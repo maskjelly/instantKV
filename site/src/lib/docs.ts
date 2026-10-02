@@ -10,11 +10,11 @@ export const docs = [
   },
   {
     slug: 'live-demo',
-    title: 'Live demo architecture',
+    title: 'Demo architecture',
     group: 'Start here',
     source: 'docs/live-demo.md',
     description:
-      'How the browser demo stores records and measures request times.',
+      'Recorded Mac playback, client caching and live VPS storage measurements.',
   },
   {
     slug: 'quickstart',
@@ -154,7 +154,7 @@ export const docs = [
     group: 'Project',
     source: 'docs/distributed-memory.md',
     description:
-      'Future baseline replicas, private overlays and knowledge consolidation.',
+      'Future historical memory branches, continuous shared updates and peer awareness.',
   },
   {
     slug: 'changelog',

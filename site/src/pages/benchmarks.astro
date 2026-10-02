@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import { workloads, successful, errors, environment } from '../lib/benchmarks';
+import macCache from '../../../docs/demo-results/2026-10-02-mac/cache-2.json';
+import macDurable from '../../../docs/demo-results/2026-10-02-mac/durable-1.json';
 const max = Math.max(...workloads.map((w) => w.rps));
 const number = (value: number) => Math.round(value).toLocaleString('en-US');
 ---
@@ -22,6 +24,65 @@ const number = (value: number) => Math.round(value).toLocaleString('en-US');
         Three runs of every workload, with the full results here.
       </p>
     </div>
+    <section class="section" aria-label="Measured Mac demo runs">
+      <span class="eyebrow">New / Apple M4 Pro / 24 GiB / 2026-10-02</span>
+      <h2>100,000 memories. Measured on a Mac.</h2>
+      <p>
+        330,000 writes across six runs. 24 exact reads. Zero errors. The real
+        demo coordinator talks to Rust over local HTTP with 16 concurrent
+        requests. Each row is the median throughput run of three, with that same
+        run's measured percentiles. These unique-record workloads differ from
+        the VPS hot-key tests below.
+      </p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Storage</th>
+              <th>Records/run</th>
+              <th>Writes/s</th>
+              <th>PUT p50</th>
+              <th>PUT p99</th>
+              <th>Raw run</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[macCache, macDurable].map((run) => (
+              <tr>
+                <td>
+                  {run.mode === 'cache'
+                    ? 'RAM cache'
+                    : 'Immediate durable storage'}
+                </td>
+                <td>{number(run.count)}</td>
+                <td>{number(run.records_per_second)}</td>
+                <td>{run.latency_ms.p50.toFixed(3)} ms</td>
+                <td>{run.latency_ms.p99.toFixed(3)} ms</td>
+                <td>
+                  <a href={`/recordings/mac/${run.mode}-${run.iteration}.json`}>
+                    Download ↗
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        No Cloudflare or internet latency in these measurements. Durable writes
+        came out slower on this Mac than the earlier VPS demo; faster hardware
+        alone does not guarantee faster commits. Playback is 2× speed, while
+        every performance figure stays as measured.
+      </p>
+      <div class="button-row">
+        <a class="text-link" href="/demo/">
+          Replay the Mac run →
+        </a>
+        <a class="text-link" href="/recordings/mac/README.md">
+          Methodology & all six reports →
+        </a>
+      </div>
+    </section>
     <div class="benchmark-summary">
       <span>
         <strong>{number(successful)}</strong> successful requests

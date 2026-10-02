@@ -260,3 +260,33 @@ controls worked. Another 1,000 real cache writes completed with zero errors;
 the writer was cleared, record 999 was verified, and an independent tab retrieved
 record 500 with the expected text. Screenshots of the homepage and mobile guide
 were inspected before publishing.
+
+## 17 — Historical branches and measured Mac replay
+
+Expanded the distributed proposal with historical snapshot forks, independent
+agent branches, findings submitted during runs, reviewed shared updates and
+peer awareness. The schema specifies lineage, batch sequences, replayable event
+IDs, cursor recovery and stale-peer leases. The README and roadmap label these
+features as planned; the new SVG shows the proposed flow.
+
+Ran the unchanged demo coordinator against the published 0.1.2 Rust binary on an
+Apple M4 Pro / 24 GiB Mac. Three 100,000-record RAM runs and three 10,000-record
+durable runs completed with 330,000 acknowledged writes, 24 exact reads and zero
+errors. Median throughput runs: 42,517 RAM writes/s and 225 durable writes/s.
+Full raw operation timings, hardware, binary hash, conditions and reproduction
+are published. The Mac durable result is slower than the earlier VPS demo;
+both datasets stay visible.
+
+The default website demo now replays the median run at 2× animation speed and
+caches four real GET responses per mode. It labels cached lookup time separately
+from recorded backend time. Whole-run throughput and percentiles stay measured;
+no numbers receive an artificial performance uplift. Live VPS still performs
+actual writes and independent reads.
+
+Local validation: formatting and Astro/TypeScript checks, nine coordinator,
+proxy and recording-integrity tests, 29-page build, rendered links/assets/search,
+all 15 original benchmark reports and six new recordings. Chromium preview
+passed cache/durable replay, pause/resume, all saved samples, context clearing,
+independent recorded reader, 390px layout and zero replay API calls. A further
+1,000 live VPS writes and exact reads in two independent tabs passed with zero
+browser errors. The separate in-progress visual redesign was preserved.

@@ -13,3 +13,5 @@
   Cache-Control: public, max-age=3600
 /benchmark-data/*
   Cache-Control: public, max-age=3600
+/recordings/mac/*
+  Cache-Control: public, max-age=3600
