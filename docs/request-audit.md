@@ -8,11 +8,15 @@ Updated: 2026-10-03. This page records current behavior and links to its evidenc
 The structured-memory MVP is implemented in source and remains unreleased.
 The earlier 0.1.2 archives do not contain its new memory tools.
 
-Commit [`d6f08d7`](https://github.com/maskjelly/instantKV/commit/d6f08d7b895963f228c2eb3d68a14a94d045d34d)
-passed [Linux x86_64, Linux ARM64, macOS ARM64 and container CI](https://github.com/maskjelly/instantKV/actions/runs/37053181372).
-Its [website CI](https://github.com/maskjelly/instantKV/actions/runs/37053181391) also passed.
-The Rust build was deployed to the existing single-agent, swarm and public-demo instances.
-Existing values and checkpoints matched their pre-upgrade checks.
+The refreshed runtime source is
+[`db26d1a`](https://github.com/maskjelly/instantKV/commit/db26d1a08a1f802dad13ac11c7340222d15950e0).
+It passed [Linux x86_64, Linux ARM64, macOS ARM64 and container CI](https://github.com/maskjelly/instantKV/actions/runs/37060413210)
+and [website CI](https://github.com/maskjelly/instantKV/actions/runs/37060413178).
+Fresh benchmark and demo reports identify the exact runtime source and binary hash.
+The recorder also hashes its own code, fixtures, gateway and config.
+The verified Linux binary is deployed to the single-agent, swarm and demo services.
+Existing values and checkpoint restores match their pre-upgrade hashes.
+The deployed CLI demos, filtered retrieval, real restarts and revision-checked deletion passed.
 
 ## Requested work
 
@@ -41,6 +45,10 @@ It also verified current memory saves, combined topic/tag/time filters, cursor c
 independent readers, revision-checked deletion, empty index results after deletion,
 mobile pause/resume and saved queries with zero recorded-mode storage requests.
 The single-agent, swarm and embedded Rust demos passed with real storage.
+Production browser verification repeated the 72 layout checks and all interactions
+on `instantkv.com`, with zero browser errors. It saved 100 memories on desktop
+and 1,000 on mobile; these smoke runs are separate from the measured workloads.
+Published raw reports and agent docs matched the source files byte for byte.
 
 Storage tests verify persistence and transport. CLI demos simulate context clearing.
 Real-model recall quality, native phone support, battery use and deeper disk-failure tests remain pending.

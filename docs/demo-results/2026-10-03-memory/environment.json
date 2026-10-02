@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-10-02T20:04:29.407Z",
+  "measured_at": "2026-10-02T20:29:08.869Z",
   "hardware": {
     "cpu": "Apple M4 Pro",
     "physical_cores": 14,
@@ -7,10 +7,16 @@
     "macos": "27.0"
   },
   "runtime_version": "instantkv 0.1.2",
-  "runtime_source": "d6f08d7b895963f228c2eb3d68a14a94d045d34d",
-  "source_dirty": true,
-  "recorder_source": "de53784a9d20e1a7130ad53a9177cb0e88081ae8",
-  "binary_sha256": "ff287e9d8dfac54f4ce7638d5c071484e36183e0285ae6ac3c06b0b28e5108ea",
+  "runtime_source": "db26d1a08a1f802dad13ac11c7340222d15950e0",
+  "source_dirty": false,
+  "recorder_source": "1413253e61602166414612d9ece47eb53d811a68",
+  "recorder_files_sha256": {
+    "record.mjs": "6d166a12ef23dd7b9a87a3f9e548e74a72463171d6a605a12dd5241a1556aded",
+    "gateway.mjs": "eae08ea19848f779f87fea6dfe90746b04c4ebc8b5a76f1a7b167a55ee7326ef",
+    "fixtures.mjs": "03932673a3900382b472991e20b4e891845f67c6e1bbff1c62ba87de6d6a62ab",
+    "instantkv.toml": "d6740dbf9cc0429ffa296a0b392b2fda105f027ee07955acaea1c0210185b7e7"
+  },
+  "binary_sha256": "8d6063f1f65e1e6469c3020d0e1ea69d436edcf418fc8db09b07a780ee00f151",
   "transport": "Loopback HTTP/1.1; coordinator-to-Rust keep-alive; no Cloudflare or public network",
   "concurrency": 16,
   "batch_size": 512,

@@ -378,3 +378,35 @@ Filtered memory retrieval, restart recovery and deletion passed on the single-ag
 The public demo then stored 1,000 cache and 1,000 durable records.
 Exact recall, pause/resume, cleared context, independent readers and mobile layout passed with zero errors.
 These checks are deployment evidence, not new performance measurements.
+
+## 21 — Current memory demos and full lifecycle measurements
+
+The browser demo now calls the structured-memory API for saves, filtered queries,
+browse continuation, exact reads and revision-checked deletion.
+Recorded mode selects real saved responses from three new 10,000-memory runs.
+The recorder identifies the runtime revision, binary hash and exact source-file hashes.
+
+The refreshed benchmark measures saves, six query paths, exact reads and forget.
+It verified all 30,000 memories after abrupt restarts, then verified 900 deletions
+and exactly 9,700 remaining memories per run through complete index browsing.
+[Raw results](benchmarks/2026-10-03-memory/mac-arm64.json).
+
+CLI and embedded demos exercise the current memory lifecycle.
+The swarm demo uses structured shared/private memory and scoped credentials.
+The runtime passed Linux x86_64, Linux ARM64, macOS ARM64 and container CI.
+Local verification passed 42 Rust tests, three Python tests, nine website/demo tests,
+72 browser layout checks and live/recorded interaction checks with zero browser errors.
+
+The landing page, benchmark page, demos, setup guides and machine-readable docs
+use current memory behavior and evidence. Earlier raw KV reports remain history.
+
+The verified Linux artifact was deployed to all three existing Rust services.
+Offline backups were taken first. Existing values and checkpoint restores matched
+their original hashes after upgrade. Deployed memory and swarm demos passed.
+The private gateway now uses only the scoped `demo_memories` namespace.
+
+The production site passed 72 desktop/mobile layout checks and the complete
+current memory flow, including filters, cursor continuation, independent reads,
+forget, empty deletion results and mobile pause/resume. Recorded mode made zero
+storage calls. Public reports and agent docs matched their source bytes.
+Stable report URLs now revalidate instead of keeping stale measurements cached.

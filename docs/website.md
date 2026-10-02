@@ -51,6 +51,8 @@ The homepage and benchmark page compute memory figures from the 2026-10-03 raw r
 Current Mac recordings use the same memory API. Historical raw KV reports stay in the repository.
 Each dataset retains its source revision, transport, hardware and load conditions.
 Replace a dataset only after a complete new measurement and verification.
+Benchmark reports, current recordings, agent docs and the search entry file revalidate
+at their stable URLs. Hashed application assets retain long-lived caching.
 
 ## Local development
 

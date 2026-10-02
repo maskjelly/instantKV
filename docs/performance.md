@@ -1,7 +1,8 @@
 # Performance: measured and planned
 
 Status: source MVP. Updated: 2026-10-03.
-The results measure the memory service. They exclude the LLM, inference time and caller.
+Latency includes the local HTTP client and server. RAM samples cover only the Rust server.
+No model inference runs.
 Targets are engineering goals for a defined workload.
 
 ## Structured memory measured on a Mac
@@ -23,15 +24,15 @@ Targets are engineering goals for a defined workload.
 | Measurement                                   | Observed across three runs          |
 | --------------------------------------------- | ----------------------------------- |
 | Native binary                                 | 8.0 MiB |
-| Idle server RSS                               | 6.17–6.22 MiB |
-| Largest sampled server RSS                    | 19.4 MiB |
-| Topic query p95                               | 0.129–0.134 ms |
-| Tag query p95                                 | 0.131–0.134 ms |
-| Time-range query p95                          | 0.130–0.133 ms |
-| Topic + tag + keywords p95                    | 0.132–0.133 ms |
-| Browse p95                                    | 0.362–0.382 ms |
-| Keyword first-page p95                        | 1.241–1.275 ms |
-| Immediate durable save p95                    | 5.680–5.862 ms |
+| Idle server RSS                               | 6.19 MiB |
+| Largest sampled server RSS                    | 19.6 MiB |
+| Topic query p95                               | 0.130–0.132 ms |
+| Tag query p95                                 | 0.131–0.133 ms |
+| Time-range query p95                          | 0.130–0.131 ms |
+| Topic + tag + keywords p95                    | 0.131–0.133 ms |
+| Browse p95                                    | 0.359–0.390 ms |
+| Keyword first-page p95                        | 1.250–1.267 ms |
+| Immediate durable save p95                    | 5.899–5.928 ms |
 | Physical database after workload              | 25.3 MiB per run                    |
 | Exact memories recovered after abrupt restart | 10,000/10,000 per run; 30,000 total |
 
@@ -60,8 +61,8 @@ It verifies every saved field and removes the temporary databases.
 It does not change your running node or retain credentials.
 Source compilation can download dependencies. The script does not download a model.
 
-Exact-key read p95: **0.103–0.104 ms**.
-Revision-checked forget p95: **5.287–5.773 ms**.
+Exact-key read p95: **0.101–0.104 ms**.
+Revision-checked forget p95: **5.303–5.915 ms**.
 After recovery, 300 memories per run were deleted. A full browse verified exactly
 9,700 remaining memories per run and no deleted index results.
 
@@ -80,7 +81,7 @@ Phone targets need separate tests in a native app.
 | Idle memory service RSS    | ≤12 MiB                            | Repeated process samples; add true peak measurements         |
 | Loaded memory service RSS  | ≤32 MiB                            | Writes, indexed reads and bounded keyword scans              |
 | Indexed recall p95         | ≤5 ms                              | Topic/tag/time pages, 10 results, concurrency one            |
-| Immediate durable save p95 | 5.680–5.862 ms |
+| Immediate durable save p95 | 5.899–5.928 ms |
 | Recovery correctness       | Every acknowledged memory retained | Repeated abrupt exits; then disk-full/commit fault injection |
 | Context budget             | Default page ≤16 KiB               | Include content, metadata, timestamps and cursor             |
 

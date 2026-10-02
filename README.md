@@ -74,15 +74,16 @@ Apple M4 Pro, 24 GiB memory, macOS 27.0. Three fresh databases, 10,000 memories 
 | Measurement                          | Result across three runs  |
 | ------------------------------------ | ------------------------- |
 | Native binary                        | 8.0 MiB |
-| Idle server RSS                      | 6.17–6.22 MiB |
-| Largest sampled server RSS           | 19.4 MiB |
-| Topic query p95                      | 0.129–0.134 ms |
-| Durable save p95                     | 5.680–5.862 ms |
+| Idle server RSS                      | 6.19 MiB |
+| Largest sampled server RSS           | 19.6 MiB |
+| Topic query p95                      | 0.130–0.132 ms |
+| Durable save p95                     | 5.899–5.928 ms |
 | Exact recovery after abrupt restarts | 30,000 of 30,000 memories |
 
 p95 is the time within which 95% of measured operations complete.
 RSS is the process memory reported by the operating system. Samples do not measure peak RAM.
-These results exclude the model, caller, phone performance and battery use.
+RAM samples cover the Rust server. Latencies include the local HTTP client and server.
+The results exclude model inference, phone performance and battery use.
 The browser demo uses the same memory API. Live mode saves, filters, browses and deletes real memories.
 Recorded mode shows verified responses from three fresh 10,000-memory runs.
 
@@ -131,7 +132,7 @@ Context clearing is simulated; real model-quality evaluation is pending.
 | Portable memory    | Add export, import and schema migration tools                                               |
 | Optional retrieval | Evaluate ranked keyword search and local embeddings                                         |
 
-Linux x86_64, Linux ARM64 and macOS ARM64 passed [source MVP CI](https://github.com/maskjelly/instantKV/actions/runs/37053181372).
+Linux x86_64, Linux ARM64 and macOS ARM64 passed [source MVP CI](https://github.com/maskjelly/instantKV/actions/runs/37060413210).
 Physical ARM-board measurements and native phone support remain pending.
 
 Initial ARM-board goals: indexed recall p95 ≤5 ms, durable save p95 ≤20 ms,
