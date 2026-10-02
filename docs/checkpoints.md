@@ -290,3 +290,9 @@ passed cache/durable replay, pause/resume, all saved samples, context clearing,
 independent recorded reader, 390px layout and zero replay API calls. A further
 1,000 live VPS writes and exact reads in two independent tabs passed with zero
 browser errors. The separate in-progress visual redesign was preserved.
+
+Production Chromium verification passed the same recorded and live workflows at
+`https://instantkv.com`, including exact unscaled metrics, cached samples,
+independent reader tabs and 390px layout, with zero browser errors. A final
+startup fix keeps the replay button disabled until its recording is loaded and
+enables the live button only after its handlers are ready.

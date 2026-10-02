@@ -331,4 +331,7 @@ if (locator && /^[a-f0-9]{48}$/.test(locator)) {
     .finally(() => {
       start.disabled = false;
     });
+} else {
+  settings();
+  start.disabled = false;
 }

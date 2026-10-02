@@ -87,7 +87,12 @@ import Base from '../layouts/Base.astro';
           maxlength="128"
         >Use Rust + redb. Shared knowledge is read-only for workers. Keep source references with every decision.</textarea>
         <div class="demo-actions">
-          <button id="start-run" class="button button-primary" type="button">
+          <button
+            id="start-run"
+            class="button button-primary"
+            type="button"
+            disabled
+          >
             Store 10,000 memories →
           </button>
           <button id="stop-run" class="button" type="button" disabled>
