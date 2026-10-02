@@ -47,19 +47,24 @@ failure-injection gates above. The open-source self-hosted service stays availab
 
 ## Distributed knowledge consolidation
 
-Each agent should start with a copy of shared knowledge and keep private work in
-its own KV. After a run, it submits the findings it wants to share. A consolidation
-service checks sources, removes duplicates and sends conflicts for review before
-publishing the next baseline. [Design and proposed schema](distributed-memory.md).
+Fork a past memory snapshot into several independent agent branches. Agents can
+take different directions, keep private notes and share findings while they work.
+A review service checks sources and conflicts before updating shared knowledge.
+Connected agents follow those accepted updates and can see which peers are
+working, finished or behind. Completion flushes any remaining findings.
+[Design, schema and failure cases](distributed-memory.md).
 
 | Stage | Scope | Status |
 |---|---|---|
 | Shared knowledge + private namespaces | One server; read-only shared knowledge for workers | Implemented |
 | Authorized export/import | Explicit portable knowledge bundles with source/hash validation | Proposed |
 | Baseline + private overlay | Immutable baseline manifest on independent worker nodes | Proposed |
+| Historical memory branches | Fork any retained, authorized snapshot; preserve parent lineage and independent private work | Proposed |
+| Incremental findings | Idempotent batches during a run, review before publication, final completion flush | Proposed |
 | Run-completion jobs | Idempotent uploads, durable state, retries and leases | Proposed |
 | Consolidation | Deduplicate, summarize with sources, review conflicts, conditional publication | Proposed |
 | Distributed sync | Restartable pull replication, offline/reconnect and tombstones | Proposed |
+| Connected agents + peer awareness | Ordered replayable updates, saved cursors, scoped task status and stale-peer leases | Proposed |
 | Knowledge quality metrics | Validated facts, source coverage, freshness, conflicts and evaluated recall | Proposed |
 
 This is a distributed knowledge workflow proposal, not a shipped consensus KV.

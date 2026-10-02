@@ -171,10 +171,15 @@ public HTTPS or distributed swarms. Raw reports and environment are linked above
 
 <img src="docs/assets/distributed.png" width="1100" alt="Future proposal: canonical knowledge base sends a versioned baseline to independent workers; completed runs submit shareable deltas; durable consolidation validates sources and conflicts before publishing the next baseline; quality metrics track sources, freshness and recall">
 
-The plan is to give each cloud agent a copy of shared knowledge and its own local
-KV. When a run ends, the agent submits the findings it wants to share. A review
-process removes duplicates, checks sources and resolves conflicts before those
-findings become part of the next shared baseline.
+The plan is to fork past memory snapshots into independent agent branches. Give
+several agents the same starting point and let them explore different directions.
+They keep private notes, share findings during their runs and follow accepted
+updates from the shared knowledge base. A scoped activity feed shows what other
+agents are working on and which updates they have seen. Sources and conflicts
+are reviewed before findings become shared facts; completion flushes the remaining
+changes. Offline agents catch up from a saved cursor.
+
+<img src="docs/assets/memory-branches.svg" width="1100" alt="Future proposal: historical snapshots seed independent agent branches; findings enter review during runs; accepted facts update shared knowledge and return to agents through a replayable change feed">
 
 We'll measure useful knowledge by checked facts, source coverage and recall
 success, with freshness and unresolved conflicts visible. Storing more text alone
