@@ -18,9 +18,15 @@ planes form a K; the gap keeps the silhouette distinct at small sizes. Chrome
 reflections belong to the mark. Diagrams use flat graphite surfaces, silver text,
 fine borders, square geometry and generous space.
 
-This direction follows the latest design brief and supersedes the earlier retro
-desktop theme. The public website uses this identity. The live-demo diagram
-describes its browser interface and real storage path.
+This repository identity superseded the earlier retro desktop theme. The public
+website now follows the later white technical blueprint brief, while the README
+keeps its original metal artwork. The live-demo diagram describes its browser
+interface and real storage path.
+
+The website's [flat blue split-K](blueprint-mark.svg),
+[social preview SVG](blueprint-social.svg) and [PNG export](blueprint-social.png)
+use white paper, blue ink and square geometry. Web diagrams are native SVG
+components styled by `site/src/styles/global.css`; see the [website guide](../website.md).
 
 Tesseract compositions contain editable native shapes and text. Active type is
 [Space Grotesk](https://github.com/floriankarsten/space-grotesk), embedded with

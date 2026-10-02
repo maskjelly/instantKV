@@ -1,34 +1,31 @@
 ---
 import Base from '../layouts/Base.astro';
+import DemoFlowDiagram from '../components/diagrams/DemoFlowDiagram.astro';
 ---
 
 <Base
   title="Memory demo"
   description="Replay real 100,000-record Mac measurements with cached exact responses, or switch to live writes on our demo server."
 >
-  <main id="main" class="container demo-page" data-pagefind-body>
-    <section class="demo-heading">
+  <main id="main" class="shell demo-page" data-pagefind-body>
+    <header class="demo-head">
       <div>
-        <span class="eyebrow" id="demo-source-label">
-          Recorded Mac run / real Rust engine
-        </span>
-        <h1>
-          100,000 memories.
-          <br />
-          <span class="chrome-text">One exact recall.</span>
-        </h1>
+        <p class="eyebrow" id="demo-source-label">
+          <b>Recorded Mac run</b> / real Rust engine
+        </p>
+        <h1>100,000 memories. One exact recall.</h1>
         <p>
           Replay a measured Mac run, then recall a saved response from the
           reader. Switch to Live VPS to write your own synthetic records.
         </p>
       </div>
-      <div class="demo-live">
+      <p class="data-label">
         <span class="signal"></span>
         <span id="demo-path">RECORDED ON MAC → CLIENT CACHE</span>
-      </div>
-    </section>
+      </p>
+    </header>
 
-    <div class="demo-toolbar">
+    <div class="demo-controls">
       <label>
         Demo source
         <select id="demo-source">
@@ -64,18 +61,18 @@ import Base from '../layouts/Base.astro';
           <option value="1024">1,024 characters</option>
         </select>
       </label>
-      <span class="demo-limit">
+      <p class="demo-controls-note">
         64 synthetic agents
         <br />
         16 concurrent backend requests
-      </span>
+      </p>
     </div>
 
-    <section class="demo-panels" aria-label="Independent writer and reader">
-      <article class="demo-panel">
-        <div class="demo-panel-heading">
-          <span class="eyebrow">01 / Writer</span>
-          <span class="demo-terminal-label" id="writer-path">
+    <section class="demo-bench" aria-label="Independent writer and reader">
+      <article class="demo-station">
+        <div class="panel-head">
+          <span class="data-label">01 / Writer</span>
+          <span class="data-label" id="writer-path">
             RECORDED PUT TRACE
           </span>
         </div>
@@ -89,7 +86,7 @@ import Base from '../layouts/Base.astro';
         <div class="demo-actions">
           <button
             id="start-run"
-            class="button button-primary"
+            class="button button--key"
             type="button"
             disabled
           >
@@ -102,7 +99,7 @@ import Base from '../layouts/Base.astro';
             New run
           </button>
         </div>
-        <div class="demo-progress-label">
+        <div class="demo-progress">
           <span id="write-count">0 / 10,000 acknowledged</span>
           <span id="write-percent">0%</span>
         </div>
@@ -113,26 +110,27 @@ import Base from '../layouts/Base.astro';
           aria-label="Acknowledged writes"
         ></progress>
         <div class="memory-grid" id="memory-grid" aria-hidden="true"></div>
-        <p class="demo-caption" id="demo-cell-caption">
+        <p class="u-micro" id="demo-cell-caption">
           Recorded writes replay at 2× speed. Measured numbers stay unchanged.
         </p>
-        <div class="demo-panel-heading">
-          <span class="eyebrow">Generated record / preview</span>
+
+        <div class="panel-head u-gap-top-lg">
+          <span class="data-label">Generated record / preview</span>
           <button id="clear-context" class="demo-link-button" type="button">
             Clear local context
           </button>
         </div>
         <pre
-          class="demo-json"
+          class="terminal"
           id="write-preview"
           tabindex="0"
         >Start a run to generate synthetic agent records.</pre>
       </article>
 
-      <article class="demo-panel">
-        <div class="demo-panel-heading">
-          <span class="eyebrow">02 / Reader</span>
-          <span class="demo-terminal-label" id="reader-path">
+      <article class="demo-station">
+        <div class="panel-head">
+          <span class="data-label">02 / Reader</span>
+          <span class="data-label" id="reader-path">
             SAVED GET RESPONSE
           </span>
         </div>
@@ -159,16 +157,17 @@ import Base from '../layouts/Base.astro';
           </button>
           <button
             id="read-record"
-            class="button button-primary"
+            class="button button--key"
             type="button"
             disabled
           >
             Recall →
           </button>
         </div>
-        <div class="demo-read-timing">
+
+        <div class="demo-timings">
           <div>
-            <span class="eyebrow" id="read-client-label">
+            <span class="data-label" id="read-client-label">
               Client cache lookup
             </span>
             <strong id="read-browser-ms">
@@ -176,7 +175,7 @@ import Base from '../layouts/Base.astro';
             </strong>
           </div>
           <div>
-            <span class="eyebrow" id="read-backend-label">
+            <span class="data-label" id="read-backend-label">
               Recorded backend HTTP read
             </span>
             <strong id="read-backend-ms">
@@ -184,7 +183,8 @@ import Base from '../layouts/Base.astro';
             </strong>
           </div>
         </div>
-        <div class="demo-result-heading">
+
+        <div class="demo-status-line">
           <span id="read-verification">Waiting for a stored record</span>
           <a
             id="reader-tab"
@@ -197,57 +197,59 @@ import Base from '../layouts/Base.astro';
           </a>
         </div>
         <pre
-          class="demo-json demo-read-json"
+          class="terminal terminal--tall"
           id="read-output"
           tabindex="0"
         >Store some memories, choose a record and press Recall.
 
 This reader fetches the saved value from instantKV's Rust service. You can also open it in a separate tab.</pre>
-        <p id="read-key" class="demo-record-key">
+        <p class="u-micro" id="read-key">
           Exact key and revision will appear here.
         </p>
       </article>
     </section>
 
-    <section class="demo-instruments" aria-label="Measured write statistics">
+    <section class="instruments" aria-label="Measured write statistics">
       <div>
-        <span class="eyebrow">Acknowledged</span>
+        <span class="data-label">Acknowledged</span>
         <strong id="metric-count">0</strong>
         <small>records stored</small>
       </div>
       <div>
-        <span class="eyebrow">Payload written</span>
+        <span class="data-label">Payload written</span>
         <strong id="metric-bytes">0</strong>
         <small>MiB · JSON values</small>
       </div>
       <div>
-        <span class="eyebrow">End-to-end rate</span>
+        <span class="data-label">End-to-end rate</span>
         <strong id="metric-rate">—</strong>
         <small>records / second</small>
       </div>
       <div>
-        <span class="eyebrow">Backend p50</span>
+        <span class="data-label">Backend p50</span>
         <strong id="metric-p50">—</strong>
         <small>ms / record</small>
       </div>
       <div>
-        <span class="eyebrow">Backend p99</span>
+        <span class="data-label">Backend p99</span>
         <strong id="metric-p99">—</strong>
         <small>ms / record</small>
       </div>
       <div>
-        <span class="eyebrow">Failed requests</span>
+        <span class="data-label">Failed requests</span>
         <strong id="metric-errors">0</strong>
         <small id="error-unit">measured run errors</small>
       </div>
     </section>
 
-    <section class="demo-trace" aria-label="Measured write latency trace">
-      <div class="demo-panel-heading">
-        <span class="eyebrow" id="trace-label">
+    <section class="trace" aria-label="Measured write latency trace">
+      <div class="panel-head">
+        <span class="data-label" id="trace-label">
           Recorded local batch round-trip
         </span>
-        <span id="trace-summary">No measurements yet</span>
+        <span id="trace-summary" class="u-micro">
+          No measurements yet
+        </span>
       </div>
       <svg
         viewBox="0 0 1000 120"
@@ -257,7 +259,7 @@ This reader fetches the saved value from instantKV's Rust service. You can also 
         <path d="M0 30H1000 M0 60H1000 M0 90H1000" class="trace-rules" />
         <polyline id="latency-trace" points="" class="trace-line" />
       </svg>
-      <p id="demo-status" role="status" aria-live="polite">
+      <p id="demo-status" class="demo-status" role="status" aria-live="polite">
         Recorded Mac mode. Playback changes animation speed, never the measured
         timings.
       </p>
@@ -274,7 +276,7 @@ This reader fetches the saved value from instantKV's Rust service. You can also 
       </p>
       <p>
         <strong>Reading the timings.</strong> Browser time covers the full trip
-        through Cloudflare and back. Backend time covers the coordinator's HTTP
+        through Cloudflare and back. Backend time covers the coordinator’s HTTP
         request to Rust, including response parsing. Half the measured writes
         finish within p50; 99% finish within p99. These are the successful
         writes measured in Live VPS mode. Recorded mode shows local HTTP timings
@@ -288,9 +290,9 @@ This reader fetches the saved value from instantKV's Rust service. You can also 
         Static recordings remain available. Managed hosting is still in
         development.
       </p>
-      <div class="button-row">
+      <p class="u-cluster">
         <a class="text-link" href="/docs/live-demo/">
-          How it works & how to run it →
+          How it works &amp; how to run it →
         </a>
         <a class="text-link" href="/benchmarks/">
           Controlled benchmarks →
@@ -298,11 +300,16 @@ This reader fetches the saved value from instantKV's Rust service. You can also 
         <a class="text-link" href="/docs/quickstart/">
           Run your own node →
         </a>
-      </div>
+      </p>
     </section>
+
+    <section class="band band--tight">
+      <DemoFlowDiagram />
+    </section>
+
     <noscript>
       <p>
-        The interactive demo requires JavaScript. You can also run{' '}
+        The interactive demo requires JavaScript. You can also run
         <code>instantkv demo --swarm</code> locally.
       </p>
     </noscript>
@@ -314,7 +321,7 @@ This reader fetches the saved value from instantKV's Rust service. You can also 
   .demo-page [hidden] {
     display: none;
   }
-  .demo-limit {
+  .demo-controls-note {
     grid-column: 1 / -1;
   }
   .demo-read-controls select {

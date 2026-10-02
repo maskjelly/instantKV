@@ -102,6 +102,6 @@ export default defineConfig({
   ],
   markdown: {
     processor: unified({ remarkPlugins: [repositoryLinks] }),
-    shikiConfig: { theme: 'github-dark', wrap: false },
+    shikiConfig: { theme: 'github-light', wrap: false },
   },
 });

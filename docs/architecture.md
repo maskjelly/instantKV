@@ -3,7 +3,9 @@
 Status: implemented single-node design, 2026-10-01. Future proposals are separated
 below. See [verification history](checkpoints.md) for checks actually run.
 
-![Architecture](assets/architecture.png)
+The request path and the stored schema are drawn below the title: three
+client surfaces, the grants and limits that bound every request, and the
+durable and RAM tiers they route to.
 
 ## Stack decision
 

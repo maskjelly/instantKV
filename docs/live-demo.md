@@ -43,8 +43,6 @@ predict public HTTPS latency; we preserve both datasets and their conditions.
 
 ## Actual storage path
 
-![Live demo architecture: Cloudflare Worker, private VPC tunnel, coordinator, Rust and bounded RAM/redb](assets/live-demo.svg)
-
 ```text
 Browser writer / independent reader
   │ HTTPS · same-origin /api/demo/*
@@ -170,6 +168,8 @@ cross-tab recall and visible failure states before publishing.
 Reviewed before implementing this demo: [Upstash Redis](https://upstash.com/redis)
 for setup and latency emphasis; [Turso](https://turso.tech) for code-first onboarding
 and per-agent architecture; [Valkey](https://valkey.io) for clear access to docs,
-downloads and a runnable service. instantKV retains its original graphite/chrome
-identity. Its homepage and navigation now lead directly to working storage and
-evidence, with no signup flow or copied product artwork.
+downloads and a runnable service. The later website redesign also reviewed
+[Redis](https://redis.io/) and Valkey for clear product and installation paths.
+instantKV now uses a white technical blueprint theme: blue ink, square controls
+and original diagrams. Its homepage and navigation lead directly to setup,
+working storage and evidence, with no signup flow or copied product artwork.

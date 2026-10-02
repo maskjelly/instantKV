@@ -1,0 +1,281 @@
+---
+/**
+ * Request path and storage boundaries. Remote agents arrive over HTTP,
+ * the CLI or seven MCP tools; grants and bounded policy decide what is
+ * durable and what lives in RAM; the stored schema is versioned.
+ */
+---
+
+<figure class="figure">
+  <svg
+    class="diagram"
+    viewBox="0 0 1200 700"
+    role="img"
+    aria-labelledby="arch-title arch-desc"
+  >
+    <title id="arch-title">instantKV architecture and stored schema</title>
+    <desc id="arch-desc">
+      HTTP, CLI and MCP clients authenticate with a scoped token. Grants and
+      bounded policy route durable knowledge and checkpoints to an embedded redb
+      database and optional scratch to RAM with TTL and FIFO eviction. The
+      stored record carries a namespace, key, revision, value, TTL and checksum;
+      a checkpoint commits a capsule and the session latest pointer in one
+      transaction.
+    </desc>
+    <defs>
+      <linearGradient
+        id="flow-spectrum-architecture"
+        x1="0"
+        y1="0"
+        x2="1"
+        y2="0"
+      >
+        <stop offset="0%" stop-color="#2359a6" />
+        <stop offset="100%" stop-color="#2359a6" />
+      </linearGradient>
+    </defs>
+
+    <text class="d-index" x="20" y="34">
+      02 / ARCHITECTURE
+    </text>
+    <text class="d-index" x="1180" y="34" text-anchor="end">
+      RUST · TOKIO · AXUM · REDB
+    </text>
+    <path class="d-rule--faint" d="M20 46H1180" />
+
+    <!-- clients -->
+    <text class="d-index" x="20" y="96">
+      REMOTE AGENTS
+    </text>
+    <rect class="d-node" x="20" y="112" width="210" height="72" />
+    <text class="d-label" x="40" y="142">
+      HTTP
+    </text>
+    <text class="d-note" x="40" y="164">
+      bearer token, conditional writes
+    </text>
+
+    <rect class="d-node" x="20" y="204" width="210" height="72" />
+    <text class="d-label" x="40" y="234">
+      CLI
+    </text>
+    <text class="d-note" x="40" y="256">
+      records, checkpoints, bench
+    </text>
+
+    <rect class="d-node" x="20" y="296" width="210" height="88" />
+    <text class="d-label" x="40" y="326">
+      MCP · 7 TOOLS
+    </text>
+    <text class="d-note" x="40" y="348">
+      store, list, get, delete,
+    </text>
+    <text class="d-note" x="40" y="366">
+      checkpoint, restore, health
+    </text>
+
+    <!-- policy -->
+    <text class="d-index" x="330" y="96">
+      BOUNDED POLICY
+    </text>
+    <rect class="d-node d-node--key" x="330" y="112" width="240" height="272" />
+    <text class="d-label" x="354" y="142">
+      GRANTS
+    </text>
+    <text class="d-note" x="354" y="164">
+      token → namespaces
+    </text>
+    <text class="d-note" x="354" y="180">
+      per-operation rights
+    </text>
+    <text class="d-label" x="354" y="222">
+      LIMITS
+    </text>
+    <text class="d-note" x="354" y="244">
+      record, key and value size
+    </text>
+    <text class="d-note" x="354" y="260">
+      namespace quotas, restore budget
+    </text>
+    <text class="d-note" x="354" y="276">
+      admission control
+    </text>
+    <text class="d-label" x="354" y="318">
+      CHECKSUM
+    </text>
+    <text class="d-note" x="354" y="340">
+      read verified against the write
+    </text>
+    <text class="d-note" x="354" y="360">
+      every read is accounted
+    </text>
+
+    <!-- storage -->
+    <text class="d-index" x="670" y="96">
+      STORAGE
+    </text>
+    <rect
+      class="d-node d-node--store"
+      x="670"
+      y="112"
+      width="300"
+      height="126"
+    />
+    <text class="d-label" x="694" y="142">
+      DURABLE · REDB
+    </text>
+    <text class="d-note" x="694" y="164">
+      shared + private knowledge
+    </text>
+    <text class="d-note" x="694" y="180">
+      immutable capsules
+    </text>
+    <text class="d-note" x="694" y="196">
+      session latest pointer
+    </text>
+    <text class="d-value" x="694" y="220">
+      no TTL by default
+    </text>
+
+    <rect class="d-node" x="670" y="258" width="300" height="126" />
+    <text class="d-label" x="694" y="288">
+      SCRATCH · RAM
+    </text>
+    <text class="d-note" x="694" y="310">
+      optional namespace
+    </text>
+    <text class="d-note" x="694" y="326">
+      TTL and FIFO eviction
+    </text>
+    <text class="d-note" x="694" y="342">
+      cleared on restart
+    </text>
+    <text class="d-value" x="694" y="366">
+      disposable notes
+    </text>
+
+    <!-- flows -->
+    <path
+      class="d-flow--spectrum d-pulse"
+      stroke="url(#flow-spectrum-architecture)"
+      d="M230 148C280 148 286 200 330 200"
+    />
+    <path
+      class="d-flow--spectrum d-pulse"
+      stroke="url(#flow-spectrum-architecture)"
+      d="M230 240C280 240 286 240 330 240"
+    />
+    <path
+      class="d-flow--spectrum d-pulse"
+      stroke="url(#flow-spectrum-architecture)"
+      d="M230 340C280 340 286 288 330 288"
+    />
+    <text class="d-note" x="278" y="176" text-anchor="middle">
+      auth
+    </text>
+    <path class="d-flow--write d-pulse" d="M570 176C620 176 626 176 670 176" />
+    <path class="d-flow--write d-pulse" d="M570 240C620 240 626 320 670 320" />
+    <text class="d-note" x="622" y="164" text-anchor="middle">
+      durable
+    </text>
+    <text class="d-note" x="622" y="292" text-anchor="middle">
+      ram
+    </text>
+
+    <!-- schema inset -->
+    <rect
+      class="d-rule"
+      x="1000"
+      y="112"
+      width="180"
+      height="272"
+      stroke-dasharray="2 6"
+    />
+    <text class="d-index" x="1020" y="140">
+      SCHEMA 1
+    </text>
+    <text class="d-note" x="1020" y="170">
+      record
+    </text>
+    <text class="d-note" x="1034" y="188">
+      namespace
+    </text>
+    <text class="d-note" x="1034" y="204">
+      key
+    </text>
+    <text class="d-note" x="1034" y="220">
+      revision
+    </text>
+    <text class="d-note" x="1034" y="236">
+      value
+    </text>
+    <text class="d-note" x="1034" y="252">
+      ttl · checksum
+    </text>
+    <text class="d-note" x="1020" y="288">
+      capsule
+    </text>
+    <text class="d-note" x="1034" y="306">
+      goal · constraints
+    </text>
+    <text class="d-note" x="1034" y="322">
+      unfinished · next
+    </text>
+    <text class="d-note" x="1034" y="338">
+      references → keys
+    </text>
+    <text class="d-note" x="1034" y="354">
+      session latest
+    </text>
+
+    <!-- transaction note -->
+    <path class="d-rule--faint" d="M20 440H1180" />
+    <text class="d-index" x="20" y="468">
+      ONE TRANSACTION
+    </text>
+    <rect
+      class="d-node d-node--private"
+      x="20"
+      y="482"
+      width="560"
+      height="80"
+    />
+    <text class="d-label" x="44" y="514">
+      CAPSULE + SESSION LATEST POINTER
+    </text>
+    <text class="d-note" x="44" y="538">
+      a checkpoint write commits the immutable capsule and moves the session
+      pointer together
+    </text>
+
+    <text class="d-index" x="620" y="468">
+      READ PATH
+    </text>
+    <rect class="d-node" x="620" y="482" width="560" height="80" />
+    <text class="d-label" x="644" y="514">
+      EXACT KEY OR PREFIX, NO MODEL CALLS
+    </text>
+    <text class="d-note" x="644" y="538">
+      restore reports which referenced record changed or went missing
+    </text>
+
+    <path class="d-rule--faint" d="M20 600H1180" />
+    <text class="d-note" x="20" y="626">
+      Stack: Rust with Tokio and Axum; redb supplies durable transactions
+      without a separate database service.
+    </text>
+    <text class="d-note" x="1180" y="626" text-anchor="end">
+      one binary · one config · one data directory
+    </text>
+  </svg>
+
+  <div class="diagram-legend">
+    <span class="k-spectrum">
+      <i></i> authenticated request
+    </span>
+    <span class="k-write">
+      <i></i> durable write
+    </span>
+    <span>dashed frame: stored schema, version 1</span>
+  </div>
+</figure>

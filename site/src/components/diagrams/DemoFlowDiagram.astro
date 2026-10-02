@@ -1,0 +1,199 @@
+---
+/**
+ * The live demo's real request path: two browser tabs, the edge, the
+ * private network, the coordinator, Rust, then RAM or redb.
+ */
+---
+
+<figure class="figure">
+  <svg
+    class="diagram"
+    viewBox="0 0 1200 400"
+    role="img"
+    aria-labelledby="demoflow-title demoflow-desc"
+  >
+    <title id="demoflow-title">Live demo request path</title>
+    <desc id="demoflow-desc">
+      A browser writer and a browser reader call a Cloudflare Worker at the
+      edge. The Worker reaches an isolated coordinator over a private VPC and
+      QUIC tunnel. The coordinator speaks HTTP to the Rust API, which writes to
+      the RAM cache or commits to redb. Browser round-trip time and backend HTTP
+      time are measured separately.
+    </desc>
+    <defs>
+      <linearGradient id="flow-spectrum-demo" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#2359a6" />
+        <stop offset="100%" stop-color="#2359a6" />
+      </linearGradient>
+    </defs>
+
+    <text class="d-index" x="20" y="34">
+      LIVE / REQUEST PATH
+    </text>
+    <text class="d-index" x="1180" y="34" text-anchor="end">
+      15-MINUTE TTL · SYNTHETIC CONTEXT ONLY
+    </text>
+    <path class="d-rule--faint" d="M20 46H1180" />
+
+    <text class="d-index" x="20" y="96">
+      BROWSER
+    </text>
+    <rect class="d-node" x="20" y="112" width="180" height="76" />
+    <text class="d-label" x="42" y="144">
+      WRITER TAB
+    </text>
+    <text class="d-note" x="42" y="166">
+      PUT batches, 64 agents
+    </text>
+
+    <rect class="d-node" x="20" y="212" width="180" height="76" />
+    <text class="d-label" x="42" y="244">
+      READER TAB
+    </text>
+    <text class="d-note" x="42" y="266">
+      GET by exact key
+    </text>
+
+    <text class="d-index" x="250" y="96">
+      EDGE
+    </text>
+    <rect class="d-node d-node--key" x="250" y="112" width="180" height="176" />
+    <text class="d-label" x="272" y="144">
+      CLOUDFLARE
+    </text>
+    <text class="d-label" x="272" y="164">
+      WORKER
+    </text>
+    <text class="d-note" x="272" y="192">
+      origin checks
+    </text>
+    <text class="d-note" x="272" y="208">
+      request limit
+    </text>
+    <text class="d-note" x="272" y="224">
+      body size cap
+    </text>
+    <text class="d-note" x="272" y="252">
+      backend reuse
+    </text>
+
+    <text class="d-index" x="480" y="96">
+      PRIVATE PATH
+    </text>
+    <rect class="d-node" x="480" y="112" width="200" height="176" />
+    <text class="d-label" x="502" y="144">
+      ISOLATED
+    </text>
+    <text class="d-label" x="502" y="164">
+      COORDINATOR
+    </text>
+    <text class="d-note" x="502" y="192">
+      VPC + QUIC tunnel
+    </text>
+    <text class="d-note" x="502" y="208">
+      not publicly routed
+    </text>
+    <text class="d-note" x="502" y="236">
+      16 concurrent
+    </text>
+    <text class="d-note" x="502" y="252">
+      backend requests
+    </text>
+
+    <text class="d-index" x="730" y="96">
+      ENGINE
+    </text>
+    <rect
+      class="d-node d-node--store"
+      x="730"
+      y="112"
+      width="200"
+      height="176"
+    />
+    <text class="d-label" x="752" y="144">
+      RUST HTTP API
+    </text>
+    <text class="d-note" x="752" y="172">
+      namespaces
+    </text>
+    <text class="d-note" x="752" y="188">
+      records
+    </text>
+    <text class="d-note" x="752" y="204">
+      checkpoints
+    </text>
+    <text class="d-note" x="752" y="232">
+      p50 · p95 · p99
+    </text>
+    <text class="d-note" x="752" y="250">
+      errors surfaced
+    </text>
+
+    <text class="d-index" x="980" y="96">
+      STORAGE
+    </text>
+    <rect class="d-node" x="980" y="112" width="200" height="82" />
+    <text class="d-label" x="1002" y="144">
+      RAM CACHE
+    </text>
+    <text class="d-note" x="1002" y="166">
+      TTL, FIFO, restarts clear
+    </text>
+
+    <rect
+      class="d-node d-node--store"
+      x="980"
+      y="212"
+      width="200"
+      height="82"
+    />
+    <text class="d-label" x="1002" y="244">
+      DURABLE REDB
+    </text>
+    <text class="d-note" x="1002" y="266">
+      immediate commits
+    </text>
+
+    <path class="d-flow--write d-pulse" d="M200 150C226 150 226 180 250 180" />
+    <path class="d-flow--read d-pulse" d="M200 250C226 250 226 220 250 220" />
+    <path
+      class="d-flow--spectrum d-pulse"
+      stroke="url(#flow-spectrum-demo)"
+      d="M430 200C456 200 456 200 480 200"
+    />
+    <path
+      class="d-flow--spectrum d-pulse"
+      stroke="url(#flow-spectrum-demo)"
+      d="M680 200C706 200 706 200 730 200"
+    />
+    <path class="d-flow--write d-pulse" d="M930 160C956 160 956 152 980 152" />
+    <path class="d-flow--write d-pulse" d="M930 240C956 240 956 252 980 252" />
+
+    <path class="d-flow--deny" d="M1080 194L1080 212" />
+    <text class="d-note" x="1092" y="208">
+      mutually exclusive per run
+    </text>
+
+    <path class="d-rule--faint" d="M20 320H1180" />
+    <text class="d-note" x="20" y="346">
+      Browser round-trip covers the whole trip through Cloudflare and back.
+      Backend time covers the coordinator's HTTP request to Rust, including
+      response parsing.
+    </text>
+    <text class="d-note" x="1180" y="346" text-anchor="end">
+      managed hosting is still in development
+    </text>
+  </svg>
+
+  <div class="diagram-legend">
+    <span class="k-write">
+      <i></i> write
+    </span>
+    <span class="k-read">
+      <i></i> read
+    </span>
+    <span class="k-spectrum">
+      <i></i> internal hop
+    </span>
+  </div>
+</figure>

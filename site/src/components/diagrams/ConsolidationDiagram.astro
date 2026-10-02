@@ -1,0 +1,230 @@
+---
+/**
+ * Distributed knowledge consolidation. This is a proposal, not shipped
+ * behaviour, and the diagram says so on its face.
+ */
+---
+
+<figure class="figure">
+  <svg
+    class="diagram"
+    viewBox="0 0 1200 560"
+    role="img"
+    aria-labelledby="consol-title consol-desc"
+  >
+    <title id="consol-title">Proposed distributed knowledge consolidation</title>
+    <desc id="consol-desc">
+      A proposal. A canonical knowledge base sends a versioned baseline to
+      independent workers. Completed runs submit shareable deltas. Durable
+      consolidation validates sources and resolves conflicts before publishing
+      the next baseline. Quality is measured by checked facts, source coverage
+      and recall success, with freshness and unresolved conflicts visible.
+    </desc>
+    <defs>
+      <linearGradient
+        id="flow-spectrum-consolidation"
+        x1="0"
+        y1="0"
+        x2="1"
+        y2="0"
+      >
+        <stop offset="0%" stop-color="#2359a6" />
+        <stop offset="100%" stop-color="#2359a6" />
+      </linearGradient>
+    </defs>
+
+    <text class="d-index" x="20" y="34">
+      03 / CONSOLIDATION
+    </text>
+    <text class="d-index" x="1180" y="34" text-anchor="end">
+      PROPOSAL · NOT SHIPPED
+    </text>
+    <path class="d-rule--faint" d="M20 46H1180" />
+
+    <!-- baseline -->
+    <rect class="d-node d-node--key" x="20" y="120" width="240" height="140" />
+    <text class="d-label" x="44" y="154">
+      CANONICAL BASE
+    </text>
+    <text class="d-note" x="44" y="178">
+      versioned baseline
+    </text>
+    <text class="d-value" x="44" y="204">
+      baseline 41
+    </text>
+    <text class="d-note" x="44" y="230">
+      shared project facts
+    </text>
+
+    <!-- workers -->
+    <text class="d-index" x="330" y="104">
+      INDEPENDENT WORKERS
+    </text>
+    <rect class="d-node" x="330" y="120" width="230" height="82" />
+    <text class="d-label" x="352" y="152">
+      WORKER A
+    </text>
+    <text class="d-note" x="352" y="174">
+      local knowledge + own KV
+    </text>
+    <rect class="d-node" x="330" y="222" width="230" height="82" />
+    <text class="d-label" x="352" y="254">
+      WORKER B
+    </text>
+    <text class="d-note" x="352" y="276">
+      local knowledge + own KV
+    </text>
+    <rect class="d-node" x="330" y="324" width="230" height="82" />
+    <text class="d-label" x="352" y="356">
+      WORKER C
+    </text>
+    <text class="d-note" x="352" y="378">
+      local knowledge + own KV
+    </text>
+
+    <!-- deltas -->
+    <text class="d-index" x="630" y="104">
+      SUBMITTED DELTAS
+    </text>
+    <rect
+      class="d-node d-node--private"
+      x="630"
+      y="120"
+      width="220"
+      height="82"
+    />
+    <text class="d-label" x="652" y="152">
+      DELTA A
+    </text>
+    <text class="d-note" x="652" y="174">
+      findings worth sharing
+    </text>
+    <rect
+      class="d-node d-node--private"
+      x="630"
+      y="222"
+      width="220"
+      height="82"
+    />
+    <text class="d-label" x="652" y="254">
+      DELTA B
+    </text>
+    <text class="d-note" x="652" y="276">
+      findings worth sharing
+    </text>
+    <rect
+      class="d-node d-node--private"
+      x="630"
+      y="324"
+      width="220"
+      height="82"
+    />
+    <text class="d-label" x="652" y="356">
+      DELTA C
+    </text>
+    <text class="d-note" x="652" y="378">
+      findings worth sharing
+    </text>
+
+    <!-- review -->
+    <rect class="d-node d-node--key" x="920" y="180" width="260" height="180" />
+    <text class="d-label" x="944" y="214">
+      CONSOLIDATION
+    </text>
+    <text class="d-note" x="944" y="240">
+      dedupe
+    </text>
+    <text class="d-note" x="944" y="258">
+      validate sources
+    </text>
+    <text class="d-note" x="944" y="276">
+      resolve conflicts
+    </text>
+    <text class="d-value" x="944" y="304">
+      publish baseline 42
+    </text>
+    <text class="d-note" x="944" y="332">
+      durable, auditable
+    </text>
+
+    <!-- flows -->
+    <path class="d-flow--read d-pulse" d="M260 168C296 168 300 160 330 160" />
+    <path class="d-flow--read d-pulse" d="M260 190C296 190 300 262 330 262" />
+    <path class="d-flow--read d-pulse" d="M260 212C296 212 300 364 330 364" />
+    <text class="d-note" x="292" y="196" text-anchor="middle">
+      baseline
+    </text>
+
+    <path class="d-flow--write d-pulse" d="M560 160C596 160 600 160 630 160" />
+    <path class="d-flow--write d-pulse" d="M560 262C596 262 600 262 630 262" />
+    <path class="d-flow--write d-pulse" d="M560 364C596 364 600 364 630 364" />
+    <text class="d-note" x="596" y="196" text-anchor="middle">
+      delta
+    </text>
+
+    <path
+      class="d-flow--spectrum d-pulse"
+      stroke="url(#flow-spectrum-consolidation)"
+      d="M850 160C886 200 890 232 920 240"
+    />
+    <path
+      class="d-flow--spectrum d-pulse"
+      stroke="url(#flow-spectrum-consolidation)"
+      d="M850 262C886 262 890 268 920 272"
+    />
+    <path
+      class="d-flow--spectrum d-pulse"
+      stroke="url(#flow-spectrum-consolidation)"
+      d="M850 364C886 320 890 300 920 296"
+    />
+    <text class="d-note" x="884" y="196" text-anchor="middle">
+      review
+    </text>
+
+    <path
+      class="d-flow--spectrum d-pulse"
+      stroke="url(#flow-spectrum-consolidation)"
+      d="M1050 180C1050 120 640 100 200 100"
+    />
+    <text class="d-note" x="640" y="94" text-anchor="middle">
+      next baseline, after gates pass
+    </text>
+
+    <!-- metrics -->
+    <path class="d-rule--faint" d="M20 440H1180" />
+    <text class="d-index" x="20" y="468">
+      KNOWLEDGE QUALITY, NOT VOLUME
+    </text>
+    <text class="d-value" x="20" y="498">
+      checked facts
+    </text>
+    <text class="d-value" x="240" y="498">
+      source coverage
+    </text>
+    <text class="d-value" x="480" y="498">
+      recall success
+    </text>
+    <text class="d-value" x="700" y="498">
+      freshness
+    </text>
+    <text class="d-value" x="900" y="498">
+      unresolved conflicts
+    </text>
+    <text class="d-note" x="20" y="530">
+      storing more text alone does not count as improvement; every gate is
+      measured before a baseline is published.
+    </text>
+  </svg>
+
+  <div class="diagram-legend">
+    <span class="k-read">
+      <i></i> baseline out
+    </span>
+    <span class="k-write">
+      <i></i> delta in
+    </span>
+    <span class="k-spectrum">
+      <i></i> reviewed publish
+    </span>
+  </div>
+</figure>

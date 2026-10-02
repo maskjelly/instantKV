@@ -1,0 +1,331 @@
+---
+/**
+ * Swarm topology, implemented as one server.
+ * Operator publishes shared knowledge; Alpha and Beta read the shared
+ * records and write only their own private knowledge and checkpoints.
+ */
+---
+
+<figure class="figure">
+  <svg
+    class="diagram diagram--wide"
+    viewBox="0 0 1200 660"
+    role="img"
+    aria-labelledby="swarm-title swarm-desc"
+  >
+    <title id="swarm-title">Swarm memory topology on one server</title>
+    <desc id="swarm-desc">
+      An operator writes to the shared knowledge namespace. Two cloud workers,
+      Alpha and Beta, read the shared namespace and write to their own private
+      knowledge and checkpoint namespaces. Neither worker can read or write the
+      other's namespace.
+    </desc>
+
+    <!-- index rail -->
+    <text class="d-index" x="20" y="34">
+      01 / SWARM TOPOLOGY
+    </text>
+    <text class="d-index" x="1180" y="34" text-anchor="end">
+      WORKING TODAY · SINGLE NODE
+    </text>
+    <path class="d-rule--faint" d="M20 46H1180" />
+
+    <!-- operator -->
+    <text class="d-index" x="20" y="300">
+      OPERATOR
+    </text>
+    <rect class="d-node d-node--key" x="20" y="316" width="196" height="104" />
+    <text class="d-label" x="40" y="350">
+      OPERATOR
+    </text>
+    <text class="d-note" x="40" y="372">
+      publishes shared
+    </text>
+    <text class="d-note" x="40" y="388">
+      project facts
+    </text>
+    <text class="d-note" x="40" y="406">
+      read:write = full
+    </text>
+
+    <!-- server boundary -->
+    <rect
+      class="d-rule"
+      x="292"
+      y="86"
+      width="516"
+      height="500"
+      stroke-dasharray="2 6"
+    />
+    <text class="d-label" x="312" y="118">
+      instantKV
+    </text>
+    <text class="d-note" x="312" y="136">
+      one Rust process · grants · bounded policy
+    </text>
+
+    <!-- shared namespace -->
+    <rect
+      class="d-node d-node--store"
+      x="312"
+      y="156"
+      width="476"
+      height="112"
+    />
+    <text class="d-label" x="336" y="190">
+      KNOWLEDGE / SHARED
+    </text>
+    <text class="d-note" x="336" y="212">
+      durable redb · workers read only
+    </text>
+    <text class="d-value" x="336" y="242">
+      project/stack · project/decision
+    </text>
+    <text class="d-note" x="764" y="242" text-anchor="end">
+      revision checked
+    </text>
+
+    <!-- alpha namespace -->
+    <rect
+      class="d-node d-node--private"
+      x="312"
+      y="292"
+      width="476"
+      height="112"
+    />
+    <text class="d-label" x="336" y="326">
+      ALPHA / PRIVATE
+    </text>
+    <text class="d-note" x="336" y="348">
+      knowledge + immutable capsules
+    </text>
+    <text class="d-value" x="336" y="378">
+      session latest pointer
+    </text>
+
+    <!-- beta namespace -->
+    <rect
+      class="d-node d-node--private"
+      x="312"
+      y="428"
+      width="476"
+      height="112"
+    />
+    <text class="d-label" x="336" y="462">
+      BETA / PRIVATE
+    </text>
+    <text class="d-note" x="336" y="484">
+      knowledge + immutable capsules
+    </text>
+    <text class="d-value" x="336" y="514">
+      session latest pointer
+    </text>
+
+    <!-- workers -->
+    <text class="d-index" x="900" y="246">
+      CLOUD WORKER
+    </text>
+    <rect class="d-node" x="900" y="262" width="280" height="120" />
+    <text class="d-label" x="924" y="296">
+      ALPHA
+    </text>
+    <text class="d-note" x="924" y="318">
+      own token · own namespace
+    </text>
+    <text class="d-note" x="924" y="336">
+      notes, checkpoints, restore
+    </text>
+    <text class="d-note" x="924" y="358">
+      cannot touch beta
+    </text>
+
+    <rect class="d-node" x="900" y="440" width="280" height="120" />
+    <text class="d-label" x="924" y="474">
+      BETA
+    </text>
+    <text class="d-note" x="924" y="496">
+      own token · own namespace
+    </text>
+    <text class="d-note" x="924" y="514">
+      notes, checkpoints, restore
+    </text>
+    <text class="d-note" x="924" y="536">
+      cannot touch alpha
+    </text>
+
+    <!-- operator write into shared -->
+    <path class="d-flow--write d-pulse" d="M216 368C270 368 272 212 312 212" />
+    <text class="d-note" x="252" y="300" text-anchor="middle">
+      PUT
+    </text>
+
+    <!-- shared read to alpha -->
+    <path class="d-flow--read d-pulse" d="M788 212C860 212 856 300 900 300" />
+    <text class="d-note" x="846" y="238" text-anchor="middle">
+      GET
+    </text>
+
+    <!-- shared read to beta -->
+    <path class="d-flow--read d-pulse" d="M788 240C860 250 856 470 900 480" />
+    <text class="d-note" x="856" y="366" text-anchor="middle">
+      GET
+    </text>
+
+    <!-- alpha writes its own namespace -->
+    <path class="d-flow--write d-pulse" d="M900 356C860 360 848 350 788 348" />
+    <text class="d-note" x="846" y="382" text-anchor="middle">
+      PUT
+    </text>
+
+    <!-- beta writes its own namespace -->
+    <path class="d-flow--write d-pulse" d="M900 520C860 520 848 486 788 484" />
+    <text class="d-note" x="846" y="540" text-anchor="middle">
+      PUT
+    </text>
+
+    <!-- denied cross-namespace reads -->
+    <path class="d-flow--deny" d="M940 382C940 404 918 420 894 436" />
+    <text class="d-note" x="946" y="416">
+      no cross-read
+    </text>
+    <path class="d-flow--deny" d="M926 282C900 262 856 300 806 302" />
+    <text class="d-note" x="862" y="272" text-anchor="middle">
+      denied
+    </text>
+
+    <!-- footer notes -->
+    <path class="d-rule--faint" d="M20 612H1180" />
+    <text class="d-index" x="20" y="636">
+      SCOPED ACCESS
+    </text>
+    <text class="d-note" x="150" y="636">
+      every request is checked against the caller's namespace grant
+    </text>
+    <text class="d-note" x="1180" y="636" text-anchor="end">
+      physical replication and consolidation are on the roadmap
+    </text>
+  </svg>
+
+  <svg
+    class="diagram diagram--compact"
+    viewBox="0 0 560 500"
+    role="img"
+    aria-labelledby="swarm-compact-title swarm-compact-desc"
+  >
+    <title id="swarm-compact-title">Shared knowledge, private agent memory</title>
+    <desc id="swarm-compact-desc">
+      Alpha and Beta read shared knowledge. Each worker writes only its own
+      private memory. All three storage namespaces run on one instantKV server.
+    </desc>
+    <defs>
+      <marker
+        id="swarm-compact-arrow"
+        markerWidth="7"
+        markerHeight="7"
+        refX="6"
+        refY="3.5"
+        orient="auto"
+      >
+        <path d="M0 0L7 3.5L0 7" fill="currentColor" />
+      </marker>
+    </defs>
+    <text class="d-index" x="20" y="30">
+      WORKING TODAY / SINGLE NODE
+    </text>
+    <rect class="d-node d-node--store" x="100" y="58" width="360" height="90" />
+    <text class="d-label" x="280" y="92" text-anchor="middle">
+      SHARED KNOWLEDGE
+    </text>
+    <text class="d-note" x="280" y="117" text-anchor="middle">
+      Operator publishes · workers read
+    </text>
+    <path
+      class="d-flow--read"
+      d="M180 148V190H140V228"
+      marker-end="url(#swarm-compact-arrow)"
+    />
+    <path
+      class="d-flow--read"
+      d="M380 148V190H420V228"
+      marker-end="url(#swarm-compact-arrow)"
+    />
+    <text class="d-note" x="204" y="190">
+      GET
+    </text>
+    <text class="d-note" x="320" y="190">
+      GET
+    </text>
+    <rect class="d-node" x="20" y="232" width="240" height="82" />
+    <rect class="d-node" x="300" y="232" width="240" height="82" />
+    <text class="d-label" x="140" y="264" text-anchor="middle">
+      CLOUD AGENT ALPHA
+    </text>
+    <text class="d-label" x="420" y="264" text-anchor="middle">
+      CLOUD AGENT BETA
+    </text>
+    <text class="d-note" x="140" y="289" text-anchor="middle">
+      Own scoped credential
+    </text>
+    <text class="d-note" x="420" y="289" text-anchor="middle">
+      Own scoped credential
+    </text>
+    <path
+      class="d-flow--write"
+      d="M140 314V370"
+      marker-end="url(#swarm-compact-arrow)"
+    />
+    <path
+      class="d-flow--write"
+      d="M420 314V370"
+      marker-end="url(#swarm-compact-arrow)"
+    />
+    <text class="d-note" x="158" y="346">
+      PUT
+    </text>
+    <text class="d-note" x="438" y="346">
+      PUT
+    </text>
+    <rect
+      class="d-node d-node--private"
+      x="20"
+      y="374"
+      width="240"
+      height="80"
+    />
+    <rect
+      class="d-node d-node--private"
+      x="300"
+      y="374"
+      width="240"
+      height="80"
+    />
+    <text class="d-label" x="140" y="405" text-anchor="middle">
+      ALPHA / PRIVATE
+    </text>
+    <text class="d-label" x="420" y="405" text-anchor="middle">
+      BETA / PRIVATE
+    </text>
+    <text class="d-note" x="140" y="430" text-anchor="middle">
+      Notes + checkpoints
+    </text>
+    <text class="d-note" x="420" y="430" text-anchor="middle">
+      Notes + checkpoints
+    </text>
+    <text class="d-note" x="280" y="483" text-anchor="middle">
+      One server · three namespaces · no cross-read
+    </text>
+  </svg>
+
+  <div class="diagram-legend">
+    <span class="k-write">
+      <i></i> write
+    </span>
+    <span class="k-read">
+      <i></i> read
+    </span>
+    <span class="k-deny">
+      <i></i> denied by policy
+    </span>
+    <span>dashed frame: one server, one process</span>
+  </div>
+</figure>

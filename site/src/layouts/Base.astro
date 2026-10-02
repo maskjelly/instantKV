@@ -1,7 +1,8 @@
 ---
 import Header from '../components/Header.astro';
-import { repository } from '../lib/docs';
+import Footer from '../components/Footer.astro';
 import '../styles/global.css';
+
 interface Props {
   title: string;
   description: string;
@@ -15,11 +16,11 @@ const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title === 'instantKV' ? 'instantKV — memory your agents keep' : `${title} · instantKV`}</title>
+    <title>{title === 'instantKV' ? 'instantKV · self-hosted agent memory' : `${title} · instantKV`}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#0B0D10" />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
+    <link rel="icon" type="image/svg+xml" href="/assets/blueprint-mark.svg" />
     <link
       rel="preload"
       href="/assets/fonts/SpaceGrotesk.ttf"
@@ -32,7 +33,7 @@ const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
       property="og:title"
       content={
         title === 'instantKV'
-          ? 'instantKV — memory your agents keep'
+          ? 'instantKV · self-hosted agent memory'
           : `${title} · instantKV`
       }
     />
@@ -40,26 +41,14 @@ const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
     <meta property="og:url" content={canonical} />
     <meta
       property="og:image"
-      content="https://instantkv.com/assets/brand.png"
+      content="https://instantkv.com/assets/blueprint-social.png"
     />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <Header />
     <slot />
-    <footer class="site-footer container">
-      <a class="brand-link" href="/">
-        <img src="/assets/logo.svg" width="24" height="24" alt="" />
-        instant<span>KV</span>
-      </a>
-      <p>Agent memory. Yours to run.</p>
-      <nav aria-label="Footer">
-        <a href={repository}>Source ↗</a>
-        <a href="/docs/security/">Security</a>
-        <a href="/llms.txt">For agents</a>
-        <a href={`${repository}/blob/main/LICENSE`}>MIT</a>
-      </nav>
-    </footer>
+    <Footer />
     <script>
       document.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
         const code = pre.querySelector('code');

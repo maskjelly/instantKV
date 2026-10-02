@@ -1,0 +1,104 @@
+<figure class="memory-blueprint blueprint-sheet">
+  <div class="sheet-title">
+    <span>Agent memory / request path</span>
+    <span>Single node</span>
+  </div>
+  <svg
+    viewBox="0 0 560 410"
+    role="img"
+    aria-labelledby="memory-title memory-description"
+  >
+    <title id="memory-title">Agent memory outside the context window</title>
+    <desc id="memory-description">
+      An agent saves knowledge and checkpoints through HTTP, CLI or MCP. Durable
+      memory lives in redb; temporary scratch memory lives in RAM. After
+      compaction, the agent restores its checkpoint and reads saved records.
+    </desc>
+    <defs>
+      <marker
+        id="memory-arrow"
+        markerWidth="7"
+        markerHeight="7"
+        refX="6"
+        refY="3.5"
+        orient="auto"
+      >
+        <path d="M0 0L7 3.5L0 7" fill="currentColor" />
+      </marker>
+    </defs>
+    <g class="sketch-construction">
+      <path d="M40 22V385M520 22V385M25 75H535M25 206H535M25 340H535" />
+      <path d="M35 20h10M40 15v10M515 20h10M520 15v10M35 390h10M40 385v10M515 390h10M520 385v10" />
+    </g>
+    <rect class="sketch-boundary" x="30" y="150" width="500" height="225" />
+    <text class="sketch-annotation" x="42" y="143">
+      YOUR MACHINE / ONE RUST PROCESS
+    </text>
+    <rect class="sketch-box" x="164" y="32" width="232" height="62" />
+    <text class="sketch-heading" x="280" y="58" text-anchor="middle">
+      AI AGENT
+    </text>
+    <text class="sketch-text" x="280" y="78" text-anchor="middle">
+      context window + tool calls
+    </text>
+    <path
+      class="sketch-arrow"
+      d="M222 94V171"
+      marker-end="url(#memory-arrow)"
+    />
+    <path
+      class="sketch-arrow"
+      d="M338 171V94"
+      marker-end="url(#memory-arrow)"
+    />
+    <text class="sketch-text" x="203" y="123" text-anchor="end">
+      save
+    </text>
+    <text class="sketch-text" x="355" y="123">
+      restore
+    </text>
+    <rect
+      class="sketch-box sketch-core"
+      x="152"
+      y="174"
+      width="256"
+      height="70"
+    />
+    <text class="sketch-brand" x="280" y="202" text-anchor="middle">
+      instantKV
+    </text>
+    <text class="sketch-text" x="280" y="224" text-anchor="middle">
+      HTTP / CLI / MCP
+    </text>
+    <path
+      class="sketch-arrow"
+      d="M222 244V273H162V298"
+      marker-end="url(#memory-arrow)"
+    />
+    <path
+      class="sketch-arrow"
+      d="M338 244V273H410V298"
+      marker-end="url(#memory-arrow)"
+    />
+    <rect class="sketch-box" x="64" y="302" width="196" height="55" />
+    <text class="sketch-heading" x="162" y="325" text-anchor="middle">
+      DURABLE / redb
+    </text>
+    <text class="sketch-text" x="162" y="344" text-anchor="middle">
+      knowledge + checkpoints
+    </text>
+    <rect class="sketch-box" x="310" y="302" width="196" height="55" />
+    <text class="sketch-heading" x="408" y="325" text-anchor="middle">
+      SCRATCH / RAM
+    </text>
+    <text class="sketch-text" x="408" y="344" text-anchor="middle">
+      bounded + expiring
+    </text>
+    <text class="sketch-annotation" x="280" y="398" text-anchor="middle">
+      SAVE → COMPACT → RESTORE → CONTINUE
+    </text>
+  </svg>
+  <figcaption>
+    Context changes. Saved knowledge stays addressable by key.
+  </figcaption>
+</figure>

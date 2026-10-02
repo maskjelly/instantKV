@@ -20,6 +20,29 @@ that applies to the website and does not mean memory-node infrastructure is free
 The demo's Rust service runs redb on persistent VPS storage. Its records and
 transactions use instantKV's storage engine.
 
+## Website design
+
+The website uses a white technical blueprint theme. Blue ink, fine rules,
+square controls and graph-paper diagrams give it the feel of an early product
+sketch. The split-K mark keeps its original shape in a flat blue variant.
+There are no 3D objects, shader effects or background animations.
+
+The homepage explains the service, shows measured performance, gives a working
+install command and diagrams shared knowledge with private worker namespaces.
+The same typography and controls carry through the demo, benchmarks and guides.
+This is a self-hosted product page: install, read the docs, try the demo.
+Managed hosting stays a labeled future offering.
+
+Theme tokens live in `site/src/styles/global.css`. Diagrams are accessible native
+SVG components in `site/src/components/diagrams/`; the homepage request path is
+`MemoryBlueprint.astro`. The compact swarm diagram shows the complete topology
+on mobile. [Logo](assets/blueprint-mark.svg) and [social image source](assets/blueprint-social.svg)
+are editable SVG. The social preview also has a 1200 × 630 PNG export.
+
+[Redis](https://redis.io/) and [Valkey](https://valkey.io/) were reviewed for clear
+product explanations and direct installation/documentation paths. The artwork
+and layout are original. Benchmark claims stay tied to their actual workloads.
+
 ## One documentation source
 
 `site/src/lib/docs.ts` defines navigation and descriptions. Astro's collection
@@ -28,7 +51,8 @@ Edit those Markdown files; you don't need to maintain a second copy for the site
 The build rewrites relative repository links for the website, copies artwork,
 examples and all benchmark JSON, and generates `llms.txt`/`llms-full.txt`.
 
-The benchmark page computes medians and totals from the 15 checked-in reports.
+The benchmark page computes medians and totals from the 15 VPS reports and shows
+the median-throughput recordings from six actual Mac runs separately.
 Keep their recorded source revision, transport, hardware and host load visible.
 Only replace a dataset after collecting and verifying a new complete set.
 

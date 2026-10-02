@@ -1,0 +1,169 @@
+---
+/**
+ * Compaction handoff. The context window fills, a checkpoint commits,
+ * the window is cleared, and the capsule comes back with the records it
+ * names. The checkpoint id lives outside the window the whole time.
+ */
+---
+
+<figure class="figure">
+  <svg
+    class="diagram"
+    viewBox="0 0 1200 470"
+    role="img"
+    aria-labelledby="lifecycle-title lifecycle-desc"
+  >
+    <title id="lifecycle-title">Checkpoint, compaction and restore</title>
+    <desc id="lifecycle-desc">
+      Four stages: store reusable facts, commit a checkpoint with the goal and
+      next step, clear the context, then restore the capsule and fetch the
+      records it points to. The checkpoint identifier is held outside the
+      context window so compaction cannot erase it.
+    </desc>
+
+    <text class="d-index" x="20" y="34">
+      01 / CHECKPOINT LIFECYCLE
+    </text>
+    <text class="d-index" x="1180" y="34" text-anchor="end">
+      NO MODEL CALLS TO STORE OR RESTORE
+    </text>
+    <path class="d-rule--faint" d="M20 46H1180" />
+
+    <!-- the context window -->
+    <text class="d-index" x="20" y="96">
+      CONTEXT WINDOW
+    </text>
+    <rect
+      class="d-rule"
+      x="20"
+      y="108"
+      width="1160"
+      height="86"
+      stroke-dasharray="3 5"
+    />
+
+    <!-- stage 1: full window -->
+    <rect class="d-node" x="44" y="124" width="240" height="54" />
+    <text class="d-note" x="58" y="146">
+      working notes
+    </text>
+    <text class="d-note" x="58" y="164">
+      tool output, drafts
+    </text>
+
+    <!-- stage 2: nearly full -->
+    <rect
+      class="d-node d-node--store"
+      x="344"
+      y="124"
+      width="240"
+      height="54"
+    />
+    <text class="d-note" x="358" y="146">
+      working notes
+    </text>
+    <text class="d-value" x="358" y="166">
+      goal · constraints · next step
+    </text>
+
+    <!-- stage 3: emptied -->
+    <text class="d-note" x="644" y="158">
+      cleared
+    </text>
+    <path class="d-rule--faint" d="M644 124H884" />
+    <path class="d-flow--deny" d="M700 150L712 138M712 150L700 138" />
+
+    <!-- stage 4: refilled from storage -->
+    <rect
+      class="d-node d-node--private"
+      x="944"
+      y="124"
+      width="212"
+      height="54"
+    />
+    <text class="d-note" x="958" y="146">
+      capsule + records
+    </text>
+    <text class="d-value" x="958" y="166">
+      restored
+    </text>
+
+    <!-- the locator that never enters the window -->
+    <text class="d-index" x="20" y="252">
+      HELD OUTSIDE THE PROMPT
+    </text>
+    <rect class="d-node d-node--key" x="20" y="266" width="1160" height="52" />
+    <text class="d-label" x="44" y="298">
+      checkpoint id
+      <tspan class="d-value">alpha/session/latest</tspan>
+      <tspan class="d-note">
+        {' '}
+        · revision · fetched by exact key after restart
+      </tspan>
+    </text>
+
+    <!-- the four steps -->
+    <path class="d-rule--faint" d="M20 350H1180" />
+    <g>
+      <text class="d-index" x="20" y="378">
+        01 / STORE
+      </text>
+      <text class="d-label" x="20" y="404">
+        Save what matters.
+      </text>
+      <text class="d-note" x="20" y="424">
+        facts, decisions and sources
+      </text>
+      <text class="d-note" x="20" y="440">
+        under descriptive keys
+      </text>
+    </g>
+    <g>
+      <text class="d-index" x="322" y="378">
+        02 / CHECKPOINT
+      </text>
+      <text class="d-label" x="322" y="404">
+        Save the next step.
+      </text>
+      <text class="d-note" x="322" y="424">
+        goal, constraints, unfinished
+      </text>
+      <text class="d-note" x="322" y="440">
+        work, one transaction
+      </text>
+    </g>
+    <g>
+      <text class="d-index" x="624" y="378">
+        03 / COMPACT
+      </text>
+      <text class="d-label" x="624" y="404">
+        Free the context.
+      </text>
+      <text class="d-note" x="624" y="424">
+        wait until the save succeeds,
+      </text>
+      <text class="d-note" x="624" y="440">
+        keep the id outside the prompt
+      </text>
+    </g>
+    <g>
+      <text class="d-index" x="926" y="378">
+        04 / RESTORE
+      </text>
+      <text class="d-label" x="926" y="404">
+        Carry on.
+      </text>
+      <text class="d-note" x="926" y="424">
+        load the capsule, fetch the
+      </text>
+      <text class="d-note" x="926" y="440">
+        details, pick up the task
+      </text>
+    </g>
+  </svg>
+
+  <div class="diagram-legend">
+    <span>capsule + latest pointer commit together</span>
+    <span>restore reports missing or changed references</span>
+  </div>
+</figure>
