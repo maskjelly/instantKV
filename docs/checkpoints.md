@@ -324,3 +324,23 @@ tabs also passed. Homepage Lighthouse scores on the local Worker preview were
 100 for performance, accessibility, best practices and SEO; demo performance
 was 99, with 100 in the other categories. These are local checks, not a public
 latency claim. Screenshots were inspected before publication.
+
+## 19 — Readable worker topology and honest short timings
+
+Replaced the shared/private worker SVG with a responsive HTML/CSS diagram.
+It separates the operator, server storage, scoped API and remote agents without
+crossing paths. Labels wrap at readable sizes; no alternative mobile legend or
+horizontal diagram scrolling is needed. Shared knowledge is read-only to
+workers, and each worker's private notes/checkpoints remain isolated from peers.
+
+The recorded demo now times finding and copying the saved response in browser
+memory. When both clock readings match, it displays **Below timer resolution**
+instead of a numeric zero. Positive measurements below the display precision
+show **<0.001 ms**. Recorded Rust HTTP timings remain untouched. The page and
+guide explain that this local measurement excludes storage/network requests.
+
+Chromium checked homepage and cloud-agent diagrams at 1440, 768, 390 and 320px:
+no clipped layouts or horizontal overflow, and agents stay outside the server
+boundary. A controlled clock exercised equal timestamps, a small positive
+duration, a normal duration and reset behavior. Saved response integrity passed
+with zero live API calls and zero browser errors. Screenshots were inspected.

@@ -21,6 +21,8 @@ if (live) {
     'Browser round-trip';
   document.getElementById('read-backend-label')!.textContent =
     'Backend HTTP read';
+  document.getElementById('read-timing-note')!.textContent =
+    'Browser time includes the network round-trip. Backend time covers the HTTP request to Rust.';
   document.getElementById('trace-label')!.textContent =
     'Browser batch round-trip / live trace';
   document.getElementById('error-unit')!.textContent = 'browser API requests';

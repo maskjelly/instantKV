@@ -33,10 +33,12 @@ The same typography and controls carry through the demo, benchmarks and guides.
 This is a self-hosted product page: install, read the docs, try the demo.
 Managed hosting stays a labeled future offering.
 
-Theme tokens live in `site/src/styles/global.css`. Diagrams are accessible native
+Theme tokens live in `site/src/styles/global.css`. Technical diagrams use native
 SVG components in `site/src/components/diagrams/`; the homepage request path is
-`MemoryBlueprint.astro`. The compact swarm diagram shows the complete topology
-on mobile. [Logo](assets/blueprint-mark.svg) and [social image source](assets/blueprint-social.svg)
+`MemoryBlueprint.astro`. The shared/private memory diagram uses responsive
+HTML/CSS, so its labels wrap at readable sizes on mobile. The dashed server
+boundary contains shared knowledge, two private namespaces and the scoped API;
+cloud workers sit outside it. [Logo](assets/blueprint-mark.svg) and [social image source](assets/blueprint-social.svg)
 are editable SVG. The social preview also has a 1200 × 630 PNG export.
 
 [Redis](https://redis.io/) and [Valkey](https://valkey.io/) were reviewed for clear

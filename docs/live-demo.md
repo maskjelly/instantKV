@@ -30,6 +30,14 @@ the recording remains cached. Use Live VPS to test retrieval from storage
 independent of the browser. A recorded reader tab loads its own copy of the
 static recording, whereas a live reader tab passes only its session locator.
 
+The client cache timer covers finding and copying a saved response in browser
+memory. It excludes the network, Rust storage and display rendering. Browsers
+[reduce clock precision](https://developer.mozilla.org/en-US/docs/Web/API/Performance/now#security_requirements),
+so a short lookup can return the same timestamp before and after the operation.
+The demo shows **Below timer resolution** for that case. It does not display a
+numeric zero or substitute an invented latency. Positive durations below the
+display's precision show **<0.001 ms**; recorded backend timings stay unchanged.
+
 ```text
 Mac recorder → real Rust PUT/GET → raw reports + verified response samples
                                       ↓ select median throughput run

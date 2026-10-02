@@ -184,6 +184,10 @@ import DemoFlowDiagram from '../components/diagrams/DemoFlowDiagram.astro';
           </div>
         </div>
 
+        <p class="u-micro demo-timing-note" id="read-timing-note">
+          Browser memory lookup only. A short lookup can fall within one clock
+          tick; that does not mean it took zero time.
+        </p>
         <div class="demo-status-line">
           <span id="read-verification">Waiting for a stored record</span>
           <a

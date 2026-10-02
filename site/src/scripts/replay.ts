@@ -140,6 +140,7 @@ function reset() {
     'Recorded responses · no new storage request';
   el('read-browser-ms').textContent = el('read-backend-ms').textContent =
     '— ms';
+  el('read-browser-ms').classList.remove('timing-unresolved');
   el('read-key').textContent =
     'Exact key and recorded revision will appear here.';
   paint();
@@ -148,15 +149,22 @@ function reset() {
   );
 }
 async function recall() {
+  const before = performance.now();
   const sample = recording.reads.find(
     (entry) => entry.index === Number(samples.value),
   );
   if (!sample) return;
-  const before = performance.now();
   const value = JSON.parse(JSON.stringify(sample.value));
   const lookup = performance.now() - before;
   el('read-output').textContent = JSON.stringify(value, null, 2);
-  el('read-browser-ms').textContent = `${lookup.toFixed(3)} ms`;
+  const timing = el('read-browser-ms');
+  timing.classList.toggle('timing-unresolved', lookup === 0);
+  timing.textContent =
+    lookup === 0
+      ? 'Below timer resolution'
+      : lookup < 0.001
+        ? '<0.001 ms'
+        : `${lookup.toFixed(3)} ms`;
   el('read-backend-ms').textContent = `${sample.backend_ms.toFixed(3)} ms`;
   el('read-verification').textContent = sample.verified
     ? '✓ Saved exact response · verified against the fixture during recording'
@@ -228,6 +236,7 @@ el('clear-context').addEventListener('click', () => {
     'Recall a saved response. This replay illustrates retrieval; Live VPS tests storage independent of this browser.';
   el('read-browser-ms').textContent = el('read-backend-ms').textContent =
     '— ms';
+  el('read-browser-ms').classList.remove('timing-unresolved');
   el('read-verification').textContent =
     'Preview cleared · recorded responses still cached';
   status(
