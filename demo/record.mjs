@@ -10,7 +10,7 @@ import {
   mkdirSync,
   rmSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
+import { tmpdir, cpus, totalmem, platform, release } from "node:os";
 import { resolve } from "node:path";
 import { once } from "node:events";
 
@@ -73,6 +73,16 @@ const environment = {
   recorder_source: execFileSync("git", ["rev-parse", "HEAD"], {
     encoding: "utf8",
   }).trim(),
+  recorder_files_sha256: Object.fromEntries(
+    ["record.mjs", "gateway.mjs", "fixtures.mjs", "instantkv.toml"].map(
+      (name) => [
+        name,
+        createHash("sha256")
+          .update(readFileSync(new URL("./" + name, import.meta.url)))
+          .digest("hex"),
+      ],
+    ),
+  ),
   binary_sha256: createHash("sha256")
     .update(readFileSync(binary))
     .digest("hex"),
