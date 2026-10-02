@@ -21,6 +21,8 @@ export default {
         '/api/demo/write',
         '/api/demo/read',
         '/api/demo/status',
+        '/api/demo/query',
+        '/api/demo/forget',
       ].includes(url.pathname)
     )
       return reply(404, 'Unknown demo operation');

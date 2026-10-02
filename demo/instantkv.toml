@@ -7,6 +7,7 @@ max_in_flight_requests = 64
 request_timeout_seconds = 10
 [storage]
 data_dir = "/state/data"
+cache_size_bytes = 8388608
 cleanup_interval_seconds = 1
 cleanup_batch_entries = 1000
 [auth]
@@ -14,8 +15,8 @@ mode = "api_key"
 [[auth.principals]]
 name = "demo"
 token_env = "INSTANTKV_DEMO_TOKEN"
-namespaces = ["demo_cache", "demo_knowledge"]
-operations = ["get", "put"]
+namespaces = ["demo_memories"]
+operations = ["get", "put", "list", "delete"]
 [[namespaces]]
 name = "demo_cache"
 mode = "memory"
@@ -45,4 +46,21 @@ max_value_bytes = 8192
 [namespaces.capacity]
 max_entries = 30000
 max_total_bytes = 67108864
+on_full = "reject"
+
+# Current structured-memory demo. Earlier namespaces remain for storage compatibility.
+[[namespaces]]
+name = "demo_memories"
+mode = "durable"
+[namespaces.retention]
+require_ttl = true
+default_ttl_seconds = 900
+max_ttl_seconds = 900
+[namespaces.admission]
+value_kind = "json"
+max_key_bytes = 256
+max_value_bytes = 8192
+[namespaces.capacity]
+max_entries = 120000
+max_total_bytes = 134217728
 on_full = "reject"

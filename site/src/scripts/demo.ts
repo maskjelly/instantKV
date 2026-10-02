@@ -1,8 +1,25 @@
 export {};
-
+interface Hit {
+  key: string;
+  revision: number;
+  memory: {
+    content: string;
+    topic: string;
+    tags: string[];
+    occurred_at_ms: number;
+    metadata: { record_id: number };
+  };
+}
+interface Page {
+  items: Hit[];
+  next_cursor: string | null;
+  scanned: number;
+  scanned_bytes: number;
+  backend_ms: number;
+  verified: boolean;
+}
 interface Run {
   id: string;
-  mode: string;
   count: number;
   written: number;
   bytes: number;
@@ -12,46 +29,66 @@ interface Batch {
   written: number;
   total: number;
   bytes: number;
-  batch_ms: number;
   operation_ms: number[];
+}
+interface Recording {
+  count: number;
+  iteration: number;
+  preview: object;
+  content: string;
+  latency_ms: { p50: number; p99: number };
+  records_per_second: number;
+  reads: (Hit & { index: number; backend_ms: number })[];
+  queries: { name: string; input: object; value: Page; client_ms: number }[];
+  forgotten: { value: object; absent: object };
 }
 const el = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
-const start = el<HTMLButtonElement>('start-run');
-const stop = el<HTMLButtonElement>('stop-run');
-const newRun = el<HTMLButtonElement>('new-run');
-const read = el<HTMLButtonElement>('read-record');
-const random = el<HTMLButtonElement>('random-record');
-const index = el<HTMLInputElement>('record-index');
-const mode = el<HTMLSelectElement>('storage-mode');
-const count = el<HTMLSelectElement>('memory-count');
-const size = el<HTMLSelectElement>('value-size');
-const content = el<HTMLTextAreaElement>('memory-content');
-const progress = el<HTMLProgressElement>('write-progress');
-const grid = el('memory-grid');
-const cells = Array.from({ length: 240 }, () => {
-  const cell = document.createElement('span');
-  grid.append(cell);
-  return cell;
-});
-const format = (n: number) => n.toLocaleString('en-US');
-let run: Run | undefined;
-let running = false;
-let reading = false;
-let paused = false;
-let errors = 0;
-let activeElapsed = 0;
-let operations: number[] = [];
-let batches: number[] = [];
-const status = (message: string) => {
-  el('demo-status').textContent = message;
+const source = el<HTMLSelectElement>('demo-source');
+const recorded =
+  new URLSearchParams(location.search).get('source') === 'recorded';
+source.value = recorded ? 'recorded' : 'live';
+source.addEventListener('change', () =>
+  location.assign(
+    source.value === 'recorded' ? '/demo/?source=recorded' : '/demo/',
+  ),
+);
+const start = el<HTMLButtonElement>('start-run'),
+  stop = el<HTMLButtonElement>('stop-run'),
+  fresh = el<HTMLButtonElement>('new-run');
+const count = el<HTMLSelectElement>('memory-count'),
+  content = el<HTMLTextAreaElement>('memory-content'),
+  index = el<HTMLInputElement>('record-index');
+const recall = el<HTMLButtonElement>('recall-memories'),
+  browse = el<HTMLButtonElement>('browse-memories'),
+  next = el<HTMLButtonElement>('next-page');
+const read = el<HTMLButtonElement>('read-record'),
+  forget = el<HTMLButtonElement>('forget-record');
+const fields = [
+  'filter-topic',
+  'filter-tag',
+  'filter-query',
+  'filter-since',
+  'filter-until',
+];
+let run: Run | undefined,
+  recording: Recording | undefined,
+  page: Page | undefined,
+  hit: Hit | undefined;
+let running = false,
+  querying = false,
+  paused = false,
+  filters: Record<string, string | number> = {},
+  operations: number[] = [];
+const status = (s: string) => {
+  el('demo-status').textContent = s;
 };
-async function api<T>(
-  operation: string,
-  input: object,
-): Promise<{ value: T; ms: number }> {
-  const before = performance.now();
-  const response = await fetch(`/api/demo/${operation}`, {
+const print = (id: string, value: unknown) => {
+  el(id).textContent = JSON.stringify(value, null, 2);
+};
+async function api<T>(operation: string, input: object) {
+  const began = performance.now();
+  const response = await fetch('/api/demo/' + operation, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -59,279 +96,392 @@ async function api<T>(
     signal: AbortSignal.timeout(30000),
   });
   const value = await response.json();
-  if (!response.ok) {
-    errors++;
-    el('metric-errors').textContent = String(errors);
-    throw new Error(value.error || `HTTP ${response.status}`);
-  }
-  return { value, ms: performance.now() - before };
+  if (!response.ok) throw new Error(value.error || 'HTTP ' + response.status);
+  return { value: value as T, ms: performance.now() - began };
 }
-function settings() {
-  const locked = running || !!(run && run.written < run.count);
-  for (const control of [mode, count, size, content]) control.disabled = locked;
-  for (const option of count.options)
-    option.disabled = mode.value === 'durable' && Number(option.value) > 10000;
-  if (mode.value === 'durable' && Number(count.value) > 10000)
-    count.value = '10000';
-  if (!running)
-    start.textContent =
-      run && run.written < run.count
-        ? 'Continue loading →'
-        : `Store ${format(Number(count.value))} memories →`;
-}
-function update() {
-  if (!run) return;
-  progress.max = run.count;
-  progress.value = run.written;
-  el('write-count').textContent =
-    `${format(run.written)} / ${format(run.count)} acknowledged`;
-  el('write-percent').textContent =
-    `${Math.floor((run.written / run.count) * 100)}%`;
-  cells.forEach((cell, i) =>
-    cell.classList.toggle(
-      'filled',
-      run!.written > 0 && (i + 1) / cells.length <= run!.written / run!.count,
-    ),
-  );
-  el('metric-count').textContent = format(run.written);
-  el('metric-bytes').textContent = (run.bytes / 1048576).toFixed(2);
-  el('metric-rate').textContent = activeElapsed
-    ? format(Math.round((operations.length / activeElapsed) * 1000))
-    : '—';
-  if (operations.length) {
-    const sorted = [...operations].sort((a, b) => a - b);
-    const percentile = (p: number) =>
-      sorted[Math.ceil(sorted.length * p) - 1].toFixed(2);
-    el('metric-p50').textContent = percentile(0.5);
-    el('metric-p99').textContent = percentile(0.99);
-  }
-  if (batches.length) {
-    const max = Math.max(...batches, 1);
-    el('latency-trace').setAttribute(
-      'points',
-      batches
-        .map(
-          (ms, i) =>
-            `${(i / Math.max(batches.length - 1, 1)) * 1000},${110 - (ms / max) * 100}`,
-        )
-        .join(' '),
-    );
-    el('trace-summary').textContent =
-      `${batches.length} batches · max ${Math.round(max)} ms`;
-  }
-  index.disabled = run.written === 0;
-  read.disabled = reading || run.written === 0;
-  random.disabled = reading || run.written === 0;
-  index.max = String(Math.max(run.written - 1, 0));
-  el('read-range').textContent = run.written
-    ? `0–${format(run.written - 1)}`
-    : 'load memories first';
+const fail = (e: unknown) =>
+  status(e instanceof Error ? e.message : 'Request failed. Retry shortly.');
+function controls() {
+  start.disabled = running || (recorded && !recording);
+  stop.disabled = !running;
+  fresh.disabled = running || querying;
+  count.disabled = recorded || running || !!(run && run.written < run.count);
+  content.disabled = recorded || running || !!(run && run.written < run.count);
+  recall.disabled =
+    browse.disabled =
+    read.disabled =
+      querying || !(run && run.written);
+  next.disabled = querying || !page?.next_cursor;
+  forget.disabled =
+    recorded ||
+    querying ||
+    !hit ||
+    hit.memory.metadata.record_id !== Number(index.value);
+  index.disabled = !(run && run.written);
+  index.max = String(Math.max(0, (run?.written || 0) - 1));
+  start.textContent =
+    run && run.written < run.count
+      ? 'Continue →'
+      : recorded
+        ? 'Open saved run →'
+        : 'Remember ' + Number(count.value).toLocaleString('en-US') + ' →';
   const tab = el<HTMLAnchorElement>('reader-tab');
-  tab.hidden = !run.written;
-  tab.href = `/demo/#run=${run.id}`;
+  tab.hidden = recorded || !run?.written;
+  if (run) tab.href = '/demo/#run=' + run.id;
 }
-mode.addEventListener('change', settings);
-count.addEventListener('change', settings);
-newRun.addEventListener('click', () => {
-  if (running || reading) return;
-  run = undefined;
-  operations = [];
-  batches = [];
-  activeElapsed = 0;
-  errors = 0;
-  progress.value = 0;
-  cells.forEach((cell) => cell.classList.remove('filled'));
-  for (const id of ['metric-count', 'metric-bytes', 'metric-errors'])
-    el(id).textContent = '0';
-  for (const id of ['metric-rate', 'metric-p50', 'metric-p99'])
-    el(id).textContent = '—';
-  el('latency-trace').setAttribute('points', '');
-  el('trace-summary').textContent = 'No measurements yet';
+function progress() {
+  const n = run?.written || 0,
+    total = run?.count || Number(count.value);
+  el<HTMLProgressElement>('write-progress').max = total;
+  el<HTMLProgressElement>('write-progress').value = n;
   el('write-count').textContent =
-    `0 / ${format(Number(count.value))} acknowledged`;
-  el('write-percent').textContent = '0%';
-  el('write-preview').textContent =
-    'Start a new run to generate synthetic records.';
-  el('read-output').textContent = 'Load a new run before reading.';
-  el('read-verification').textContent = 'Waiting for a stored record';
-  el('read-browser-ms').textContent = '— ms';
-  el('read-backend-ms').textContent = '— ms';
-  el<HTMLAnchorElement>('reader-tab').hidden = true;
-  index.disabled = true;
-  read.disabled = true;
-  random.disabled = true;
-  history.replaceState(null, '', location.pathname);
-  settings();
-  status(
-    'Choose settings for your new run. Previous runs expire automatically.',
-  );
-});
-stop.addEventListener('click', () => {
-  paused = true;
-  stop.disabled = true;
-  status('Pausing after the current batch is acknowledged…');
-});
-el('clear-context').addEventListener('click', () => {
-  content.value = '';
-  el('write-preview').textContent =
-    'Local context cleared. Only the session locator remains. Read a record from the independent reader.';
-  el('read-output').textContent =
-    'Reader context cleared. Fetch a record from storage.';
-  el('read-verification').textContent = 'Context cleared · ready to recall';
-  el('read-browser-ms').textContent = '— ms';
-  el('read-backend-ms').textContent = '— ms';
-  status(
-    'Local values cleared. Stored keys remain available until expiry or eviction.',
-  );
-});
+    n.toLocaleString('en-US') +
+    ' / ' +
+    total.toLocaleString('en-US') +
+    ' acknowledged';
+  el('write-percent').textContent = Math.floor((n / total) * 100) + '%';
+  el('metric-count').textContent = n.toLocaleString('en-US');
+  if (operations.length) {
+    const values = [...operations].sort((a, b) => a - b);
+    el('metric-save').textContent =
+      values[Math.ceil(values.length * 0.5) - 1].toFixed(2) +
+      ' / ' +
+      values[Math.ceil(values.length * 0.99) - 1].toFixed(2);
+  }
+  controls();
+}
+function paintPage(value: Page, ms?: number) {
+  page = value;
+  print('query-output', value);
+  el('query-summary').textContent =
+    value.items.length +
+    ' memories · ' +
+    value.scanned +
+    ' candidates · ' +
+    value.scanned_bytes +
+    ' scanned bytes' +
+    (value.next_cursor ? ' · more pages available' : ' · end of results');
+  el('metric-query').textContent = value.backend_ms.toFixed(3);
+  el('metric-client').textContent = recorded ? '—' : ms!.toFixed(2);
+  const results = el('memory-results');
+  results.replaceChildren();
+  for (const item of value.items) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    const label = document.createElement('small');
+    label.textContent =
+      '#' +
+      item.memory.metadata.record_id +
+      ' · ' +
+      item.memory.topic +
+      ' · ' +
+      new Date(item.memory.occurred_at_ms).toISOString();
+    const text = document.createElement('span');
+    text.textContent = item.memory.content.slice(0, 160);
+    button.append(label, text);
+    button.addEventListener('click', () => {
+      index.value = String(item.memory.metadata.record_id);
+      void readOne();
+    });
+    results.append(button);
+  }
+  if (!value.items.length)
+    results.textContent = value.next_cursor
+      ? 'No match in this bounded page. Continue with Next page.'
+      : 'No memories match these filters.';
+  controls();
+}
+function currentFilters() {
+  const result: Record<string, string | number> = {};
+  for (const [id, key] of [
+    ['filter-topic', 'topic'],
+    ['filter-tag', 'tag'],
+    ['filter-query', 'query'],
+  ]) {
+    const value = el<HTMLInputElement>(id).value.trim();
+    if (value) result[key] = value;
+  }
+  for (const [id, key] of [
+    ['filter-since', 'since_ms'],
+    ['filter-until', 'until_ms'],
+  ]) {
+    const value = el<HTMLInputElement>(id).value;
+    if (value) result[key] = new Date(value).getTime();
+  }
+  return result;
+}
+async function query(all = false, continuation = false) {
+  if (querying || !run) return;
+  querying = true;
+  controls();
+  try {
+    if (recorded) {
+      const preset = continuation
+        ? 'browse_next'
+        : all
+          ? 'browse'
+          : el<HTMLSelectElement>('query-preset').value;
+      const saved = recording!.queries.find((q) => q.name === preset)!;
+      paintPage(saved.value);
+      if (preset !== 'browse') next.disabled = true;
+      status(
+        'Saved ' +
+          preset +
+          ' response. Recorded backend timing; no new storage request.',
+      );
+    } else {
+      if (!continuation) filters = all ? {} : currentFilters();
+      if (all)
+        fields.forEach((id) => {
+          el<HTMLInputElement>(id).value = '';
+        });
+      const { value, ms } = await api<Page>('query', {
+        id: run.id,
+        ...filters,
+        ...(continuation ? { cursor: page!.next_cursor } : {}),
+      });
+      paintPage(value, ms);
+      status('Rust returned ' + value.items.length + ' verified memories.');
+    }
+  } catch (e) {
+    fail(e);
+  } finally {
+    querying = false;
+    controls();
+    if (recorded && page !== recording!.queries[0].value) next.disabled = true;
+  }
+}
+async function readOne() {
+  if (querying || !run) return;
+  querying = true;
+  hit = undefined;
+  controls();
+  try {
+    if (recorded) {
+      const saved =
+        recording!.reads.find((r) => r.index === Number(index.value)) ||
+        recording!.queries
+          .flatMap((q) => q.value.items)
+          .find((h) => h.memory.metadata.record_id === Number(index.value));
+      if (!saved)
+        throw new Error(
+          'This index was not saved in the recording. Select a recorded result.',
+        );
+      hit = saved;
+      status('Saved storage response. No new storage request.');
+    } else {
+      const { value } = await api<Hit>('read', {
+        id: run.id,
+        index: Number(index.value),
+      });
+      hit = value;
+      status('Exact memory fetched from Rust storage.');
+    }
+    print('read-output', hit);
+    el('read-verification').textContent =
+      'Verified fields · revision ' + hit.revision;
+  } catch (e) {
+    el('read-output').textContent =
+      e instanceof Error ? e.message : 'Read failed';
+    el('read-verification').textContent = 'No memory returned';
+    fail(e);
+  } finally {
+    querying = false;
+    controls();
+  }
+}
+function reset() {
+  if (running || querying) return;
+  run = undefined;
+  hit = undefined;
+  page = undefined;
+  operations = [];
+  for (const id of ['write-preview', 'read-output', 'query-output'])
+    el(id).textContent = 'No memory loaded.';
+  for (const id of ['metric-save', 'metric-query', 'metric-client'])
+    el(id).textContent = '—';
+  el('memory-results').replaceChildren();
+  el('query-summary').textContent = 'Remember some memories first.';
+  el('read-verification').textContent =
+    'Read a saved memory before deleting it.';
+  history.replaceState(null, '', location.pathname + location.search);
+  progress();
+  status('Ready for a new run. Earlier live memories expire automatically.');
+}
 start.addEventListener('click', async () => {
   if (running) return;
+  if (recorded) {
+    reset();
+    run = {
+      id: 'recorded',
+      count: recording!.count,
+      written: recording!.count,
+      bytes: 0,
+      expires_at: 0,
+    };
+    print('write-preview', recording!.preview);
+    progress();
+    el('metric-save').textContent =
+      recording!.latency_ms.p50.toFixed(2) +
+      ' / ' +
+      recording!.latency_ms.p99.toFixed(2);
+    status(
+      'Recorded run ' +
+        recording!.iteration +
+        ' · 10,000 acknowledged memory saves. Choose a saved query.',
+    );
+    return;
+  }
+  if (!run || run.written === run.count) reset();
   running = true;
   paused = false;
-  start.disabled = true;
-  stop.disabled = false;
-  newRun.disabled = true;
-  for (const control of [mode, count, size, content]) control.disabled = true;
+  controls();
   try {
-    if (!run || run.written === run.count) {
-      run = undefined;
-      operations = [];
-      batches = [];
-      activeElapsed = 0;
-      errors = 0;
-      el('read-output').textContent =
-        'Waiting for a stored record in the new run.';
-      el('read-verification').textContent = 'Waiting for a stored record';
-      el('read-browser-ms').textContent = '— ms';
-      el('read-backend-ms').textContent = '— ms';
-      el('metric-p50').textContent = '—';
-      el('metric-p99').textContent = '—';
-      el('metric-errors').textContent = '0';
+    if (!run) {
       const { value } = await api<Run & { preview: object }>('session', {
-        mode: mode.value,
         count: Number(count.value),
-        valueBytes: Number(size.value),
+        valueBytes: 512,
         content: content.value,
       });
       run = {
         id: value.id,
-        expires_at: value.expires_at,
-        count: Number(count.value),
+        count: value.count,
         written: 0,
         bytes: 0,
-        mode: mode.value,
+        expires_at: value.expires_at,
       };
-      el('write-preview').textContent = JSON.stringify(value.preview, null, 2);
-      history.replaceState(null, '', `#run=${run.id}`);
-      update();
+      print('write-preview', value.preview);
+      history.replaceState(null, '', '#run=' + run.id);
     }
     while (run.written < run.count && !paused) {
-      status(
-        `Writing ${format(run.count)} ${run.mode === 'cache' ? 'cache' : 'durable'} records…`,
-      );
-      const { value, ms } = await api<Batch>('write', {
+      status('Remembering through the Rust memory API…');
+      const { value } = await api<Batch>('write', {
         id: run.id,
         offset: run.written,
       });
       run.written = value.written;
       run.bytes = value.bytes;
-      activeElapsed += ms;
-      for (const timing of value.operation_ms) operations.push(timing);
-      batches.push(ms);
-      update();
+      operations.push(...value.operation_ms);
+      progress();
     }
     status(
-      run.written === run.count
-        ? `${format(run.written)} memories acknowledged. Clear the local context and recall any exact key.`
-        : `Paused at ${format(run.written)} acknowledged memories. You can read now or continue loading.`,
+      paused
+        ? 'Paused after an acknowledged batch. Continue to finish.'
+        : 'Memories saved. Clear local context, then recall or browse them.',
     );
-  } catch (error) {
-    status(
-      error instanceof Error ? error.message : 'Request failed. Try again.',
-    );
+  } catch (e) {
+    fail(e);
   } finally {
     running = false;
-    start.disabled = false;
-    stop.disabled = true;
-    newRun.disabled = false;
-    for (const control of [mode, count, size, content])
-      control.disabled = false;
-    settings();
+    controls();
   }
 });
-async function recall() {
-  if (!run || read.disabled) return;
-  const requested = Number(index.value);
-  if (
-    !Number.isInteger(requested) ||
-    requested < 0 ||
-    requested >= run.written
-  ) {
-    status('Choose an acknowledged record index.');
-    return;
-  }
-  read.disabled = true;
-  random.disabled = true;
-  reading = true;
+stop.addEventListener('click', () => {
+  paused = true;
+  stop.disabled = true;
+  status('Pausing after this batch is acknowledged…');
+});
+fresh.addEventListener('click', reset);
+count.addEventListener('change', progress);
+recall.addEventListener('click', () => void query());
+browse.addEventListener('click', () => void query(true));
+next.addEventListener('click', () => void query(false, true));
+read.addEventListener('click', () => void readOne());
+index.addEventListener('input', () => {
+  hit = undefined;
+  controls();
+});
+fields.forEach((id) =>
+  el(id).addEventListener('input', () => {
+    page = undefined;
+    next.disabled = true;
+  }),
+);
+el('query-preset').addEventListener('change', () => {
+  page = undefined;
+  next.disabled = true;
+});
+el('clear-context').addEventListener('click', () => {
+  hit = undefined;
+  page = undefined;
+  content.value = '';
+  el('memory-results').replaceChildren();
+  for (const id of ['write-preview', 'read-output', 'query-output'])
+    el(id).textContent = 'Displayed context cleared.';
+  el('read-verification').textContent = 'Context cleared · ready to read again';
+  controls();
+  status(
+    recorded
+      ? 'Displayed context cleared. Recorded responses remain in the browser.'
+      : 'Browser values cleared. Live storage can be read using the session locator.',
+  );
+});
+forget.addEventListener('click', async () => {
+  if (!run || !hit || recorded || querying) return;
+  querying = true;
+  controls();
   try {
-    const { value, ms } = await api<{
-      value: object;
-      key: string;
-      namespace: string;
-      revision: string;
-      backend_ms: number;
-      verified: boolean;
-    }>('read', { id: run.id, index: requested });
-    el('read-output').textContent = JSON.stringify(value.value, null, 2);
-    el('read-browser-ms').textContent = `${ms.toFixed(1)} ms`;
-    el('read-backend-ms').textContent = `${value.backend_ms.toFixed(2)} ms`;
-    el('read-verification').textContent = value.verified
-      ? '✓ Exact value verified against the generated record'
-      : 'Value verification failed';
-    el('read-key').textContent =
-      `${value.namespace}/${value.key} · revision ${value.revision}`;
-    status(`Record ${format(requested)} retrieved from the Rust engine.`);
-  } catch (error) {
-    el('read-output').textContent =
-      'Read failed. No previous value is being displayed.';
-    el('read-verification').textContent = 'Read failed';
-    status(error instanceof Error ? error.message : 'Read failed.');
+    const { value } = await api('forget', {
+      id: run.id,
+      index: Number(index.value),
+    });
+    print('read-output', value);
+    hit = undefined;
+    page = undefined;
+    el('memory-results').replaceChildren();
+    el('query-output').textContent = 'Run a new query after deletion.';
+    el('read-verification').textContent = 'Deleted from storage and indexes';
+    status('Memory deleted. Read the same key or browse again to verify.');
+  } catch (e) {
+    fail(e);
   } finally {
-    reading = false;
-    read.disabled = false;
-    random.disabled = false;
-  }
-}
-read.addEventListener('click', recall);
-random.addEventListener('click', () => {
-  if (run?.written) {
-    const sample = crypto.getRandomValues(new Uint32Array(1))[0];
-    index.value = String(sample % run.written);
-    void recall();
+    querying = false;
+    controls();
   }
 });
-const locator = new URLSearchParams(location.hash.slice(1)).get('run');
-if (locator && /^[a-f0-9]{48}$/.test(locator)) {
-  start.disabled = true;
-  api<Run>('status', { id: locator })
-    .then(({ value }) => {
-      run = value;
-      mode.value = value.mode;
-      count.value = String(value.count);
-      update();
-      settings();
+async function boot() {
+  if (recorded) {
+    start.disabled = true;
+    count.value = '10000';
+    count.disabled = content.disabled = true;
+    el('live-filters').hidden = true;
+    el('recorded-filters').hidden = false;
+    el('demo-source-label').textContent =
+      'Recorded memory API / saved Mac responses';
+    el('source-note').textContent =
+      'Three current API runs. Read-only saved responses; no model or live storage calls.';
+    el('client-timing-label').textContent = 'Recorded mode';
+    el('client-timing-note').textContent = 'No browser storage round-trip';
+    try {
+      const response = await fetch('/recordings/memory/replay.json');
+      if (!response.ok)
+        throw new Error('Recording unavailable. Try live mode.');
+      const dataset = await response.json();
+      recording = dataset.recording;
+      content.value = recording!.content;
+      progress();
       status(
-        'Session locator restored. The reader will fetch values from storage.',
+        'Recording loaded. Open the saved run to inspect real memory responses.',
       );
-    })
-    .catch((error: Error) => {
-      history.replaceState(null, '', location.pathname);
-      status(error.message);
-    })
-    .finally(() => {
-      start.disabled = false;
-    });
-} else {
-  settings();
-  start.disabled = false;
+    } catch (e) {
+      fail(e);
+    }
+  } else {
+    const id = new URLSearchParams(location.hash.slice(1)).get('run');
+    if (id && /^[a-f0-9]{48}$/.test(id)) {
+      try {
+        const { value } = await api<Run>('status', { id });
+        run = value;
+        count.value = String(run.count);
+        content.value = '';
+        progress();
+        status(
+          'Independent reader restored. Values will be fetched from Rust.',
+        );
+      } catch (e) {
+        fail(e);
+      }
+    } else progress();
+  }
 }
+void boot();

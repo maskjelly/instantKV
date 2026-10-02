@@ -1,6 +1,9 @@
-use anyhow::{Context, Result, bail};
+use anyhow::{Result, bail};
 use instantkv::client::Client;
-use instantkv_core::model::{Capsule, CheckpointRequest, MemoryReference};
+use instantkv_core::{
+    memory::{MemoryInput, MemoryQuery, RememberRequest},
+    model::{Capsule, CheckpointRequest, MemoryReference},
+};
 use serde_json::json;
 use std::{
     path::Path,
@@ -11,12 +14,12 @@ use tokio::task::JoinSet;
 
 fn capsule() -> Capsule {
     Capsule {
-        goal: "Ship an agent-memory KV service".into(),
-        summary: "The storage decision is saved; the HTTP layer is next.".into(),
+        goal: "Build memory for a local agent".into(),
+        summary: "The local memory API works; device evaluation is next.".into(),
         constraints: vec!["Never put secrets into stored memory".into()],
         decisions: vec!["Use Rust + redb; keep checkpoint state durable".into()],
-        open_tasks: vec!["Connect the MCP adapter".into()],
-        next_action: "Implement memory_get and memory_checkpoint tools".into(),
+        open_tasks: vec!["Evaluate recall with a real local model".into()],
+        next_action: "Test preference recall after a model context reset".into(),
     }
 }
 
@@ -69,24 +72,28 @@ async fn start(dir: &Path, token: &str) -> Result<(Client, ProcessGuard, String)
 
 pub async fn demo() -> Result<()> {
     let dir = tempfile::tempdir()?;
-    crate::init(dir.path(), crate::Profile::Agent)?;
+    crate::init(dir.path(), crate::Profile::Local)?;
     let secrets = instantkv::auth::read_secrets(&dir.path().join(".instantkv/credentials.env"))?;
     let token = secrets["INSTANTKV_APP_TOKEN"].clone();
     let (client, mut process, _) = start(dir.path(), &token).await?;
-    let decision =
-        br#"{"kind":"decision","content":"Use Rust + redb","source":"docs/architecture.md"}"#
-            .to_vec();
     let saved = client
-        .put(
+        .remember(
             "knowledge",
-            "project/storage",
-            decision.clone(),
-            None,
-            None,
-            true,
+            &RememberRequest {
+                key: Some("preferences/language".into()),
+                memory: MemoryInput {
+                    content: "Prefer Rust for local tools".into(),
+                    topic: Some("preferences".into()),
+                    tags: vec!["local".into()],
+                    occurred_at_ms: Some(1_790_985_600_000),
+                    metadata: serde_json::from_value(json!({"source":"synthetic demo"}))?,
+                },
+                ttl_seconds: None,
+                if_revision: None,
+            },
         )
         .await?;
-    println!("01  STORE     saved project/storage in durable knowledge");
+    println!("01  REMEMBER  saved content, topic, tag, event time and metadata");
     client
         .put(
             "scratch",
@@ -106,8 +113,8 @@ pub async fn demo() -> Result<()> {
         capsule: context.clone().unwrap(),
         references: vec![MemoryReference {
             namespace: "knowledge".into(),
-            key: "project/storage".into(),
-            revision: saved["revision"].as_u64().context("missing revision")?,
+            key: "preferences/language".into(),
+            revision: saved.revision,
         }],
     };
     let receipt = client.checkpoint("checkpoints", &request).await?;
@@ -125,9 +132,22 @@ pub async fn demo() -> Result<()> {
         serde_json::from_slice(&std::fs::read(locator_path)?)?;
     let restored = client.restore("checkpoints", &receipt.id, 32768).await?;
     assert_eq!(restored.capsule, request.capsule);
+    let recalled = client
+        .recall(
+            "knowledge",
+            &MemoryQuery {
+                topic: Some("preferences".into()),
+                tag: Some("local".into()),
+                query: Some("Rust local".into()),
+                since_ms: Some(1_790_985_600_000),
+                until_ms: Some(1_790_985_600_000),
+                ..Default::default()
+            },
+        )
+        .await?;
     assert_eq!(
-        client.get("knowledge", "project/storage").await?.0,
-        decision
+        serde_json::to_value(&recalled.items[0])?,
+        serde_json::to_value(&saved)?
     );
     assert!(client.get("scratch", "working").await.is_err());
     assert_eq!(
@@ -138,9 +158,31 @@ pub async fn demo() -> Result<()> {
         receipt.id
     );
     println!("05  RESTORE   recovered goal, constraints, decisions, sources, next action");
-    println!("06  RECALL    durable knowledge survived; disposable scratch did not");
+    println!("06  RECALL    topic + tag + time + keywords recovered the exact memory");
+    let browsed = client.recall("knowledge", &MemoryQuery::default()).await?;
+    assert_eq!(browsed.items.len(), 1);
+    println!("07  BROWSE    bounded page lists durable memories; scratch is empty");
+    client
+        .forget("knowledge", &saved.key, Some(saved.revision))
+        .await?;
+    assert!(
+        client
+            .recall("knowledge", &MemoryQuery::default())
+            .await?
+            .items
+            .is_empty()
+    );
+    assert!(
+        client
+            .memory_get("knowledge", &saved.key)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("404")
+    );
+    println!("08  FORGET    revision-checked deletion removes the record and indexes");
     println!("\nNext action: {}", restored.capsule.next_action);
-    println!("PASS: compaction handoff and database restart via real HTTP requests");
+    println!("PASS: four memory tools + checkpoint handoff + restart via real HTTP");
     process.stop()?;
     Ok(())
 }
@@ -153,38 +195,51 @@ pub async fn swarm_demo() -> Result<()> {
     let (operator, mut process, url) = start(dir.path(), token).await?;
     let alpha = Client::new(&url, Some(secrets["INSTANTKV_ALPHA_TOKEN"].clone()))?;
     let beta = Client::new(&url, Some(secrets["INSTANTKV_BETA_TOKEN"].clone()))?;
-    let baseline = br#"{"content":"Use Rust + redb","source":"docs/architecture.md"}"#.to_vec();
+    let input = |key: &str, content: &str, topic: &str| RememberRequest {
+        key: Some(key.into()),
+        memory: MemoryInput {
+            content: content.into(),
+            topic: Some(topic.into()),
+            tags: vec!["local".into()],
+            ..Default::default()
+        },
+        ttl_seconds: None,
+        if_revision: None,
+    };
     let shared = operator
-        .put(
+        .remember(
             "shared",
-            "project/storage",
-            baseline.clone(),
-            None,
-            None,
-            true,
+            &input("project/storage", "Use Rust + redb", "project"),
         )
         .await?;
+    let baseline = serde_json::to_vec(&shared.memory)?;
     assert_eq!(alpha.get("shared", "project/storage").await?.0, baseline);
     assert_eq!(beta.get("shared", "project/storage").await?.0, baseline);
-    println!("01  SHARED    both agents recall the same shared baseline");
-    let alpha_note = br#"{"content":"Alpha verified the HTTP contract"}"#.to_vec();
+    assert_eq!(
+        alpha
+            .recall(
+                "shared",
+                &MemoryQuery {
+                    topic: Some("project".into()),
+                    ..Default::default()
+                }
+            )
+            .await?
+            .items
+            .len(),
+        1
+    );
+    println!("01  SHARED    both agents recall structured project memory");
     let own = alpha
-        .put(
+        .remember(
             "alpha",
-            "run/findings",
-            alpha_note.clone(),
-            None,
-            None,
-            true,
+            &input("run/findings", "Alpha verified the memory API", "findings"),
         )
         .await?;
-    beta.put(
+    let alpha_note = serde_json::to_vec(&own.memory)?;
+    beta.remember(
         "beta",
-        "run/findings",
-        b"{\"content\":\"Beta checked deployment\"}".to_vec(),
-        None,
-        None,
-        true,
+        &input("run/findings", "Beta checked local deployment", "findings"),
     )
     .await?;
     assert!(
@@ -231,16 +286,12 @@ pub async fn swarm_demo() -> Result<()> {
             MemoryReference {
                 namespace: "shared".into(),
                 key: "project/storage".into(),
-                revision: shared["revision"]
-                    .as_u64()
-                    .context("missing shared revision")?,
+                revision: shared.revision,
             },
             MemoryReference {
                 namespace: "alpha".into(),
                 key: "run/findings".into(),
-                revision: own["revision"]
-                    .as_u64()
-                    .context("missing private revision")?,
+                revision: own.revision,
             },
         ],
     };
@@ -279,7 +330,34 @@ pub async fn swarm_demo() -> Result<()> {
     println!(
         "04  RESTORE   after real server restart, Alpha restores its capsule and both knowledge sources"
     );
-    println!("PASS: shared knowledge + isolated agents + durable handoff over real HTTP");
+    let private = alpha
+        .recall(
+            "alpha",
+            &MemoryQuery {
+                topic: Some("findings".into()),
+                ..Default::default()
+            },
+        )
+        .await?;
+    assert_eq!(private.items.len(), 1);
+    alpha.forget("alpha", &own.key, Some(own.revision)).await?;
+    assert!(
+        alpha
+            .recall("alpha", &MemoryQuery::default())
+            .await?
+            .items
+            .is_empty()
+    );
+    assert_eq!(
+        alpha
+            .recall("shared", &MemoryQuery::default())
+            .await?
+            .items
+            .len(),
+        1
+    );
+    println!("05  FORGET    Alpha deletes private memory; shared facts remain");
+    println!("PASS: structured shared memory + isolated agents + durable handoff over real HTTP");
     process.stop()?;
     Ok(())
 }

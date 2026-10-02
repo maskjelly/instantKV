@@ -41,15 +41,8 @@ function repositoryLinks() {
           node.url = '/assets/' + source.slice('docs/assets/'.length);
         else if (source.startsWith('docs/benchmarks/2026-10-03-memory/'))
           node.url = '/benchmark-data/memory/' + source.split('/').at(-1);
-        else if (source.startsWith('docs/benchmarks/2026-10-02-local/'))
-          node.url = '/benchmark-data/local/' + source.split('/').at(-1);
-        else if (
-          source.startsWith('docs/benchmarks/') &&
-          source.endsWith('.json')
-        )
-          node.url = '/benchmark-data/' + source.split('/').at(-1);
-        else if (source.startsWith('docs/demo-results/2026-10-02-mac/'))
-          node.url = '/recordings/mac/' + source.split('/').at(-1);
+        else if (source.startsWith('docs/demo-results/2026-10-03-memory/'))
+          node.url = '/recordings/memory/' + source.split('/').at(-1);
         else if (source.startsWith('examples/')) node.url = '/' + source;
         else
           node.url = `${repository}/${existsSync(resolve(root, source)) && statSync(resolve(root, source)).isDirectory() ? 'tree' : 'blob'}/main/${source}${fragment ? '#' + fragment : ''}`;
@@ -66,16 +59,8 @@ function prepareAssets() {
     recursive: true,
     filter: (path) => !path.endsWith('.tsrct'),
   });
-  cpSync(
-    resolve(root, 'docs/benchmarks/2026-10-01-rove'),
-    resolve(target, 'benchmark-data'),
-    { recursive: true },
-  );
-  cpSync(
-    resolve(root, 'docs/benchmarks/2026-10-02-local'),
-    resolve(target, 'benchmark-data/local'),
-    { recursive: true },
-  );
+  rmSync(resolve(target, 'benchmark-data'), { recursive: true, force: true });
+  rmSync(resolve(target, 'recordings'), { recursive: true, force: true });
   cpSync(
     resolve(root, 'docs/benchmarks/2026-10-03-memory'),
     resolve(target, 'benchmark-data/memory'),
@@ -87,10 +72,10 @@ function prepareAssets() {
     recursive: true,
     filter: (path) => !path.includes('__pycache__'),
   });
-  const recordings = resolve(root, 'docs/demo-results/2026-10-02-mac');
-  cpSync(recordings, resolve(target, 'recordings/mac'), { recursive: true });
+  const recordings = resolve(root, 'docs/demo-results/2026-10-03-memory');
+  cpSync(recordings, resolve(target, 'recordings/memory'), { recursive: true });
   writeFileSync(
-    resolve(target, 'recordings/mac/replay.json'),
+    resolve(target, 'recordings/memory/replay.json'),
     JSON.stringify(buildReplay(recordings)),
   );
   const memoryReport = JSON.parse(
@@ -114,7 +99,7 @@ function prepareAssets() {
     'Use remember, recall, browse and forget through Rust, HTTP, CLI or MCP. Queries use ordered topic/tag/time indexes and bounded literal keyword filtering. Custom JSON metadata and configurable limits support app-specific use. Retrieval requires both get and list grants.',
     'The service needs no cloud API or embedding model. The runtime selects what to save and adds retrieved facts to model context.',
     `Three warm synthetic Mac runs stored 10,000 memories each. Topic query p95 was ${topicRange} ms. The largest sampled server RSS was ${sampledRam} MiB. All ${recovered} memories were recovered after abrupt restarts. These results exclude inference, energy use and phones.`,
-    'Linux x86_64, Linux ARM64 and macOS ARM64 passed source MVP CI. ARM-board performance targets remain unverified. Native Swift/Kotlin bindings and real-model quality evaluation are planned. Browser replay uses an older raw KV workload; it does not measure structured-memory retrieval.',
+    'Linux x86_64, Linux ARM64 and macOS ARM64 passed source MVP CI. ARM-board performance targets remain unverified. Native Swift/Kotlin bindings and real-model quality evaluation are planned. The browser demo uses the same structured-memory API for live saves, filtered queries, browse and revision-checked deletion. Recorded mode serves saved responses from three fresh memory runs; it makes no new storage calls.',
     '## Documentation',
     docs
       .map(
@@ -122,7 +107,7 @@ function prepareAssets() {
           `- [${d.title}](https://instantkv.com/docs/${d.slug}/): ${d.description}`,
       )
       .join('\n'),
-    `- [Structured-memory raw report](https://instantkv.com/benchmark-data/memory/mac-arm64.json)\n- [Recorded KV demo](https://instantkv.com/demo/)\n- [Measured benchmarks](https://instantkv.com/benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`,
+    `- [Structured-memory raw report](https://instantkv.com/benchmark-data/memory/mac-arm64.json)\n- [Current memory demo](https://instantkv.com/demo/)\n- [Measured benchmarks](https://instantkv.com/benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`,
   ].join('\n\n');
   writeFileSync(resolve(target, 'llms.txt'), index);
   writeFileSync(

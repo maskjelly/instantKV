@@ -73,20 +73,21 @@ Apple M4 Pro, 24 GiB memory, macOS 27.0. Three fresh databases, 10,000 memories 
 
 | Measurement                          | Result across three runs  |
 | ------------------------------------ | ------------------------- |
-| Native binary                        | 8.0 MiB                   |
-| Idle server RSS                      | 6.17–6.20 MiB             |
-| Largest sampled server RSS           | 19.5 MiB                  |
-| Topic query p95                      | 0.134–0.190 ms            |
-| Durable save p95                     | 5.686–5.885 ms            |
+| Native binary                        | 8.0 MiB |
+| Idle server RSS                      | 6.17–6.22 MiB |
+| Largest sampled server RSS           | 19.4 MiB |
+| Topic query p95                      | 0.129–0.134 ms |
+| Durable save p95                     | 5.680–5.862 ms |
 | Exact recovery after abrupt restarts | 30,000 of 30,000 memories |
 
 p95 is the time within which 95% of measured operations complete.
 RSS is the process memory reported by the operating system. Samples do not measure peak RAM.
 These results exclude the model, caller, phone performance and battery use.
-The browser demo uses older raw KV workloads; its throughput does not measure structured-memory retrieval.
+The browser demo uses the same memory API. Live mode saves, filters, browses and deletes real memories.
+Recorded mode shows verified responses from three fresh 10,000-memory runs.
 
 [Full workload and reproduction](docs/performance.md) ·
-[Raw report](docs/benchmarks/2026-10-03-memory/mac-arm64.json) · [Earlier KV benchmarks](docs/benchmarks.md)
+[Raw report](docs/benchmarks/2026-10-03-memory/mac-arm64.json) · [Benchmark methodology](docs/benchmarks.md)
 
 ## Small by default
 
@@ -109,9 +110,10 @@ The checkpoint and the session's latest pointer commit together.
 
 <img src="docs/assets/lifecycle.png" width="1100" alt="Save a checkpoint and restore task state after a context reset">
 
-Try the isolation and restart demo:
+Try all four memory tools across a real restart, then test agent isolation:
 
 ```sh
+instantkv demo
 instantkv demo --swarm
 ```
 

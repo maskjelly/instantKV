@@ -38,7 +38,7 @@ export const docs = [
     group: 'Start here',
     source: 'docs/live-demo.md',
     description:
-      'Recorded Mac playback, client caching and live VPS storage measurements.',
+      'Live memory tools, saved Mac responses, filters and safe deletion.',
   },
   {
     slug: 'quickstart',
@@ -85,7 +85,7 @@ export const docs = [
     group: 'Use the service',
     source: 'docs/cli.md',
     description:
-      'Commands for records, checkpoints, setup, health and benchmarks.',
+      'Commands for structured memories, checkpoints, setup and health.',
   },
   {
     slug: 'http',

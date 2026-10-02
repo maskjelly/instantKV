@@ -26,8 +26,9 @@ instantkv serve
 In another terminal, in the same directory:
 
 ```sh
-instantkv put knowledge project/decision --value '{"content":"Keep memory on device"}'
-instantkv get knowledge project/decision
+instantkv remember "Keep memory on device" --key project/decision --topic project --tag local
+instantkv recall --topic project --query device
+instantkv browse --limit 10
 instantkv checkpoint --file /path/to/checkpoint.json
 instantkv restore --agent builder --session project-1
 ```
@@ -93,37 +94,22 @@ Test the binary on your device.
 
 ## Measured Mac footprint
 
-This is the earlier 2026-10-02 raw-KV smoke run, before the structured-memory MVP.
-For the current source MVP use the [2026-10-03 memory measurements](performance.md).
+The current memory workload uses three fresh databases on an Apple M4 Pro with 24 GiB RAM.
+Each run saves 10,000 structured memories and verifies every field after an abrupt restart.
+It measures saves, filtered queries, browse, exact reads and revision-checked deletion.
 
-The earlier test used an Apple M4 Pro with 24 GiB memory and macOS 27.0.
-It ran on 2026-10-02 with a native release binary and the default local profile.
-
-| Measurement                                           | Result                                           |
-| ----------------------------------------------------- | ------------------------------------------------ |
-| Native binary                                         | 7.6 MiB                                          |
-| Idle server RSS                                       | 6.0 MiB                                          |
-| Largest sampled server RSS                            | 7.6 MiB                                          |
-| Durable records written and read after abrupt restart | 1,000 × 256-byte values, all verified            |
-| Checkpoint and scratch                                | Checkpoint restored; scratch empty after restart |
-
-This was one run of sequential loopback HTTP requests with keep-alive.
-RSS samples covered startup, every 100 writes, completed writes and recovery.
-They do not measure peak RSS or a fixed upper bound.
-The results exclude the model and caller. Phone performance, battery use and real-agent recall quality were not measured.
-
-The [raw report](benchmarks/2026-10-02-local/mac-arm64.json) records the source state, binary hash, hardware and samples.
-
-Reproduce it from the checkout on macOS or Linux:
+[Current figures and device targets](performance.md) ·
+[Raw samples, hardware and binary hash](benchmarks/2026-10-03-memory/mac-arm64.json).
+The results exclude the model, phones and battery use. RSS samples do not measure peak RAM.
 
 ```sh
 cargo build --release --locked -p instantkv
-python3 scripts/local-smoke.py --output /tmp/instantkv-local-footprint.json
+python3 scripts/memory-bench.py --records 10000 --runs 3 --queries 300 \
+  --output /tmp/instantkv-local-footprint.json
 ```
 
-The script creates temporary state and credentials. It sends only loopback requests.
-It terminates and restarts its own server, then verifies every stored value.
-It removes temporary state and retains only the report at your output path.
+The script creates private temporary storage and removes it afterward.
+It does not change a running node.
 
 ## Embed the existing Rust core
 

@@ -1,4 +1,13 @@
 import http from "node:http";
+import { isDeepStrictEqual } from "node:util";
+import {
+  topics,
+  namespace,
+  memoryKey,
+  sessionTag,
+  memoryInput,
+  expectedMemory,
+} from "./fixtures.mjs";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { pathToFileURL } from "node:url";
 
@@ -29,7 +38,7 @@ export function createGateway({
             let bytes = 0;
             response.on("data", (chunk) => {
               bytes += chunk.length;
-              if (bytes > 8192) {
+              if (bytes > 65536) {
                 response.destroy(
                   new Error("Backend response exceeds demo limit"),
                 );
@@ -65,30 +74,29 @@ export function createGateway({
     authorization: `Bearer ${backendToken}`,
     "content-type": "application/json",
   };
-  const key = (session, index) =>
-    `run/${session.id}/memory/${String(index).padStart(6, "0")}`;
-  const record = (session, index) => ({
-    agent_id: `worker-${index % 64}`,
-    record_id: index,
-    kind: ["decision", "observation", "constraint", "tool_result"][index % 4],
-    content: session.content.padEnd(session.valueBytes, " context retained"),
-    source: `synthetic://agent-run/${session.id}/${index}`,
-    tags: ["live-demo", "synthetic", session.mode],
-  });
-  async function call(path, options = {}) {
-    const response = await requestBackend(`${backend}${path}`, {
+  const key = memoryKey;
+  const record = memoryInput;
+  const root = "/v1/namespaces/" + namespace + "/memories";
+  const raw = (path, options = {}) =>
+    requestBackend(backend + path, {
       ...options,
-      headers,
+      headers: { ...headers, ...options.headers },
       redirect: "error",
     });
+  const matches = (session, index, hit) =>
+    hit.key === key(session, index) &&
+    isDeepStrictEqual(hit.memory, expectedMemory(session, index));
+  async function call(path, options = {}) {
+    const response = await raw(path, options);
     if (!response.ok) {
       await response.body?.cancel();
       const error = new Error(
         response.status === 404
-          ? "Record expired or evicted. Start a new run."
+          ? "Memory was deleted or expired. Start a new run."
           : "Storage request failed. Retry this batch.",
       );
-      error.status = response.status === 404 ? 410 : 503;
+      error.status =
+        response.status === 404 ? 410 : response.status === 400 ? 400 : 503;
       throw error;
     }
     return response;
@@ -136,10 +144,9 @@ export function createGateway({
           return send(res, 503, {
             error: "Demo is busy. Try again after a few minutes.",
           });
-        const { mode, count, valueBytes, content } = input;
-        const max = mode === "durable" ? 10000 : 100000;
+        const { count, valueBytes, content } = input;
+        const max = 10000;
         if (
-          !["cache", "durable"].includes(mode) ||
           !Number.isInteger(count) ||
           count < 1 ||
           count > max ||
@@ -151,7 +158,6 @@ export function createGateway({
           return send(res, 400, { error: "Invalid run settings" });
         const session = {
           id: randomBytes(24).toString("hex"),
-          mode,
           count,
           valueBytes,
           content,
@@ -159,6 +165,7 @@ export function createGateway({
           bytes: 0,
           expiresAt: now + ttl * 1000,
           busy: false,
+          deleted: new Set(),
         };
         sessions.set(session.id, session);
         return send(res, 201, {
@@ -166,20 +173,20 @@ export function createGateway({
           expires_at: session.expiresAt,
           batch_size: 512,
           preview: record(session, 0),
+          count: session.count,
+          valueBytes: session.valueBytes,
         });
       }
       const session = sessions.get(input.id);
       if (!session || session.expiresAt <= now)
         return send(res, 410, { error: "Session expired. Start a new run." });
-      const namespace =
-        session.mode === "cache" ? "demo_cache" : "demo_knowledge";
       if (path === "/status")
         return send(res, 200, {
           id: session.id,
-          mode: session.mode,
           count: session.count,
           written: session.written,
           bytes: session.bytes,
+          deleted: [...session.deleted],
           expires_at: session.expiresAt,
         });
       if (path === "/write") {
@@ -206,11 +213,25 @@ export function createGateway({
                 const payload = JSON.stringify(record(session, index));
                 const before = performance.now();
                 try {
-                  const response = await call(
-                    `/v1/namespaces/${namespace}/records/${key(session, index)}?ttl_seconds=${ttl}`,
-                    { method: "PUT", body: payload },
-                  );
-                  await response.json();
+                  let response = await raw(root, {
+                    method: "POST",
+                    body: JSON.stringify({
+                      key: key(session, index),
+                      memory: record(session, index),
+                      ttl_seconds: ttl,
+                    }),
+                  });
+                  // A partial failed batch can be retried without changing earlier memories.
+                  if (response.status === 409) {
+                    await response.body?.cancel();
+                    response = await call(root + "/" + key(session, index));
+                  } else if (!response.ok) {
+                    await response.body?.cancel();
+                    throw new Error("Memory save failed");
+                  }
+                  const hit = await response.json();
+                  if (!matches(session, index, hit))
+                    throw new Error("Saved memory differs from fixture");
                   latencies.push(performance.now() - before);
                   bytes += Buffer.byteLength(payload);
                 } catch (error) {
@@ -256,29 +277,89 @@ export function createGateway({
           activeBatches--;
         }
       }
-      if (path === "/read") {
+      if (path === "/query") {
+        const { topic, tag, query, since_ms, until_ms, cursor } = input;
+        if (
+          (topic !== undefined && !topics.includes(topic)) ||
+          (tag !== undefined && !["local", "offline"].includes(tag)) ||
+          (query !== undefined &&
+            (typeof query !== "string" || Buffer.byteLength(query) > 128)) ||
+          (cursor !== undefined &&
+            (typeof cursor !== "string" || cursor.length > 4096)) ||
+          [since_ms, until_ms].some(
+            (n) => n !== undefined && (!Number.isSafeInteger(n) || n < 0),
+          ) ||
+          (since_ms !== undefined &&
+            until_ms !== undefined &&
+            since_ms > until_ms)
+        )
+          return send(res, 400, { error: "Invalid memory filters" });
+        const params = new URLSearchParams({
+          tag: sessionTag(session, tag),
+          limit: "10",
+          max_bytes: "16384",
+        });
+        for (const [name, value] of Object.entries({
+          topic,
+          query,
+          since_ms,
+          until_ms,
+          cursor,
+        }))
+          if (value !== undefined) params.set(name, String(value));
+        const started = performance.now();
+        const response = await call(root + "?" + params);
+        const page = await response.json();
+        const verified = page.items.every((hit) => {
+          const index = hit.memory.metadata.record_id;
+          return (
+            Number.isInteger(index) &&
+            index >= 0 &&
+            index < session.count &&
+            matches(session, index, hit)
+          );
+        });
+        if (!verified) throw new Error("Retrieved memory differs from fixture");
+        return send(res, 200, {
+          ...page,
+          verified,
+          backend_ms: round(performance.now() - started),
+        });
+      }
+      if (path === "/read" || path === "/forget") {
         if (
           !Number.isInteger(input.index) ||
           input.index < 0 ||
           input.index >= session.written
         )
           return send(res, 400, {
-            error: "Choose an acknowledged record index",
+            error: "Choose an acknowledged memory index",
           });
+        if (session.deleted.has(input.index))
+          return send(res, 410, { error: "Memory was deleted" });
         const started = performance.now();
-        const response = await call(
-          `/v1/namespaces/${namespace}/records/${key(session, input.index)}`,
-        );
+        const route = root + "/" + key(session, input.index);
+        const response = await call(route);
         const value = await response.json();
+        if (!matches(session, input.index, value))
+          throw new Error("Retrieved memory differs from fixture");
+        if (path === "/forget") {
+          await call(route, {
+            method: "DELETE",
+            headers: { "if-match": '"' + value.revision + '"' },
+          });
+          session.deleted.add(input.index);
+          return send(res, 200, {
+            key: value.key,
+            deleted: true,
+            backend_ms: round(performance.now() - started),
+          });
+        }
         return send(res, 200, {
-          key: key(session, input.index),
+          ...value,
           namespace,
-          revision: response.headers.get("etag"),
-          value,
           backend_ms: round(performance.now() - started),
-          verified:
-            JSON.stringify(value) ===
-            JSON.stringify(record(session, input.index)),
+          verified: true,
         });
       }
       return send(res, 404, { error: "Unknown demo operation" });
@@ -289,7 +370,7 @@ export function createGateway({
       if (!res.headersSent)
         send(res, error.status || 503, {
           error:
-            error.status === 410
+            error.status === 410 || error.status === 400
               ? error.message
               : "Demo storage is temporarily unavailable",
         });

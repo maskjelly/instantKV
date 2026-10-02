@@ -1,430 +1,308 @@
 ---
 import Base from '../layouts/Base.astro';
-import { workloads, successful, errors, environment } from '../lib/benchmarks';
-import macCache from '../../../docs/demo-results/2026-10-02-mac/cache-2.json';
-import macDurable from '../../../docs/demo-results/2026-10-02-mac/durable-1.json';
-import memoryReport from '../../../docs/benchmarks/2026-10-03-memory/mac-arm64.json';
-const binaryMiB = (memoryReport.binary_bytes / 1024 ** 2).toFixed(1);
-const idleValues = memoryReport.runs.map(
-  (run) => run.idle_rss_bytes / 1024 ** 2,
+import {
+  report,
+  workloads,
+  range,
+  recovered,
+  deleted,
+  errors,
+  largestRss,
+} from '../lib/benchmarks';
+interface RecordingStats {
+  records_per_second: number;
+  latency_ms: { p50: number; p99: number };
+  iteration: number;
+}
+const recordings = Object.values(
+  import.meta.glob<RecordingStats>(
+    '../../../docs/demo-results/2026-10-03-memory/memory-[123].json',
+    { eager: true, import: 'default' },
+  ),
 );
-const idleRange = `${Math.min(...idleValues).toFixed(2)}–${Math.max(...idleValues).toFixed(2)}`;
-const loadedMiB = (
-  Math.max(...memoryReport.runs.map((run) => run.largest_sampled_rss_bytes)) /
-  1024 ** 2
-).toFixed(1);
-const range = (values: number[]) =>
-  `${Math.min(...values).toFixed(3)}–${Math.max(...values).toFixed(3)}`;
-const memoryRows = [
-  ['Topic', memoryReport.runs.map((run) => run.queries.topic.latency_ms.p95)],
-  ['Tag', memoryReport.runs.map((run) => run.queries.tag.latency_ms.p95)],
-  [
-    'Time range',
-    memoryReport.runs.map((run) => run.queries.time.latency_ms.p95),
-  ],
-  [
-    'Topic + tag + keywords',
-    memoryReport.runs.map((run) => run.queries.combined.latency_ms.p95),
-  ],
-  ['Browse', memoryReport.runs.map((run) => run.queries.browse.latency_ms.p95)],
-  [
-    'Bounded keyword page',
-    memoryReport.runs.map(
-      (run) => run.queries.keyword_first_page.latency_ms.p95,
-    ),
-  ],
-  [
-    'Immediate durable save',
-    memoryReport.runs.map((run) => run.save_latency_ms.p95),
-  ],
-] as const;
-const max = Math.max(...workloads.map((w) => w.rps));
-const number = (value: number) => Math.round(value).toLocaleString('en-US');
+const recording = recordings.sort(
+  (a, b) => a.records_per_second - b.records_per_second,
+)[1];
+const number = (n: number) => Math.round(n).toLocaleString('en-US');
+const mib = (n: number) => (n / 1024 ** 2).toFixed(1);
+const max = Math.max(...workloads.map((w) => w.p95));
 ---
 
 <Base
-  title="Benchmarks"
-  description="Structured local-memory benchmarks: topic/tag/time retrieval, 10,000 memories and restart recovery. Measured Mac results alongside unverified ARM performance targets."
+  title="Memory benchmarks"
+  description="Fresh measurements of remember, filtered recall, browse, exact reads and forget on the current structured-memory API. Raw samples, resource use and recovery checks included."
 >
-  <main id="main" class="shell" data-pagefind-body>
+  <main id="main" class="shell benchmarks-page" data-pagefind-body>
     <header class="page-intro">
-      <p class="eyebrow">Measured locally. Reports included.</p>
-      <h1>Benchmarks</h1>
+      <p class="eyebrow">
+        Current memory API / {report.cpu} / {report.runs.length} runs
+      </p>
+      <h1>Measure the memory layer.</h1>
       <p>
-        The memory API has measured Mac results and unverified device targets.
-        Earlier KV workloads appear below with their own hardware, conditions
-        and raw reports.
-      </p>
-    </header>
-    <section
-      class="band memory-benchmark"
-      aria-labelledby="memory-benchmark-title"
-    >
-      <p class="eyebrow">Source MVP · Apple M4 Pro · 3 October 2026</p>
-      <h2 id="memory-benchmark-title">
-        Structured memory: retrieval and resource use.
-      </h2>
-      <p>
-        Each of three fresh databases stored 10,000 memories with 512-byte
-        content, a topic, a tag and metadata. Warm queries used authenticated
-        loopback HTTP at concurrency one. Each page requested 10 results within
-        16 KiB. All 30,000 memories were verified after abrupt restarts.
-      </p>
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Memory API workload</th>
-              <th>p95 across three runs</th>
-            </tr>
-          </thead>
-          <tbody>
-            {memoryRows.map(([label, values]) => (
-              <tr>
-                <td>{label}</td>
-                <td>{range([...values])} ms</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p>
-        {binaryMiB} MiB native binary. Idle server RSS {idleRange} MiB. The
-        largest sampled RSS was {loadedMiB} MiB. RSS is the process memory
-        reported by the operating system. Samples do not measure peak RAM. The
-        keyword row measures one 1,000-candidate page; finding the oldest match
-        took ten pages. Model quality, phones, energy use and power-loss
-        recovery remain unmeasured.
-      </p>
-      <p class="u-cluster">
-        <a class="text-link" href="/benchmark-data/memory/mac-arm64.json">
-          Raw report & every latency sample ↗
-        </a>
-        <a class="text-link" href="/docs/performance/">
-          Workload & reproduction ↗
-        </a>
-      </p>
-    </section>
-    <section class="band" aria-labelledby="device-goals-title">
-      <p class="eyebrow">Engineering targets · device validation pending</p>
-      <h2 id="device-goals-title">
-        Next: a named ARM board, then native phone apps.
-      </h2>
-      <p>
-        The next test uses a named 4 GiB Linux ARM64 board with local flash and
-        the same 10,000-memory workload. Initial goals are indexed recall p95 ≤5
-        ms, durable save p95 ≤20 ms, idle RSS ≤12 MiB and loaded RSS ≤32 MiB.
-        These targets remain unverified.
-      </p>
-      <p>
-        Native Swift/Kotlin bindings, app lifecycle, backup/encryption design
-        and battery profiling are planned. The existing Rust core can already
-        run in process.
-      </p>
-      <p class="u-cluster">
-        <a
-          class="text-link"
-          href="/docs/performance/#next-device-targets--not-yet-measured"
-        >
-          Performance plan ↗
-        </a>
-        <a class="text-link" href="/docs/roadmap/">
-          Roadmap & acceptance gates ↗
-        </a>
-      </p>
-    </section>
-    <section class="band" aria-label="Measured Mac demo runs">
-      <p class="eyebrow">Apple M4 Pro · 24 GiB · 2 October 2026</p>
-      <h2>Earlier KV workload: 100,000 cache records.</h2>
-      <p>
-        These historical tests used the raw KV API. Six runs completed 330,000
-        writes and 24 exact reads with zero errors. The coordinator sent 16
-        concurrent requests to Rust over local HTTP. Each row shows the median
-        throughput run and that run's percentiles. These tests created unique
-        records; the VPS tests below reused hot keys.
-      </p>
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Storage</th>
-              <th>Records/run</th>
-              <th>Writes/s</th>
-              <th>PUT p50</th>
-              <th>PUT p99</th>
-              <th>Raw run</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[macCache, macDurable].map((run) => (
-              <tr>
-                <td>
-                  {run.mode === 'cache'
-                    ? 'RAM cache'
-                    : 'Immediate durable storage'}
-                </td>
-                <td>{number(run.count)}</td>
-                <td>{number(run.records_per_second)}</td>
-                <td>{run.latency_ms.p50.toFixed(3)} ms</td>
-                <td>{run.latency_ms.p99.toFixed(3)} ms</td>
-                <td>
-                  <a href={`/recordings/mac/${run.mode}-${run.iteration}.json`}>
-                    Download ↗
-                  </a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p>
-        The tests exclude Cloudflare and internet latency. Durable writes were
-        slower on this Mac than in the earlier VPS demo. Hardware alone does not
-        predict commit latency. Replay runs at 2× speed; measured performance
-        figures stay unchanged.
+        10,000 structured memories per run. Real durable saves, filtered queries
+        and deletes. Local HTTP timings, without model inference.
       </p>
       <p class="u-cluster">
         <a class="text-link" href="/demo/">
-          Replay the Mac run →
+          Try the memory tools →
         </a>
-        <a class="text-link" href="/recordings/mac/README.md">
-          Methodology & all six reports →
+        <a class="text-link" href="/benchmark-data/memory/mac-arm64.json">
+          Raw report + every sample ↗
         </a>
       </p>
-    </section>
-    <div class="instruments" style="--cols: 4">
+    </header>
+    <div class="instruments" style="--cols:4">
       <div>
-        <span class="data-label">VPS successful requests</span>
-        <strong>{number(successful)}</strong>
+        <span class="data-label">Exact restart recovery</span>
+        <strong>{number(recovered)}</strong>
+        <small>memories / abrupt process exits</small>
       </div>
       <div>
-        <span class="data-label">Errors</span>
+        <span class="data-label">Verified deletion</span>
+        <strong>{number(deleted)}</strong>
+        <small>records removed from indexes</small>
+      </div>
+      <div>
+        <span class="data-label">Largest sampled RAM</span>
+        <strong>{mib(largestRss)} MiB</strong>
+        <small>server RSS · not peak RSS</small>
+      </div>
+      <div>
+        <span class="data-label">Failed operations</span>
         <strong>{errors}</strong>
-      </div>
-      <div>
-        <span class="data-label">VPS raw reports</span>
-        <strong>15</strong>
-      </div>
-      <div>
-        <span class="data-label">Measured on commit</span>
-        <strong>
-          <a
-            class="text-link"
-            href={`https://github.com/maskjelly/instantKV/tree/${environment.code_commit}`}
-          >
-            {environment.code_commit.slice(0, 7)}
-          </a>
-        </strong>
+        <small>three measured runs</small>
       </div>
     </div>
-    <div class="bench-head">
-      <h2>VPS request paths</h2>
-      <div class="chart-controls" role="group" aria-label="Chart metric">
-        <button data-metric="rps" aria-pressed="true">
-          Throughput
-        </button>
-        <button data-metric="p50" aria-pressed="false">
-          p50 latency
-        </button>
-        <button data-metric="p99" aria-pressed="false">
-          p99 latency
-        </button>
-      </div>
-    </div>
-    <div class="chart" aria-label="Workload throughput and latency comparison">
-      {workloads.map((w) => (
-        <div
-          class="chart-row"
-          data-rps={w.rps}
-          data-p50={w.p50}
-          data-p99={w.p99}
-        >
-          <span>{w.name}</span>
-          <div class="chart-bar-track">
-            <div
-              class="chart-bar"
-              style={`width:${(w.rps / max) * 100}%`}
-            ></div>
-          </div>
-          <span class="chart-value">{number(w.rps)} req/s</span>
+    <section class="band">
+      <div class="bench-head">
+        <h2>Operation latency</h2>
+        <div class="chart-controls" role="group" aria-label="Chart percentile">
+          <button data-metric="p50" aria-pressed="false">
+            p50
+          </button>
+          <button data-metric="p95" aria-pressed="true">
+            p95
+          </button>
+          <button data-metric="p99" aria-pressed="false">
+            p99
+          </button>
         </div>
-      ))}
-    </div>
-    <p class="chart-note" id="chart-note" aria-live="polite">
-      Successful requests/sec · higher is better · median of three run results.
-    </p>
-    <div class="table-scroll">
-      <table>
-        <caption>All workload medians / latency is milliseconds</caption>
-        <thead>
-          <tr>
-            <th>Workload</th>
-            <th>Requests/run</th>
-            <th>Concurrency</th>
-            <th>Req/s</th>
-            <th>p50</th>
-            <th>p95</th>
-            <th>p99</th>
-          </tr>
-        </thead>
-        <tbody>
-          {workloads.map((w) => (
+      </div>
+      <div class="chart" aria-label="Memory operation latency comparison">
+        {workloads.map((w) => (
+          <div
+            class="chart-row"
+            data-p50={w.p50}
+            data-p95={w.p95}
+            data-p99={w.p99}
+          >
+            <span>{w.name}</span>
+            <div class="chart-bar-track">
+              <div
+                class="chart-bar"
+                style={`width:${(w.p95 / max) * 100}%`}
+              ></div>
+            </div>
+            <span class="chart-value">{w.p95.toFixed(3)} ms</span>
+          </div>
+        ))}
+      </div>
+      <p class="chart-note" id="chart-note" aria-live="polite">
+        p95 latency · lower is better · median of three run percentiles.
+      </p>
+      <div class="table-scroll">
+        <table>
+          <caption>
+            All timings in milliseconds / percentiles use each operation's
+            actual samples
+          </caption>
+          <thead>
             <tr>
-              <td>
-                {w.name}
-                <small>{w.detail}</small>
-              </td>
-              <td>{number(w.requests)}</td>
-              <td>{w.concurrency}</td>
-              <td>{number(w.rps)}</td>
-              <td>{w.p50.toFixed(2)}</td>
-              <td>{w.p95.toFixed(2)}</td>
-              <td>{w.p99.toFixed(2)}</td>
+              <th>Operation</th>
+              <th>Samples, total</th>
+              <th>p50 median</th>
+              <th>p95 range</th>
+              <th>p99 median</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {workloads.map((w) => (
+              <tr>
+                <td>
+                  {w.name}
+                  <small>{w.detail}</small>
+                </td>
+                <td>{number(w.samples)}</td>
+                <td>{w.p50.toFixed(3)}</td>
+                <td>{w.p95Range}</td>
+                <td>{w.p99.toFixed(3)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        p95 is the time within which 95% of measured operations finish. Each
+        median uses three run percentiles; samples are not pooled. Sparse
+        keyword timing covers one bounded page with no match. Finding the oldest
+        matching memory required {report.runs[0].sparse_keyword_pages} pages.
+      </p>
+    </section>
     <div class="bench-notes">
       <section>
-        <h2>The test machine</h2>
+        <h2>The workload</h2>
         <ul>
-          <li>4 KVM vCPUs at approximately 2.49 GHz; 7.56 GiB RAM.</li>
           <li>
-            Ubuntu 20.04 host, Linux 5.15; Docker 28.1.1, Debian 12 runtime.
+            {report.cpu}; {number(report.hardware_memory_bytes / 1024 ** 3)} GiB
+            RAM; {report.machine}.
           </li>
           <li>
-            Client and server share one container over loopback HTTP/1.1
-            keep-alive. No pipelining.
+            Three fresh local-profile databases. 512-byte content plus topic,
+            tag, event time and JSON metadata.
           </li>
           <li>
-            Existing services and load generators stayed active. Host load: 4.24
-            before, 5.44 after.
+            20 topics and four tags. Queries return up to 10 memories in 16 KiB.
           </li>
           <li>
-            Post-run memory snapshot: 10.3 MiB. Database file: 3,379,200 bytes.
+            Authenticated loopback HTTP/1.1, keep-alive, concurrency one. 20
+            query warmups; 300 timed calls per query workload.
+          </li>
+          <li>
+            Immediate commits stay enabled. Every saved field is checked after
+            an abrupt restart.
+          </li>
+        </ul>
+      </section>
+      <section>
+        <h2>Footprint and scope</h2>
+        <ul>
+          <li>{mib(report.binary_bytes)} MiB native release binary.</li>
+          <li>
+            Idle server RSS:{' '}
+            {range(
+              report.runs.map((r) => r.idle_rss_bytes / 1024 ** 2),
+              2,
+            )}{' '}
+            MiB.
+          </li>
+          <li>
+            Largest sampled RSS: {mib(largestRss)} MiB. Sampling does not
+            measure the true peak.
+          </li>
+          <li>
+            Physical database:{' '}
+            {range(
+              report.runs.map((r) => r.database_bytes / 1024 ** 2),
+              1,
+            )}{' '}
+            MiB.
           </li>
         </ul>
         <p>
-          <a class="text-link" href="/benchmark-data/environment.json">
-            Download environment &amp; hashes ↗
+          Measured {new Date(report.recorded_at).toISOString().slice(0, 10)}.{' '}
+          <a
+            href={`https://github.com/maskjelly/instantKV/tree/${report.runtime_source}`}
+          >
+            Runtime source {report.runtime_source.slice(0, 7)} ↗
           </a>
-        </p>
-      </section>
-      <section>
-        <h2>What these numbers mean</h2>
-        <p>
-          The tests repeatedly read or update a small set of keys on a shared
-          machine. Setup, warmup and cleanup are outside timing. Each table cell
-          is the median of three run results. The table does not pool latency
-          samples.
+          . The raw report includes the binary hash and source state.
         </p>
         <p>
-          p50 is the middle request time; p99 is the time 99% of requests finish
-          within. Knowledge reads use cached database data. Durable writes wait
-          for immediate commits. Checkpoint and restore use the same context
-          note with no references.
-        </p>
-        <p>
-          The memory figure is a post-run snapshot, not peak RSS. This benchmark
-          does not measure public HTTPS capacity, isolated maximum throughput,
-          distributed swarms or real-model recall quality.
-        </p>
-        <p>
-          <a class="text-link" href="/docs/benchmarks/">
-            Full methodology →
-          </a>
+          These synthetic warm queries exclude public HTTPS, inference, battery
+          use, phones and power-loss recovery.
         </p>
       </section>
     </div>
     <section class="band">
-      <p class="eyebrow">
-        <b>Lean infrastructure</b> / zero license fee
-      </p>
-      <h2>Pay for your machine. Keep the software free.</h2>
+      <p class="eyebrow">Fresh demo recording / same memory API</p>
+      <h2>Three durable memory runs. Saved tool responses.</h2>
       <p>
-        instantKV uses the MIT license. The software has no per-agent or
-        per-request fee. You provide the hardware, backups and operations. Local
-        use needs no cloud subscription.
+        The recorder saved 10,000 new memories in each run through the current
+        memory API. It preserved exact reads, six query types, cursor
+        continuation and a deletion receipt. Recorded mode selects the
+        median-throughput run.
+      </p>
+      <div class="instruments" style="--cols:3">
+        <div>
+          <span class="data-label">Median-throughput run</span>
+          <strong>{number(recording.records_per_second)}</strong>
+          <small>memories / second</small>
+        </div>
+        <div>
+          <span class="data-label">Save p50 / p99</span>
+          <strong>
+            {recording.latency_ms.p50.toFixed(2)} /{' '}
+            {recording.latency_ms.p99.toFixed(2)}
+          </strong>
+          <small>ms · coordinator-to-Rust HTTP</small>
+        </div>
+        <div>
+          <span class="data-label">Current API saves</span>
+          <strong>30,000</strong>
+          <small>three recorded runs · zero errors</small>
+        </div>
+      </div>
+      <p>
+        The recorder uses 16 concurrent writes and 512-memory batches. Queued
+        commit latency differs from the sequential benchmark above. It uses one
+        fresh dedicated database with three sessions. Timing excludes Cloudflare
+        and the public network.
+      </p>
+      <p class="u-cluster">
+        <a class="text-link" href="/demo/?source=recorded">
+          Inspect saved responses →
+        </a>
+        <a class="text-link" href="/recordings/memory/README.md">
+          Method + three raw runs ↗
+        </a>
       </p>
     </section>
     <section class="band">
-      <div class="band__head">
-        <p class="eyebrow">
-          <b>Reproduce it</b>
-        </p>
-        <h2>Measure your own node.</h2>
-      </div>
+      <h2>Reproduce the current product.</h2>
+      <pre><code>{`cargo build --release --locked -p instantkv
+python3 scripts/memory-bench.py --records 10000 --runs 3 --queries 300 \\
+  --output /tmp/instantkv-memory-benchmark.json
+node demo/record.mjs /tmp/instantkv-memory-recordings`}</code></pre>
       <p>
-        Use a disposable, default-profile instance. Checkpoint runs retain
-        bundles, so keep the suite separate from production memory.
-        <a class="text-link" href="/docs/quickstart/">
-          Set up first →
-        </a>
+        The scripts create their own temporary storage and credentials. The
+        benchmark measures and verifies recovery. The recorder captures the
+        browser demo's tool responses. Neither runs a model.
       </p>
-      <pre><code>INSTANTKV_BIN=./scripts/kv.sh ./scripts/benchmark-suite.sh /absolute/results</code></pre>
-      <p class="chart-note">
-        The suite repeats five workloads three times and writes raw JSON. Keep
-        the config, commit, hardware and host load with your results.
-      </p>
+      <a class="text-link" href="/docs/benchmarks/">
+        Full methodology →
+      </a>
     </section>
-    <section class="raw-runs band">
-      <h2>Open the raw results.</h2>
-      {workloads.map((w) => (
-        <details>
-          <summary>{w.name} / 3 raw reports</summary>
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Run</th>
-                  <th>Req/s</th>
-                  <th>p50 ms</th>
-                  <th>p95 ms</th>
-                  <th>p99 ms</th>
-                  <th>Errors</th>
-                  <th>Raw JSON</th>
-                </tr>
-              </thead>
-              <tbody>
-                {w.runs.map((r, i) => (
-                  <tr>
-                    <td>{i + 1}</td>
-                    <td>{number(r.successful_requests_per_second)}</td>
-                    <td>{r.latency_ms.p50.toFixed(2)}</td>
-                    <td>{r.latency_ms.p95.toFixed(2)}</td>
-                    <td>{r.latency_ms.p99.toFixed(2)}</td>
-                    <td>{r.errors}</td>
-                    <td>
-                      <a href={`/benchmark-data/${w.id}-${i + 1}.json`}>
-                        Download ↗
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </details>
-      ))}
+    <section class="band">
+      <p class="eyebrow">Next device targets / unverified</p>
+      <h2>Measure ARM boards, then native phone apps.</h2>
+      <p>
+        Initial goals on a 4 GiB Linux ARM64 board: indexed recall p95 ≤5 ms,
+        durable save p95 ≤20 ms, idle RSS ≤12 MiB and loaded RSS ≤32 MiB with
+        10,000 memories. Device measurements, native bindings and battery
+        profiling remain planned.
+      </p>
+      <a
+        class="text-link"
+        href="/docs/performance/#next-device-targets--not-yet-measured"
+      >
+        Performance plan ↗
+      </a>
     </section>
   </main>
   <script>
     const rows = [...document.querySelectorAll<HTMLElement>('.chart-row')];
     document
       .querySelectorAll<HTMLButtonElement>('[data-metric]')
-      .forEach((button) => {
+      .forEach((button) =>
         button.addEventListener('click', () => {
           const metric = button.dataset.metric!;
-          const values = rows.map((row) => Number(row.dataset[metric]));
-          const max = Math.max(...values);
+          const values = rows.map((row) => Number(row.dataset[metric])),
+            max = Math.max(...values);
           rows.forEach((row, i) => {
             row.querySelector<HTMLElement>('.chart-bar')!.style.width =
-              `${(values[i] / max) * 100}%`;
+              (values[i] / max) * 100 + '%';
             row.querySelector('.chart-value')!.textContent =
-              metric === 'rps'
-                ? `${Math.round(values[i]).toLocaleString('en-US')} req/s`
-                : `${values[i].toFixed(2)} ms`;
+              values[i].toFixed(3) + ' ms';
           });
           document
             .querySelectorAll('[data-metric]')
@@ -432,10 +310,9 @@ const number = (value: number) => Math.round(value).toLocaleString('en-US');
               b.setAttribute('aria-pressed', String(b === button)),
             );
           document.querySelector('#chart-note')!.textContent =
-            metric === 'rps'
-              ? 'Successful requests/sec · higher is better · median of three run results.'
-              : `${metric} latency · lower is better · median of three run percentiles.`;
-        });
-      });
+            metric +
+            ' latency · lower is better · median of three run percentiles.';
+        }),
+      );
   </script>
 </Base>

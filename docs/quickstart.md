@@ -4,7 +4,8 @@ Run the native binary beside your model. Storage and retrieval work offline afte
 A source build needs Rust 1.98 or later. Docker is optional.
 
 The [browser demo](https://instantkv.com/demo/) needs no account.
-Recorded mode replays saved measurements. Live VPS mode writes and reads temporary records on the Rust server.
+Live mode saves, recalls, browses and deletes structured memories on the Rust server.
+Recorded mode shows saved responses from fresh memory runs.
 
 For a fresh swarm setup, use `instantkv init --profile swarm` or `INSTANTKV_PROFILE=swarm` with Docker.
 The examples below use the default local profile.

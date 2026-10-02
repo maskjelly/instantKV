@@ -37,6 +37,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         memories.items[0].memory.content,
         "Prefer Rust for local tools"
     );
-    println!("{}", serde_json::to_string_pretty(&memories)?);
+    println!(
+        "Recalled after reopening: {}",
+        serde_json::to_string_pretty(&memories)?
+    );
+    let browsed = engine.recall("knowledge", MemoryQuery::default())?;
+    assert!(!browsed.items.is_empty());
+    let saved = &memories.items[0];
+    engine.forget("knowledge", &saved.key, Condition::Revision(saved.revision))?;
+    assert!(engine.memory_get("knowledge", &saved.key).is_err());
+    println!("PASS: remember, reopen, recall, browse and revision-checked forget in process");
     Ok(())
 }

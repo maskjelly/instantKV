@@ -25,7 +25,7 @@ It has no moving banner or decorative grid.
 
 Demo, benchmark and documentation pages use the same design.
 Guides are grouped by task. Technical diagrams expand on request.
-Search, code copying, replay, live storage and benchmark controls remain available.
+Search, code copying, live memory tools, saved responses and benchmark controls remain available.
 
 Theme settings and responsive layout use `site/src/styles/global.css`.
 Diagrams use SVG/HTML components in `site/src/components/diagrams/`.
@@ -48,7 +48,7 @@ Edit those Markdown files to update the website documentation.
 The build rewrites relative links, copies assets and generates `llms.txt` and `llms-full.txt`.
 
 The homepage and benchmark page compute memory figures from the 2026-10-03 raw report.
-Earlier Mac recordings and 15 VPS reports remain separate.
+Current Mac recordings use the same memory API. Historical raw KV reports stay in the repository.
 Each dataset retains its source revision, transport, hardware and load conditions.
 Replace a dataset only after a complete new measurement and verification.
 

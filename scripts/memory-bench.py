@@ -37,6 +37,9 @@ def main():
     if not 100 <= args.records <= 10000 or not 1 <= args.runs <= 10 or not 10 <= args.queries <= 10000:
         parser.error('records 100..10000, runs 1..10, queries 10..10000')
     binary = Path(args.binary).resolve()
+    source_commit = subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+    runtime_source = subprocess.check_output(['git','log','-1','--format=%H','--',
+        'crates/instantkv-core/src','crates/instantkv/src'],text=True).strip()
     environment = {k: v for k, v in os.environ.items() if not k.startswith('INSTANTKV_')}
     base_time = 1760000000000  # Synthetic event time, independent of benchmark wall clock.
     spec = importlib.util.spec_from_file_location('local_llm',Path(__file__).resolve().parents[1]/'examples/local-llm.py')
@@ -193,6 +196,31 @@ def main():
                         break
                     params['cursor'] = page['next_cursor']
                 assert found == ['entries/000000']
+                exact_reads = []
+                deletes = []
+                for index in range(args.queries):
+                    index %= args.records
+                    route = '/v1/namespaces/knowledge/memories/'+f'entries/{index:06d}'
+                    item, ms, _ = request('GET', route)
+                    assert item == expected[index]
+                    exact_reads.append(ms)
+                deleted = set()
+                for index in range(min(args.queries, args.records)):
+                    route = '/v1/namespaces/knowledge/memories/'+f'entries/{index:06d}'
+                    headers['If-Match'] = '"'+str(expected[index]['revision'])+'"'
+                    _, ms, _ = request('DELETE', route)
+                    deletes.append(ms)
+                    deleted.add(index)
+                del headers['If-Match']
+                remaining = set()
+                params = {'limit':50,'max_bytes':65536}
+                while True:
+                    page, _, _ = recall(params)
+                    remaining.update(item['memory']['metadata']['index'] for item in page['items'])
+                    if page['next_cursor'] is None:
+                        break
+                    params['cursor'] = page['next_cursor']
+                assert remaining == set(expected)-deleted
                 # Separately verify the real MCP bridge used by the model example.
                 # No inference run, no mutations, and not included in HTTP timings.
                 bridge = local_llm.MemoryBridge(str(binary),f'http://127.0.0.1:{port}',state/'.instantkv/credentials.env')
@@ -205,6 +233,10 @@ def main():
                 runs.append({'iteration':iteration, 'record_count':args.records, 'content_bytes':512,
                              'topic_count':20,'tag_count':4, 'queries_per_workload':args.queries,
                              'save_latency_ms':percentiles(saves), 'queries':timings,
+                             'exact_read_latency_ms':percentiles(exact_reads),
+                             'forget_latency_ms':percentiles(deletes),
+                             'verified_deleted_memories':len(deleted),
+                             'verified_remaining_memories':len(remaining),
                              'idle_rss_bytes':idle,'before_restart_rss_bytes':before_restart,
                              'rss_samples_bytes':rss_samples, 'largest_sampled_rss_bytes':max(rss_samples),
                              'database_bytes':(state/'.instantkv/data/instantkv.redb').stat().st_size,
@@ -215,7 +247,7 @@ def main():
             finally:
                 stop()
     report = {'schema_version':1, 'recorded_at':datetime.now(timezone.utc).isoformat(),
-              'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'source_commit':source_commit, 'runtime_source':runtime_source,
               'source_dirty':bool(subprocess.check_output(['git','status','--porcelain'],text=True).strip()),
               'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),
               'binary_bytes':binary.stat().st_size, 'platform':platform.platform(), 'machine':platform.machine(),

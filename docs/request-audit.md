@@ -26,7 +26,7 @@ Existing values and checkpoints matched their pre-upgrade checks.
 | Real memory benchmarks           | Three 10,000-memory Mac runs; all 30,000 recovered                      | [Performance](performance.md), [raw report](benchmarks/2026-10-03-memory/mac-arm64.json) |
 | Clear device targets             | Defined ARM-board workload; targets labeled unverified                  | [Device targets](performance.md#next-device-targets--not-yet-measured)                   |
 | Clean website                    | White surfaces, neutral type, local Geist and expandable diagrams       | [Website guide](website.md)                                                              |
-| Working public demo              | Recorded KV replay and live cache/durable storage                       | [Demo architecture](live-demo.md)                                                        |
+| Working public demo              | Current memory tools, filtered queries, paging and deletion                       | [Demo architecture](live-demo.md)                                                        |
 | Agent-readable documentation     | Typed MCP tools, schemas, `llms.txt` and `llms-full.txt`                | [MCP setup](agents.md), [website guide](website.md)                                      |
 | Simple integration               | Rust embedding and an optional Ollama tool loop                         | [Memory integration](memory-mvp.md#connect-an-actual-local-model)                        |
 | Future direction                 | Local-model tests, native phones, exports and optional richer retrieval | [Roadmap](roadmap.md)                                                                    |
@@ -35,11 +35,12 @@ Existing values and checkpoints matched their pre-upgrade checks.
 
 ## Verification limits
 
-The source MVP passed 42 Rust tests, three Python contract tests and nine website/demo tests.
-Production layout and interactions passed 44 checks at four viewport widths.
-A deployment smoke test wrote 1,000 cache records and 1,000 durable records through the public site.
-Exact recall, independent readers, pause/resume and mobile layout passed with zero browser errors.
-Those smoke tests do not replace the recorded performance workloads.
+The current changes passed 42 Rust tests, three Python contract tests and nine website/demo tests.
+Local browser verification passed 72 layout checks at four viewport widths.
+It also verified current memory saves, combined topic/tag/time filters, cursor continuation,
+independent readers, revision-checked deletion, empty index results after deletion,
+mobile pause/resume and saved queries with zero recorded-mode storage requests.
+The single-agent, swarm and embedded Rust demos passed with real storage.
 
 Storage tests verify persistence and transport. CLI demos simulate context clearing.
 Real-model recall quality, native phone support, battery use and deeper disk-failure tests remain pending.

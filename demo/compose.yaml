@@ -38,6 +38,7 @@ services:
       INSTANTKV_DEMO_BACKEND: http://memory:8080
     volumes:
       - ./gateway.mjs:/app/gateway.mjs:ro
+      - ./fixtures.mjs:/app/fixtures.mjs:ro
     ports:
       - "127.0.0.1:8098:8098"
     depends_on: [memory]

@@ -1,26 +1,47 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { buildReplay, validateRecording } from './replay-data.mjs';
-const directory = new URL('../docs/demo-results/2026-10-02-mac/', import.meta.url).pathname;
-const raw = () => JSON.parse(readFileSync(`${directory}/cache-2.json`, 'utf8'));
-test('replay uses a real median run and preserves all measured performance values', () => {
-  const replay = buildReplay(directory);
-  assert.equal(replay.recordings.cache.iteration, 2);
-  assert.equal(replay.recordings.durable.iteration, 1);
-  assert.equal(replay.recordings.cache.records_per_second, raw().records_per_second);
-  assert.deepEqual(replay.recordings.cache.latency_ms, raw().latency_ms);
-  assert.deepEqual(replay.recordings.cache.reads, raw().reads);
-  assert.equal(replay.recordings.cache.batches[0].operation_ms, undefined);
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { buildReplay, validateRecording } from "./replay-data.mjs";
+const directory = new URL(
+  "../docs/demo-results/2026-10-03-memory/",
+  import.meta.url,
+).pathname;
+const raw = (i) =>
+  JSON.parse(readFileSync(directory + "/memory-" + i + ".json", "utf8"));
+test("recorded mode preserves the median real memory run, tool responses and measured timings", () => {
+  const r = buildReplay(directory).recording;
+  const expected = [raw(1), raw(2), raw(3)].sort(
+    (a, b) => a.records_per_second - b.records_per_second,
+  )[1];
+  assert.equal(r.iteration, expected.iteration);
+  assert.equal(r.records_per_second, expected.records_per_second);
+  assert.deepEqual(r.queries, expected.queries);
+  assert.deepEqual(r.forgotten, expected.forgotten);
+  assert.equal(r.batches[0].operation_ms, undefined);
 });
-test('reject altered timings, missing acknowledgements and corrupted saved responses', () => {
+test("recordings reject altered timing, acknowledgements, memory fields and filter results", () => {
   for (const change of [
-    (r) => { r.records_per_second *= 2; },
-    (r) => { r.latency_ms.p50 /= 2; },
-    (r) => { r.batches[0].written--; },
-    (r) => { r.reads[0].value.content = 'invented response'; },
+    (r) => {
+      r.records_per_second *= 2;
+    },
+    (r) => {
+      r.latency_ms.p50 /= 2;
+    },
+    (r) => {
+      r.batches[0].written--;
+    },
+    (r) => {
+      r.reads[0].memory.content = "invented";
+    },
+    (r) => {
+      r.queries[1].value.items[0].memory.topic = "wrong";
+    },
+    (r) => {
+      r.forgotten.absent.value.items = [r.reads[0]];
+    },
   ]) {
-    const report = raw(); change(report);
-    assert.throws(() => validateRecording(report));
+    const r = raw(1);
+    change(r);
+    assert.throws(() => validateRecording(r));
   }
 });

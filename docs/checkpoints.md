@@ -227,7 +227,7 @@ browser errors in both runs. Exact first/middle/last cache reads, pause/resume,
 writer-context clearing, independent-tab recall and 390px mobile layout passed.
 Durable record 9,999 was exactly verified after clearing context. Homepage,
 quick start, benchmark page, live-demo documentation and search also passed.
-[Raw reports and measurement boundaries](live-demo.md#recorded-live-verification)
+[Raw reports and measurement boundaries](demo-history.md#recorded-live-verification)
 keep these single public demonstrations separate from controlled benchmarks.
 
 Seven coordinator/proxy tests cover exact integrity, credentials, body/route

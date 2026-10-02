@@ -54,10 +54,6 @@ assert.deepEqual(
   [],
   'Rendered internal links, anchors and assets must resolve',
 );
-const reports = files(resolve(root, 'benchmark-data'))
-  .filter((path) => /-\d\.json$/.test(path))
-  .map((path) => JSON.parse(readFileSync(path, 'utf8')));
-assert.equal(reports.length, 15);
 const memoryReport = JSON.parse(
   readFileSync(resolve(root, 'benchmark-data/memory/mac-arm64.json'), 'utf8'),
 );
@@ -80,34 +76,49 @@ const memorySchema = JSON.parse(
   readFileSync(resolve(root, 'examples/memory.schema.json'), 'utf8'),
 );
 assert(memorySchema.remember && memorySchema.recall);
-assert.equal(
-  reports.reduce((sum, report) => sum + report.successful_requests, 0),
-  157500,
+assert(
+  memoryReport.runs.every(
+    (run) =>
+      run.verified_deleted_memories === 300 &&
+      run.verified_remaining_memories === 9700,
+  ),
 );
-assert.equal(
-  reports.reduce((sum, report) => sum + report.errors, 0),
-  0,
+const recordingFiles = files(resolve(root, 'recordings/memory')).filter(
+  (path) => /memory-\d\.json$/.test(path),
 );
-const recordingFiles = files(resolve(root, 'recordings/mac')).filter((path) =>
-  /(?:cache|durable)-\d\.json$/.test(path),
-);
-assert.equal(recordingFiles.length, 6);
+assert.equal(recordingFiles.length, 3);
 const recordings = recordingFiles.map((path) =>
   JSON.parse(readFileSync(path, 'utf8')),
 );
 assert.equal(
-  recordings.reduce((sum, report) => sum + report.written, 0),
-  330000,
+  recordings.reduce((n, r) => n + r.written, 0),
+  30000,
 );
-assert.equal(
-  recordings.reduce((sum, report) => sum + report.errors, 0),
-  0,
+assert(
+  recordings.every(
+    (r) =>
+      r.schema_version === 2 &&
+      r.errors === 0 &&
+      r.queries.length === 7 &&
+      r.forgotten.value.deleted,
+  ),
 );
 const replay = JSON.parse(
-  readFileSync(resolve(root, 'recordings/mac/replay.json'), 'utf8'),
+  readFileSync(resolve(root, 'recordings/memory/replay.json'), 'utf8'),
 );
-assert.equal(replay.recordings.cache.count, 100000);
-assert.equal(replay.recordings.durable.count, 10000);
+assert.equal(replay.recording.count, 10000);
+assert.equal(replay.schema_version, 2);
+for (const route of [
+  'index.html',
+  'benchmarks/index.html',
+  'demo/index.html',
+]) {
+  const page = readFileSync(resolve(root, route), 'utf8');
+  assert(
+    !page.includes('100,000 cache') && !page.includes('raw KV API'),
+    'Product pages use current memory workloads',
+  );
+}
 assert(
   existsSync(resolve(root, 'pagefind/pagefind.js')),
   'Search index exists',
@@ -123,5 +134,5 @@ assert(
   'No node credentials or memory data in site',
 );
 console.log(
-  `Verified ${htmlFiles.length} HTML pages, their local links/anchors/assets, 15 raw reports, search and machine-readable docs.`,
+  `Verified ${htmlFiles.length} HTML pages, their local links/anchors/assets, current memory reports, search and machine-readable docs.`,
 );

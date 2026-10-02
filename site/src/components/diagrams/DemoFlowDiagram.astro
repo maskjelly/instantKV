@@ -1,7 +1,7 @@
 ---
 /**
  * The live demo's real request path: two browser tabs, the edge, the
- * private network, the coordinator, Rust, then RAM or redb.
+ * private network, the coordinator, Rust and a memory/index transaction.
  */
 ---
 
@@ -17,8 +17,8 @@
       A browser writer and a browser reader call a Cloudflare Worker at the
       edge. The Worker reaches an isolated coordinator over a private VPC and
       QUIC tunnel. The coordinator speaks HTTP to the Rust API, which writes to
-      the RAM cache or commits to redb. Browser round-trip time and backend HTTP
-      time are measured separately.
+      memory records and ordered indexes together in redb. Browser round-trip
+      time and backend HTTP time are measured separately.
     </desc>
     <defs>
       <linearGradient id="flow-spectrum-demo" x1="0" y1="0" x2="1" y2="0">
@@ -43,7 +43,7 @@
       WRITER TAB
     </text>
     <text class="d-note" x="42" y="166">
-      PUT batches, 64 agents
+      remember + forget
     </text>
 
     <rect class="d-node" x="20" y="212" width="180" height="76" />
@@ -51,7 +51,7 @@
       READER TAB
     </text>
     <text class="d-note" x="42" y="266">
-      GET by exact key
+      recall + browse
     </text>
 
     <text class="d-index" x="250" y="96">
@@ -120,7 +120,7 @@
       records
     </text>
     <text class="d-note" x="752" y="204">
-      checkpoints
+      bounded queries
     </text>
     <text class="d-note" x="752" y="232">
       p50 · p95 · p99
@@ -134,10 +134,10 @@
     </text>
     <rect class="d-node" x="980" y="112" width="200" height="82" />
     <text class="d-label" x="1002" y="144">
-      RAM CACHE
+      MEMORY RECORDS
     </text>
     <text class="d-note" x="1002" y="166">
-      TTL, FIFO, restarts clear
+      content, time, metadata
     </text>
 
     <rect
@@ -148,10 +148,10 @@
       height="82"
     />
     <text class="d-label" x="1002" y="244">
-      DURABLE REDB
+      ORDERED INDEXES
     </text>
     <text class="d-note" x="1002" y="266">
-      immediate commits
+      topic, tag, event time
     </text>
 
     <path class="d-flow--write d-pulse" d="M200 150C226 150 226 180 250 180" />
@@ -169,9 +169,9 @@
     <path class="d-flow--write d-pulse" d="M930 160C956 160 956 152 980 152" />
     <path class="d-flow--write d-pulse" d="M930 240C956 240 956 252 980 252" />
 
-    <path class="d-flow--deny" d="M1080 194L1080 212" />
+    <path class="d-rule--faint" d="M1080 194L1080 212" />
     <text class="d-note" x="1092" y="208">
-      mutually exclusive per run
+      one redb transaction
     </text>
 
     <path class="d-rule--faint" d="M20 320H1180" />

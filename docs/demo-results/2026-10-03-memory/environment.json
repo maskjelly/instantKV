@@ -1,0 +1,22 @@
+{
+  "measured_at": "2026-10-02T20:04:29.407Z",
+  "hardware": {
+    "cpu": "Apple M4 Pro",
+    "physical_cores": 14,
+    "ram_bytes": 25769803776,
+    "macos": "27.0"
+  },
+  "runtime_version": "instantkv 0.1.2",
+  "runtime_source": "d6f08d7b895963f228c2eb3d68a14a94d045d34d",
+  "source_dirty": true,
+  "recorder_source": "de53784a9d20e1a7130ad53a9177cb0e88081ae8",
+  "binary_sha256": "ff287e9d8dfac54f4ce7638d5c071484e36183e0285ae6ac3c06b0b28e5108ea",
+  "transport": "Loopback HTTP/1.1; coordinator-to-Rust keep-alive; no Cloudflare or public network",
+  "concurrency": 16,
+  "batch_size": 512,
+  "context_characters": 512,
+  "cpu_container_limit": null,
+  "ttl_seconds": 900,
+  "runs": 3,
+  "notes": "Current structured-memory API. One fresh dedicated database; three durable sessions in sequence. No warmup, pauses or session creation in write timing. Other Mac applications remained running. Content is 512 ASCII bytes plus metadata/envelope. Payload excludes keys and storage overhead. Each query/read response is preserved; one revision-checked forget and index absence check follow queries. Synthetic fixtures, no model inference."
+}

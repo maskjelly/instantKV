@@ -56,14 +56,13 @@ instantKV combines direct record access with checkpoint tools; it does not repla
 ## The evidence so far
 
 The source MVP's [structured-memory benchmark](performance.md) used three fresh 10,000-memory databases on an M4 Pro.
-Topic query p95 was **0.134–0.190 ms**. The largest sampled server RSS was **19.5 MiB**.
+Topic query p95 was **0.129–0.134 ms**. The largest sampled server RSS was **19.4 MiB**.
 All **30,000** memories were verified after abrupt restarts.
 These warm local-HTTP results exclude the model and phones.
 
-The older public KV demo wrote **100,000 cache records** and **10,000 durable records** with zero failed requests.
-Exact reads and independent-tab recall passed.
-Those workloads do not measure the new memory API.
-[Demo reports and timing](live-demo.md#recorded-live-verification).
+The current [browser demo](live-demo.md) exercises structured saves, filtered recall,
+browse and revision-checked deletion. Its independent reader fetches from storage.
+Three recorded Mac runs preserve real query responses and deletion receipts.
 
 No shared benchmark workload has compared instantKV with these products.
 The results do not establish a speed or cost ranking.

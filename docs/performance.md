@@ -22,16 +22,16 @@ Targets are engineering goals for a defined workload.
 
 | Measurement                                   | Observed across three runs          |
 | --------------------------------------------- | ----------------------------------- |
-| Native binary                                 | 8.0 MiB                             |
-| Idle server RSS                               | 6.17–6.20 MiB                       |
-| Largest sampled server RSS                    | 19.5 MiB                            |
-| Topic query p95                               | 0.134–0.190 ms                      |
-| Tag query p95                                 | 0.134–0.153 ms                      |
-| Time-range query p95                          | 0.131–0.140 ms                      |
-| Topic + tag + keywords p95                    | 0.133–0.141 ms                      |
-| Browse p95                                    | 0.334–0.386 ms                      |
-| Keyword first-page p95                        | 1.267–1.530 ms                      |
-| Immediate durable save p95                    | 5.686–5.885 ms                      |
+| Native binary                                 | 8.0 MiB |
+| Idle server RSS                               | 6.17–6.22 MiB |
+| Largest sampled server RSS                    | 19.4 MiB |
+| Topic query p95                               | 0.129–0.134 ms |
+| Tag query p95                                 | 0.131–0.134 ms |
+| Time-range query p95                          | 0.130–0.133 ms |
+| Topic + tag + keywords p95                    | 0.132–0.133 ms |
+| Browse p95                                    | 0.362–0.382 ms |
+| Keyword first-page p95                        | 1.241–1.275 ms |
+| Immediate durable save p95                    | 5.680–5.862 ms |
 | Physical database after workload              | 25.3 MiB per run                    |
 | Exact memories recovered after abrupt restart | 10,000/10,000 per run; 30,000 total |
 
@@ -60,6 +60,11 @@ It verifies every saved field and removes the temporary databases.
 It does not change your running node or retain credentials.
 Source compilation can download dependencies. The script does not download a model.
 
+Exact-key read p95: **0.103–0.104 ms**.
+Revision-checked forget p95: **5.287–5.773 ms**.
+After recovery, 300 memories per run were deleted. A full browse verified exactly
+9,700 remaining memories per run and no deleted index results.
+
 ## Next device targets — not yet measured
 
 1. Select a 64-bit Linux ARM board with 4 GiB RAM and local flash storage.
@@ -75,7 +80,7 @@ Phone targets need separate tests in a native app.
 | Idle memory service RSS    | ≤12 MiB                            | Repeated process samples; add true peak measurements         |
 | Loaded memory service RSS  | ≤32 MiB                            | Writes, indexed reads and bounded keyword scans              |
 | Indexed recall p95         | ≤5 ms                              | Topic/tag/time pages, 10 results, concurrency one            |
-| Immediate durable save p95 | ≤20 ms                             | Record + indexes; keep synchronization enabled               |
+| Immediate durable save p95 | 5.680–5.862 ms |
 | Recovery correctness       | Every acknowledged memory retained | Repeated abrupt exits; then disk-full/commit fault injection |
 | Context budget             | Default page ≤16 KiB               | Include content, metadata, timestamps and cursor             |
 
@@ -96,6 +101,6 @@ Component limits do not cap total process RSS.
 4. **Optional retrieval:** evaluate ranked keyword search before local embeddings.
    Measure task quality, index size, model download size and resource use.
 
-Earlier [KV/cache benchmarks](benchmarks.md) describe different APIs and workloads.
-The browser replay uses those raw KV writes.
-Its throughput does not measure structured-memory retrieval.
+The [current browser demo](live-demo.md) uses the same structured-memory API.
+Its recorder uses 16 concurrent saves; the benchmark above uses concurrency one.
+[Benchmark methodology](benchmarks.md) explains both workloads.

@@ -13,7 +13,10 @@
 - Record three 10,000-memory Mac runs and exact recovery of all 30,000 memories after abrupt restarts.
 - Use a minimal website with local fonts, grouped guides and expandable diagrams.
 - Shorten the README and simplify product, setup and benchmark wording with ASD-STE100 principles.
-- Keep raw KV replay and older benchmarks separate from structured-memory measurements.
+- Replace the raw KV browser demo with live remember, filtered recall, browse and revision-checked forget.
+- Record three current memory-demo runs; preserve query pages, exact reads and verified deletion receipts.
+- Update CLI and embedded demos to exercise the current memory lifecycle across a restart.
+- Measure exact reads and forget; verify that deleted memories are absent from all browse pages.
 
 Native phone integration, real-model quality evaluation and ARM performance targets remain unverified.
 
