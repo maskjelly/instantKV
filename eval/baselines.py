@@ -63,6 +63,7 @@ class SupermemoryBackend(Backend):
         self.path=Path(directory);self.path.mkdir(parents=True,exist_ok=True);self.config=config
         self.saved=0;self.input_bytes=0;self.write_samples=[];self.rss_samples=[];self.process=None;self.connection=None
         self.scope='eval'
+        self.pending=[];self.batch_sizes=[]
         binary=Path(config['supermemory_binary'])
         if sha(binary)!=config['supermemory_binary_sha256']:raise ValueError('Pinned Supermemory binary SHA mismatch')
         with socket.socket() as s:s.bind(('127.0.0.1',0));self.port=s.getsockname()[1]
@@ -98,12 +99,24 @@ class SupermemoryBackend(Backend):
         for part,text in enumerate(chunks(doc['content'])):
             metadata={'source_id':doc['id'],'part':part}
             if doc.get('image'):metadata['image']=doc['image']
-            status,value,elapsed=self.request('POST','/v4/memories',{'containerTag':self.scope,'memories':[{'content':text,'metadata':metadata}]})
-            if not 200<=status<300 or len(value['memories'])!=1:raise RuntimeError('Supermemory ingestion failed; no dropped documents')
-            if value['memories'][0]['memory']!=text:raise RuntimeError('Supermemory returned changed content')
-            self.saved+=1;self.input_bytes+=len(text.encode());self.write_samples.append(elapsed)
-            if self.saved%500==0:self.sample_rss()
+            self.pending.append({'content':text,'metadata':metadata})
+            if len(self.pending)>=self.config.get('supermemory_write_batch',1):self.flush()
+    def flush(self):
+        if not self.pending:return
+        batch=self.pending
+        status,value,elapsed=self.request('POST','/v4/memories',{'containerTag':self.scope,'memories':batch})
+        if not 200<=status<300 or len(value['memories'])!=len(batch):raise RuntimeError('Supermemory ingestion failed; no dropped documents')
+        expected={(r['metadata']['source_id'],r['metadata']['part']):r['content'] for r in batch}
+        returned=set()
+        for r in value['memories']:
+            key=(r['metadata']['source_id'],r['metadata']['part'])
+            if key in returned or r['memory']!=expected.get(key):raise RuntimeError('Supermemory returned changed/duplicate content')
+            returned.add(key)
+        self.saved+=len(batch);self.input_bytes+=sum(len(r['content'].encode()) for r in batch)
+        self.write_samples.append(elapsed);self.batch_sizes.append(len(batch));self.pending=[]
+        if self.saved%500<len(batch):self.sample_rss()
     def search(self,text,limit=20):
+        self.flush()
         started=time.perf_counter()
         status,value,_=self.request('POST','/v4/search',{'containerTag':self.scope,'q':text,'threshold':0,'limit':40,'rerank':False,'rewriteQuery':False})
         hits=[]
@@ -113,19 +126,21 @@ class SupermemoryBackend(Backend):
         elapsed=(time.perf_counter()-started)*1000;self.sample_rss()
         return {'status':status,'hits':hits,'latency_ms':elapsed,'failure':status!=200,'pages':1,'truncated':False,'query_reduced':False,'work':{}}
     def resources(self):
+        self.flush()
         self.sample_rss()
         return {'startup_ms':self.startup_ms,'sampled_rss_bytes':self.rss_samples,'largest_sampled_rss_bytes':max(self.rss_samples),
             'rss_scope':'server process and descendants','saved_chunks':self.saved,'stored_content_bytes':self.input_bytes,
             'database_bytes':sum(p.stat().st_size for p in (self.path/'data').rglob('*') if p.is_file()),'index_bytes':None,'index_bytes_reason':'Not separately instrumented',
-            'write_latency_samples_ms':self.write_samples,'write_throughput_per_second':self.saved/(sum(self.write_samples)/1000) if self.saved else 0,
-            'binary_sha256':self.config['supermemory_binary_sha256'],'effective_config':{'version':'v0.0.8','embedding':'bge-base-en-v1.5 768d','rerank':False,'rewriteQuery':False,'direct_memory_api':True,'cloud_calls':False,'write_batch':1,'durability':'provider default; not claimed identical durable commit guarantee'}}
+            'write_latency_samples_ms':self.write_samples,'write_latency_sample_unit':'batch request, not individual durable record','write_batch_sizes':self.batch_sizes,'write_throughput_per_second':self.saved/(sum(self.write_samples)/1000) if self.saved else 0,
+            'binary_sha256':self.config['supermemory_binary_sha256'],'effective_config':{'version':'v0.0.8','embedding':'bge-base-en-v1.5 768d','rerank':False,'rewriteQuery':False,'direct_memory_api':True,'cloud_calls':False,'write_batch':self.config.get('supermemory_write_batch',1),'durability':'provider default; not claimed identical durable commit guarantee'}}
     def close(self):
         super().close()
         if getattr(self,'log',None):self.log.close()
 
     def new_scope(self,scope):
+        self.flush()
         self.scope=scope
-        self.saved=0;self.input_bytes=0;self.write_samples=[];self.rss_samples=[]
+        self.saved=0;self.input_bytes=0;self.write_samples=[];self.rss_samples=[];self.batch_sizes=[]
         self.sample_rss()
 
 

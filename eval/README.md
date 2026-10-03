@@ -79,3 +79,8 @@ scopes and must be reported that way. It does not change instantKV's engine.
 Priorities: full LongMemEval-S, LoCoMo, AMA-Bench and V2 Small. V2 Medium and
 BEAM's largest histories are deferred, not shortened or relabelled as full runs.
 No score estimate or marketing claim replaces an observed complete result.
+
+Supermemory's fast profile uses batches of 16 for ingestion. All source chunks
+must round-trip without changes; the final partial batch is flushed before any
+query. Write-latency samples are batch requests, not per-record durable latency.
+Interrupted runs stay in the ledger. A fresh full retry gets a new output folder.

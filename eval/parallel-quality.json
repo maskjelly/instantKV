@@ -102,5 +102,6 @@
   "supermemory_binary_sha256": "12b7817a105ed0a9e70f96c461fb6f8dded5d70eaeb6034e774778c257bed78a",
   "measurement_mode": "Parallel full-suite quality evaluation; shared-load latency/RSS are descriptive, not isolated performance comparisons.",
   "reuse_supermemory_server": true,
-  "reuse_scope_note": "One fresh Supermemory server per suite with isolated fresh containerTag per corpus; cumulative resource figures, not isolated per-corpus RSS."
+  "reuse_scope_note": "One fresh Supermemory server per suite with isolated fresh containerTag per corpus; cumulative resource figures, not isolated per-corpus RSS.",
+  "supermemory_write_batch": 16
 }

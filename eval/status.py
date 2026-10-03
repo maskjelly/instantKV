@@ -24,7 +24,7 @@ def snapshot(root):
         elif report.get('phase')=='failed':job['status']='failed'
         job.update(phase=report.get('phase',job.get('status')),expected_questions=expected,
             retrieval_done=report.get('completed_retrieval_questions',0),
-            retrieval_total=expected*report.get('retrieval_repetitions',3),
+            retrieval_total=expected*report.get('retrieval_repetitions',1 if campaign.get('mode') else 3),
             qa_done=report.get('completed_qa_questions',0),
             score=report.get('qa_score') if report.get('complete') else None,
             qa_failure_rate=report.get('qa_failure_rate'),retrieval_metrics=report.get('retrieval_metrics'),
