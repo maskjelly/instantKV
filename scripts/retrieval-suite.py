@@ -54,12 +54,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--dataset', type=Path, required=True, help='Normalized JSON; see prepare-retrieval-suite.py')
     parser.add_argument('--instantkv-binary', type=Path, default=Path('target/release/instantkv'))
-    parser.add_argument('--supermemory-binary', type=Path, required=True)
+    parser.add_argument('--supermemory-binary', type=Path)
+    parser.add_argument('--baseline', type=Path, help='Reuse frozen Supermemory rankings; explicitly historical control')
+    parser.add_argument('--expand', action='store_true', help='instantKV optional fixed English expansion')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--supermemory-batch', type=int, default=16)
     args = parser.parse_args()
     if not 1 <= args.supermemory_batch <= 100:
         parser.error('supermemory batch 1..100')
+    if not args.baseline and not args.supermemory_binary: parser.error("supply baseline or Supermemory binary")
     dataset = json.loads(args.dataset.read_text())
     scopes = sorted({doc['scope'] for doc in dataset['documents']})
     namespaces = {scope: f'eval_{i:03d}' for i, scope in enumerate(scopes)}
@@ -78,7 +81,7 @@ def main():
               'runtime_source': subprocess.check_output(['git', 'log', '-1', '--format=%H', '--', 'crates', 'Cargo.lock', 'config/local.toml'], text=True).strip(),
               'runtime_dirty': bool(subprocess.check_output(['git', 'status', '--porcelain', '--', 'crates', 'Cargo.lock', 'config/local.toml'], text=True).strip()),
               'harness_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-              'methodology': {'instantkv': 'BM25 k1=1.2, b=0.75, English stemming; original query; default 20,000 postings, 1,000 candidates, 4 MiB scan and 64 KiB response caps; isolated namespace per scope; 8 MiB cache',
+              'methodology': {'instantkv': f'BM25 k1=1.2, b=0.75; full query up to 16 KiB; at most 64 corpus terms, salience IDF*sqrt(query TF) for over-64-term inputs; bounded WAND above 20,000 estimated postings, exact sparse path below; expansion={args.expand}, at most eight quarter-weight fixed English synonyms; 20,000 iterator-read cap, 1,000 record candidates, 4 MiB scan, 64 KiB response, 8 MiB cache',
                   'supermemory': 'official local v0.0.8; bge-base-en-v1.5 768d; direct memories API; threshold 0; rerank false; rewriteQuery false; isolated containerTag per scope',
                   'ingestion': f'instantKV sequential one-record writes; Supermemory batches of {args.supermemory_batch} records. No comparable per-record save-latency claim. All writes complete before queries.',
                   'queries': 'original full queries; top 20 unique source IDs via bounded pages; report @5/@10/@20; default-contract HTTP 400 counts as zero; self document excluded when dataset requests it; no query adapter',
@@ -88,7 +91,15 @@ def main():
     def checkpoint():
         args.output.write_text(json.dumps(report, indent=2)+'\n')
     env = {k: v for k, v in os.environ.items() if not k.startswith(('INSTANTKV_', 'SUPERMEMORY_', 'OPENAI_', 'ANTHROPIC_', 'GEMINI_', 'GROQ_', 'WORKERS_AI_'))}
-    for provider, binary in [('instantkv', args.instantkv_binary.resolve()), ('supermemory', args.supermemory_binary.resolve())]:
+    providers = [('instantkv', args.instantkv_binary.resolve())]
+    if args.baseline:
+        baseline = json.loads(args.baseline.read_text())
+        assert baseline['complete'] and baseline['dataset_sha256'] == report['dataset_sha256']
+        report['providers']['supermemory'] = baseline['providers']['supermemory']
+        report['providers']['supermemory']['historical_control'] = {'recorded_at': baseline['recorded_at'], 'report_sha256': hashlib.sha256(args.baseline.read_bytes()).hexdigest(), 'report': args.baseline.name}
+    else:
+        providers.append(('supermemory', args.supermemory_binary.resolve()))
+    for provider, binary in providers:
         results = {'binary_bytes': binary.stat().st_size, 'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(),
                    'queries': [], 'returned_content_change_count': 0}
         report['providers'][provider] = results
@@ -179,21 +190,22 @@ def main():
                     if provider == 'instantkv': results['database_bytes'] = (state/'.instantkv/data/instantkv.redb').stat().st_size
                     def search(query):
                         began = time.perf_counter_ns(); ids = []; pages = 0; truncated = False
-                        counters = {'postings_scanned': 0, 'candidates_scanned': 0, 'scanned_bytes': 0}
+                        counters = {'postings_scanned': 0, 'candidates_scanned': 0, 'scanned_bytes': 0, 'index_reads': 0, 'scored_candidates': 0}
                         if provider == 'supermemory':
                             status, value, _ = request('/v4/search', {'containerTag': namespaces[query['scope']], 'q': query['text'],
                                 'threshold': 0, 'limit': 40, 'rerank': False, 'rewriteQuery': False})
                             if not 200 <= status < 300: return [], (time.perf_counter_ns()-began)/1e6, 1, False, {}, status
                             ids = unique_ids([hit['metadata']['doc_id'] for hit in value['results']], query.get('exclude_id'))[:20]
                             return ids, (time.perf_counter_ns()-began)/1e6, 1, False, {}, status
-                        body = {'query': query['text'], 'limit': 20, 'max_bytes': 65536}
+                        body = {'query': query['text'], 'limit': 20, 'max_bytes': 65536, 'expand': args.expand}
                         while True:
                             status, value, _ = request('/v1/namespaces/'+namespaces[query['scope']]+'/search', body)
                             pages += 1
                             if status == 400: return [], (time.perf_counter_ns()-began)/1e6, pages, False, {}, status
                             if not 200 <= status < 300: raise RuntimeError(f'query HTTP {status}')
                             truncated |= value['truncated']
-                            for name in counters: counters[name] += value[name]
+                            for name in ('postings_scanned', 'candidates_scanned', 'scanned_bytes', 'index_reads', 'scored_candidates'): counters[name] += value[name]
+                            for name in ('query_terms', 'selected_terms', 'expansion_terms', 'query_reduced'): counters[name] = value[name]
                             ids = unique_ids(ids+[hit['memory']['metadata']['doc_id'] for hit in value['items']], query.get('exclude_id'))
                             if len(ids) >= 20 or not value['next_cursor']: break
                             if pages >= 100: raise RuntimeError('unexpected pagination work')
@@ -222,7 +234,8 @@ def main():
                     results.update(query_latency_ms=percentiles([row['latency_ms'] for row in rows]),
                         accepted_query_latency_ms=percentiles(accepted) if accepted else None,
                         contract_rejections=sum(row['http_status'] == 400 for row in rows),
-                        truncated_queries=sum(row['truncated'] for row in rows), errors=0)
+                        truncated_queries=sum(row['truncated'] for row in rows),
+                        reduced_queries=sum(bool(row['work'].get('query_reduced')) for row in rows), errors=0)
                     ram.append(rss()); results.update(rss_samples_bytes=ram, largest_sampled_rss_bytes=max(ram))
                     print(provider, results['metrics'], flush=True)
                 finally:

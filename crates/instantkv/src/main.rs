@@ -55,6 +55,10 @@ enum Command {
     /// Rank relevant memories with BM25 and English stemming. No embedding model.
     Search {
         text: String,
+        #[arg(long)]
+        expand: bool,
+        #[arg(long = "expansion-term")]
+        expansion_terms: Vec<String>,
         #[command(flatten)]
         filters: Retrieval,
     },
@@ -329,6 +333,8 @@ async fn run(cli: Cli) -> Result<()> {
                 }
                 Command::Search {
                     text: query,
+                    expand,
+                    expansion_terms,
                     filters: input,
                 } => {
                     if input.query.is_some() {
@@ -340,6 +346,8 @@ async fn run(cli: Cli) -> Result<()> {
                                 &input.namespace,
                                 &SearchQuery {
                                     query,
+                                    expand,
+                                    expansion_terms,
                                     topic: input.topic,
                                     tag: input.tag,
                                     since_ms: input.since_ms,

@@ -175,8 +175,14 @@ pub struct ForgetMemory {
 pub struct SearchMemory {
     #[serde(default = "knowledge")]
     pub namespace: String,
-    /// Natural-language or keyword query; at most 1024 bytes and 64 indexed terms.
+    /// Natural-language or keyword query; at most 16 KiB; up to 64 original indexed terms are selected.
     pub query: String,
+    /// Enable a small fixed English synonym list. Off by default.
+    #[serde(default)]
+    pub expand: bool,
+    /// At most eight app-defined related words. No model call is made.
+    #[serde(default)]
+    pub expansion_terms: Vec<String>,
     pub topic: Option<String>,
     pub tag: Option<String>,
     pub since_ms: Option<u64>,
@@ -245,6 +251,8 @@ impl MemoryTools {
                     &input.namespace,
                     &SearchQuery {
                         query: input.query,
+                        expand: input.expand,
+                        expansion_terms: input.expansion_terms,
                         topic: input.topic,
                         tag: input.tag,
                         since_ms: input.since_ms,

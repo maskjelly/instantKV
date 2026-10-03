@@ -421,3 +421,152 @@ fn first_open_backfills_old_memory_without_changing_record_revisions() {
             .is_empty()
     );
 }
+
+#[test]
+fn long_queries_select_terms_from_the_end_and_keep_small_bound_cursors() {
+    let (_dir, config, clock) = setup();
+    let engine = Engine::with_clock(config, clock).unwrap();
+    let content = (0..90)
+        .map(|i| format!("term{i}"))
+        .collect::<Vec<_>>()
+        .join(" ");
+    for key in ["a", "b"] {
+        engine
+            .remember(
+                "knowledge",
+                key,
+                input(&content, "work", 1),
+                None,
+                Condition::Absent,
+            )
+            .unwrap();
+    }
+    let mut q = query(&format!("{} {}", "unindexed ".repeat(200), content));
+    q.limit = 1;
+    q.max_bytes = 4096;
+    let first = engine.search("knowledge", q.clone()).unwrap();
+    assert_eq!(first.items[0].hit.key, "a");
+    assert!(first.query_reduced && first.selected_terms == 64);
+    assert!(first.next_cursor.as_ref().unwrap().len() < 1024);
+    q.cursor = first.next_cursor;
+    assert_eq!(
+        engine.search("knowledge", q.clone()).unwrap().items[0]
+            .hit
+            .key,
+        "b"
+    );
+    q.query.push_str(" changed");
+    assert!(engine.search("knowledge", q).is_err());
+    assert!(
+        engine
+            .search("knowledge", query(&"x".repeat(16385)))
+            .is_err()
+    );
+}
+
+#[test]
+fn expansion_is_optional_weighted_bounded_and_cursor_bound() {
+    let (_dir, config, clock) = setup();
+    let engine = Engine::with_clock(config, clock).unwrap();
+    for (key, text) in [("literal", "ban"), ("synonym", "prohibit")] {
+        engine
+            .remember(
+                "knowledge",
+                key,
+                input(text, "work", 1),
+                None,
+                Condition::Absent,
+            )
+            .unwrap();
+    }
+    assert_eq!(
+        engine
+            .search("knowledge", query("ban"))
+            .unwrap()
+            .items
+            .len(),
+        1
+    );
+    let mut q = query("ban");
+    q.expand = true;
+    q.limit = 1;
+    let first = engine.search("knowledge", q.clone()).unwrap();
+    assert_eq!(first.items[0].hit.key, "literal");
+    assert_eq!(first.expansion_terms, 1);
+    q.cursor = first.next_cursor;
+    assert_eq!(
+        engine.search("knowledge", q.clone()).unwrap().items[0]
+            .hit
+            .key,
+        "synonym"
+    );
+    q.expand = false;
+    assert!(engine.search("knowledge", q).is_err());
+    let mut q = query("ban");
+    q.expansion_terms = vec!["prohibit".into()];
+    assert_eq!(
+        engine.search("knowledge", q.clone()).unwrap().items.len(),
+        2
+    );
+    q.expansion_terms = vec!["two words".into()];
+    assert!(engine.search("knowledge", q).is_err());
+}
+
+#[test]
+fn wand_pruning_matches_exhaustive_bm25_and_skips_common_postings() {
+    let (_dir, mut config, clock) = setup();
+    config.memory.max_search_postings = 80;
+    let engine = Engine::with_clock(config, clock).unwrap();
+    let mut texts = Vec::new();
+    for i in 0..160 {
+        let text = if i < 4 {
+            format!("river {}", "copper ".repeat(i + 1))
+        } else {
+            "river stone stone".into()
+        };
+        engine
+            .remember(
+                "knowledge",
+                &format!("doc-{i:03}"),
+                input(&text, "work", 1),
+                None,
+                Condition::Absent,
+            )
+            .unwrap();
+        texts.push(text);
+    }
+    let average = texts
+        .iter()
+        .map(|t| t.split_whitespace().count())
+        .sum::<usize>() as f64
+        / texts.len() as f64;
+    let mut expected: Vec<_> = texts
+        .iter()
+        .enumerate()
+        .map(|(i, text)| {
+            let length = text.split_whitespace().count() as f64;
+            let score = [("river", 160.0_f64), ("copper", 4.0_f64)]
+                .iter()
+                .map(|(word, df)| {
+                    let tf = text.split_whitespace().filter(|w| w == word).count() as f64;
+                    let idf = (1.0 + (160.0 - df + 0.5) / (df + 0.5)).ln();
+                    idf * tf * 2.2 / (tf + 1.2 * (0.25 + 0.75 * length / average))
+                })
+                .sum::<f64>();
+            (format!("doc-{i:03}"), score)
+        })
+        .collect();
+    expected.sort_by(|(ka, a), (kb, b)| b.total_cmp(a).then_with(|| ka.cmp(kb)));
+    let mut q = query("river copper");
+    q.limit = 2;
+    let first = engine.search("knowledge", q.clone()).unwrap();
+    assert!(!first.truncated);
+    assert!(first.index_reads < 80 && first.scored_candidates < 160);
+    for (actual, expected) in first.items.iter().zip(&expected) {
+        assert_eq!(actual.hit.key, expected.0);
+        assert!((actual.score - expected.1).abs() < 1e-12);
+    }
+    q.cursor = first.next_cursor;
+    let next = engine.search("knowledge", q).unwrap();
+    assert_eq!(next.items[0].hit.key, expected[2].0);
+}

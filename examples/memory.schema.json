@@ -164,6 +164,19 @@
           "null"
         ]
       },
+      "expand": {
+        "default": false,
+        "description": "Optional small English synonym dictionary; off by default.",
+        "type": "boolean"
+      },
+      "expansion_terms": {
+        "default": [],
+        "description": "App-provided related terms, at most eight words of 64 UTF-8 bytes each.",
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
       "limit": {
         "default": 20,
         "format": "uint",
@@ -178,7 +191,7 @@
       },
       "query": {
         "default": "",
-        "description": "Natural-language or keyword query; at most 1024 bytes and 64 indexed terms.",
+        "description": "Natural-language or keyword query; at most 16 KiB; up to 64 original indexed terms are selected.",
         "type": "string"
       },
       "since_ms": {
