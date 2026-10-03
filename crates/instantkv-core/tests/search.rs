@@ -570,3 +570,30 @@ fn wand_pruning_matches_exhaustive_bm25_and_skips_common_postings() {
     let next = engine.search("knowledge", q).unwrap();
     assert_eq!(next.items[0].hit.key, expected[2].0);
 }
+
+#[test]
+fn wand_continues_past_a_retained_page_of_expired_records() {
+    let (_dir, mut config, clock) = setup();
+    config.memory.max_search_postings = 12;
+    let engine = Engine::with_clock(config, clock.clone()).unwrap();
+    for i in 0..6 {
+        engine
+            .remember(
+                "knowledge",
+                &format!("{i}"),
+                input("rust local", "work", 1),
+                if i < 2 { Some(1) } else { None },
+                Condition::Absent,
+            )
+            .unwrap();
+    }
+    clock.0.store(12000, Ordering::SeqCst);
+    let mut q = query("rust local");
+    q.limit = 1;
+    let page = engine.search("knowledge", q.clone()).unwrap();
+    assert!(page.items.is_empty());
+    q.cursor = page.next_cursor;
+    assert!(q.cursor.is_some());
+    let next = engine.search("knowledge", q).unwrap();
+    assert_eq!(next.items[0].hit.key, "2");
+}

@@ -454,6 +454,7 @@ impl Engine {
             .into_iter()
             .sum::<u64>();
         let mut ranked: Vec<(String, f64)>;
+        let mut retained_tail = false;
         if estimated.saturating_add(plan.len() as u64)
             <= self.config.memory.max_search_postings as u64
         {
@@ -590,10 +591,12 @@ impl Engine {
                     }
                 }
             }
+            // Retained heads can all expire or fail filters. Continue past them.
+            retained_tail = ranked.len() == keep;
         }
         let now = self.clock.unix_ms();
         let mut last = None;
-        let mut pending = false;
+        let mut pending = retained_tail;
         let mut remaining = ranked
             .into_iter()
             .filter(|(key, score)| {
