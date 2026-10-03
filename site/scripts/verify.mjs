@@ -143,6 +143,44 @@ assert(
   !files(root).some((path) => /(?:credentials|\.env$|\.redb$)/.test(path)),
   'No node credentials or memory data in site',
 );
+
+const suiteInputs = JSON.parse(
+  readFileSync(resolve(root, 'benchmark-data/suite/inputs.json'), 'utf8'),
+);
+const suiteNames = ['nfcorpus', 'arguana', 'locomo', 'longmemeval'];
+const suiteReceipt = JSON.parse(
+  readFileSync(resolve(root, 'benchmark-data/suite/verification.json'), 'utf8'),
+);
+for (const name of suiteNames) {
+  const raw = readFileSync(resolve(root, `benchmark-data/suite/${name}.json`));
+  const report = JSON.parse(raw.toString('utf8'));
+  assert.equal(
+    report.dataset_sha256,
+    suiteInputs.datasets[name].normalized_sha256,
+  );
+  assert.equal(report.runtime_dirty, false);
+  assert(report.complete, `${name}: complete before publication`);
+  for (const provider of Object.values(report.providers)) {
+    assert.equal(provider.queries.length, report.test_queries);
+    assert.equal(provider.saved_chunks, report.stored_chunks);
+    assert.equal(provider.errors, 0);
+  }
+  const receipt = suiteReceipt.reports.find((r) => r.report === `${name}.json`);
+  assert.equal(receipt?.source_inputs_verified, true);
+  assert(receipt, `${name}: independent score verification`);
+  const { createHash } = await import('node:crypto');
+  assert.equal(createHash('sha256').update(raw).digest('hex'), receipt.sha256);
+}
+const article = readFileSync(
+  resolve(root, 'blog/lightweight-memory-benchmarks/index.html'),
+  'utf8',
+);
+assert(!article.includes('_PENDING'), 'Article has no incomplete sections');
+assert(
+  article.includes('pilot') && article.toLowerCase().includes('rejected'),
+  'Article includes scope and query failures',
+);
+
 console.log(
-  `Verified ${htmlFiles.length} HTML pages, their local links/anchors/assets, current memory reports, search and machine-readable docs.`,
+  `Verified ${htmlFiles.length} HTML pages, their local links/anchors/assets, current memory and retrieval reports, search and machine-readable docs.`,
 );

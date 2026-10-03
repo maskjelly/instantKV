@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add fixed local retrieval tests for NFCorpus, ArguAna, LoCoMo and a LongMemEval-S pilot.
+- Publish raw rankings, rejected/truncated queries, independent scoring and short benchmark notes.
+
 - Add bounded BM25 search with English stemming through Rust, HTTP, CLI and MCP.
 - Commit search postings and corpus statistics with record updates, deletion and expiry.
 - Backfill older structured memories atomically on first open; preserve record revisions.

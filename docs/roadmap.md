@@ -58,6 +58,23 @@ The memory service remains usable offline.
 Deployment and measured results are recorded in [operations](operations.md),
 [benchmarks](benchmarks.md) and [verification checkpoints](checkpoints.md).
 
+## Retrieval improvement gates
+
+The [evaluation notes](memory-benchmark-notes.md) report both wins and losses.
+The suite uses fixed settings; it does not tune the engine to test labels.
+
+| Proposed work | Acceptance evidence |
+| --- | --- |
+| Long-query adapter | Bounded query windows and rank fusion; rejected-query count falls on held-out queries without hiding work limits |
+| Bounded BM25 scoring | Compare pruned scoring against exhaustive rankings on held-out queries; measure scan counts, latency and peak allocation |
+| Source context | Optional adjacent turns and parent-session links; evidence coverage improves within an explicit output byte cap |
+| Changed facts | App-defined correction links and source/event dates; tests retrieve the current fact and its source history |
+| Optional semantic adapter | Held-out paraphrase gains; report model/index size, RAM, latency and energy; default service stays model-free |
+| Full memory evaluation | Full LongMemEval and real-agent answers; separate evidence recall, answer accuracy, abstention and tool failures |
+
+These changes are planned. Their costs must be measured before they become defaults.
+Phone performance remains unverified.
+
 ## Next release gates
 
 | Work                         | Acceptance evidence                                                                             |

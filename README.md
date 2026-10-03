@@ -77,6 +77,10 @@ Both systems used fresh databases in sequential same-host runs. This is a scoped
 result, not an agent-quality or phone benchmark.
 [Full comparison, costs and raw data](docs/benchmarks/2026-10-03-ranked/README.md).
 
+[More retrieval tests and short engineering notes](docs/memory-benchmark-notes.md):
+NFCorpus, ArguAna, LoCoMo evidence turns and a fixed LongMemEval-S pilot.
+Read the losses and resource limits before applying the SciFact result elsewhere.
+
 Apple M4 Pro, 24 GiB memory, macOS 27.0. Three fresh databases, 10,000 memories per run,
 512-byte content plus metadata. Warm, sequential loopback HTTP; concurrency one.
 

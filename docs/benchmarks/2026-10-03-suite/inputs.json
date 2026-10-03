@@ -1,0 +1,66 @@
+{
+  "preparer_sha256": "9e47b73ec916cffafa2d6a745c13ddc6134576c7c3637febc4e1c9ec1d0c9d44",
+  "datasets": {
+    "nfcorpus": {
+      "normalized_sha256": "440b9e9d57918d6b9300c81ffd17f2826bde2ee1e00f2372874e50c5cc84dc54",
+      "documents": 3633,
+      "queries": 323,
+      "missing_evidence": [],
+      "policy": "Retain full official BEIR test qrels; missing corpus evidence counts as a miss for both providers. LoCoMo exclusions were fixed separately.",
+      "official_archive_md5": "a89dba18a62ef92f7d323ec890a0d38d"
+    },
+    "arguana": {
+      "normalized_sha256": "82574e0afe570e0398765d5f3225c9d2f0aec59c04bb0a4e92458f6f4afa2833",
+      "documents": 8674,
+      "queries": 1406,
+      "missing_evidence": [
+        {
+          "query_id": "test-education-ufsdfkhbwu-con03a",
+          "missing_evidence_ids": [
+            "test-education-ufsdfkhbwu-con03b"
+          ]
+        },
+        {
+          "query_id": "test-free-speech-debate-yfsdfkhbwu-con03a",
+          "missing_evidence_ids": [
+            "test-free-speech-debate-yfsdfkhbwu-con03b"
+          ]
+        },
+        {
+          "query_id": "test-politics-dhwem-pro06a",
+          "missing_evidence_ids": [
+            "test-politics-dhwem-pro06b"
+          ]
+        },
+        {
+          "query_id": "test-science-sghwbdgmo-con03a",
+          "missing_evidence_ids": [
+            "test-science-sghwbdgmo-con03b"
+          ]
+        },
+        {
+          "query_id": "test-society-asfhwapg-con04a",
+          "missing_evidence_ids": [
+            "test-society-asfhwapg-con04b"
+          ]
+        }
+      ],
+      "policy": "Retain full official BEIR test qrels; missing corpus evidence counts as a miss for both providers. LoCoMo exclusions were fixed separately.",
+      "official_archive_md5": "8ad3e3c2a5867cdced806d6503f29b99"
+    },
+    "locomo": {
+      "normalized_sha256": "12a94dff62f5185abdf707908d7480497f33820d6f76538de9d1e58b88839c9f",
+      "documents": 5882,
+      "queries": 1533,
+      "missing_evidence": [],
+      "policy": "Retain full official BEIR test qrels; missing corpus evidence counts as a miss for both providers. LoCoMo exclusions were fixed separately."
+    },
+    "longmemeval": {
+      "normalized_sha256": "b4efe498ba91483571ab9528bacf2f05a287c91b1e6bf719abf22a0339b7c7bf",
+      "documents": 574,
+      "queries": 12,
+      "missing_evidence": [],
+      "policy": "Retain full official BEIR test qrels; missing corpus evidence counts as a miss for both providers. LoCoMo exclusions were fixed separately."
+    }
+  }
+}

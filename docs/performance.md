@@ -1,6 +1,6 @@
 # Performance: measured and planned
 
-Status: source MVP. Updated: 2026-10-03.
+Status: source MVP. Updated: 2026-10-04.
 Latency includes the local HTTP client and server. RAM samples cover only the Rust server.
 No model inference runs.
 Targets are engineering goals for a defined workload.
@@ -16,6 +16,14 @@ Sparse indexing increases write work: document-save p95 was **11.815 ms**,
 versus **6.759 ms** in the old literal baseline. The physical SciFact database used
 **81.00 MiB**. No semantic, phone or agent-quality claim is implied.
 [Method, costs, raw rankings and reproduction](benchmarks/2026-10-03-ranked/README.md).
+
+## More retrieval workloads
+
+The [retrieval suite](benchmarks/2026-10-03-suite/README.md) adds NFCorpus, ArguAna,
+LoCoMo evidence turns and a fixed twelve-question LongMemEval-S session pilot.
+The [engineering notes](memory-benchmark-notes.md) show quality, limits and next steps.
+These are evidence retrieval measurements, not official QA scores.
+The same binary and default limits remain in use.
 
 ## Structured memory measured on a Mac
 

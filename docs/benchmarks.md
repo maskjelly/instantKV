@@ -4,6 +4,14 @@ The current benchmark measures the memory API: save, recall, browse, exact read 
 The [performance guide](performance.md) gives measured results and separate device targets.
 [Raw report and all latency samples](benchmarks/2026-10-03-ranked/mac-arm64.json).
 
+## More retrieval workloads
+
+The [local retrieval suite](benchmarks/2026-10-03-suite/README.md) tests NFCorpus,
+ArguAna, LoCoMo evidence turns and a fixed LongMemEval-S session pilot.
+It keeps default query budgets and counts rejected questions as misses.
+The [short article](memory-benchmark-notes.md) explains the measured tradeoffs.
+These scores do not measure answer quality or the hosted Supermemory pipeline.
+
 ## Retrieval and recovery
 
 Three fresh local-profile databases contain 10,000 memories each.

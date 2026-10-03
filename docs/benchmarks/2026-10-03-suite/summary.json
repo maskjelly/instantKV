@@ -1,0 +1,77 @@
+{
+  "method": "One run per provider; frozen default local settings; accepted top-20 query latency; sampled process-tree RSS; no answer model; LongMemEval is a twelve-question pilot",
+  "workloads": [
+    {
+      "workload": "BEIR NFCorpus",
+      "queries": 323,
+      "instantkv": {
+        "recall_at_10": 0.1530855013375488,
+        "recall_at_20": 0.18252501434007196,
+        "accepted_query_p95_ms": 0.832083,
+        "sampled_rss_mib": 22.359375,
+        "rejected": 0,
+        "truncated": 0
+      },
+      "supermemory": {
+        "recall_at_10": 0.17082794584258496,
+        "recall_at_20": 0.2050063105910054,
+        "accepted_query_p95_ms": 39.762792,
+        "sampled_rss_mib": 3161.84375
+      }
+    },
+    {
+      "workload": "BEIR ArguAna",
+      "queries": 1406,
+      "instantkv": {
+        "recall_at_10": 0.12731152204836416,
+        "recall_at_20": 0.1422475106685633,
+        "accepted_query_p95_ms": 7.107125,
+        "sampled_rss_mib": 23.65625,
+        "rejected": 1149,
+        "truncated": 257
+      },
+      "supermemory": {
+        "recall_at_10": 0.5640113798008535,
+        "recall_at_20": 0.6088193456614509,
+        "accepted_query_p95_ms": 332.657708,
+        "sampled_rss_mib": 3874.09375
+      }
+    },
+    {
+      "workload": "LoCoMo",
+      "queries": 1533,
+      "instantkv": {
+        "recall_at_10": 0.5764775401031633,
+        "recall_at_20": 0.6555240382112659,
+        "accepted_query_p95_ms": 0.439625,
+        "sampled_rss_mib": 21.296875,
+        "rejected": 0,
+        "truncated": 0
+      },
+      "supermemory": {
+        "recall_at_10": 0.582771496879541,
+        "recall_at_20": 0.6523552807401025,
+        "accepted_query_p95_ms": 23.369042,
+        "sampled_rss_mib": 2447.28125
+      }
+    },
+    {
+      "workload": "LongMemEval-S pilot",
+      "queries": 12,
+      "instantkv": {
+        "recall_at_10": 0.9166666666666666,
+        "recall_at_20": 1.0,
+        "accepted_query_p95_ms": 2.875916,
+        "sampled_rss_mib": 23.75,
+        "rejected": 0,
+        "truncated": 0
+      },
+      "supermemory": {
+        "recall_at_10": 0.6527777777777778,
+        "recall_at_20": 0.8888888888888888,
+        "accepted_query_p95_ms": 41.959792,
+        "sampled_rss_mib": 2966.03125
+      }
+    }
+  ]
+}

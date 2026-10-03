@@ -64,7 +64,8 @@ The current [browser demo](live-demo.md) exercises structured saves, filtered re
 browse and revision-checked deletion. Its independent reader fetches from storage.
 Three recorded Mac runs preserve real query responses and deletion receipts.
 
-No shared benchmark workload has compared instantKV with these products.
+These alternatives have not been compared in this suite. Supermemory local is
+measured separately in the [retrieval notes](memory-benchmark-notes.md).
 The results do not establish a speed or cost ranking.
 Semantic search, automatic runtime hooks and replicas remain [planned](roadmap.md).
 

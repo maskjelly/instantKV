@@ -6,7 +6,7 @@ export const docs = [
     group: 'Start here',
     source: 'docs/memory-mvp.md',
     description:
-      'Remember, recall, browse and forget. Find memories by topic, tag, time or keywords. Try the local-model example.',
+      'Remember, recall, search, browse and forget. Find memories by topic, tag, time or keywords. Try the local-model example.',
   },
   {
     slug: 'performance',
@@ -15,6 +15,14 @@ export const docs = [
     source: 'docs/performance.md',
     description:
       'Mac measurements, unverified ARM targets and required phone tests.',
+  },
+  {
+    slug: 'memory-benchmark-notes',
+    title: 'Memory benchmark notes',
+    group: 'Start here',
+    source: 'docs/memory-benchmark-notes.md',
+    description:
+      'Small local memory: measured retrieval wins, losses, costs and next steps.',
   },
   {
     slug: 'local-first',
@@ -77,7 +85,7 @@ export const docs = [
     group: 'Use the service',
     source: 'docs/agents.md',
     description:
-      'Four memory tools, seven KV/checkpoint tools and checkpoint instructions.',
+      'Five memory tools, seven KV/checkpoint tools and checkpoint instructions.',
   },
   {
     slug: 'cli',
