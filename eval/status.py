@@ -97,7 +97,7 @@ def page(data):
         '<div class="table"><table><thead><tr>'+''.join('<th>'+v+'</th>' for v in ['Suite','Provider','Phase','Retrieval','QA','QA score','Recall@10','Query p95','Estimate'])+'</tr></thead><tbody>'+''.join(rows)+'</tbody></table></div>'
         '<p>Evidence first: full LongMemEval-S and LoCoMo retrieval, independently checked with pytrec_eval. Complete instantKV LongMemEval-S QA is being rescored with a shared rate limiter.</p>'
         '<p>Comparison limits: GPT-6 Luna protocol variant; SQLite latency is in process; Supermemory is its local embedding path, not its full hosted pipeline. A dash means a metric is pending or unavailable.</p>'
-        '<p>The full queue can take days. V2 Medium has 447 separate corpora. Estimates depend on corpus size and provider speed.</p>'
+        '<p>Large suites are deferred. The active full QA run is limited by the account token rate. Its ETA updates from completed questions.</p><p><a href="https://github.com/maskjelly/instantKV/blob/main/docs/benchmarks/2026-10-04-full-retrieval/README.md">Published evidence and verification receipts</a></p>'
         '<small>Refreshes every 10 seconds. Updated '+html.escape(data['updated_at'])+'</small></body></html>')
 
 
