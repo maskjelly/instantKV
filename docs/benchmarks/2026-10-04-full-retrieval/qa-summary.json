@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "suite": "LongMemEval-S",
+  "provider": "instantKV",
+  "questions": 500,
+  "correct": 426,
+  "qa_score": 0.852,
+  "qa_failures": 0,
+  "confidence_interval": {
+    "low": 0.82,
+    "high": 0.882,
+    "method": "95% percentile bootstrap clustered by source history; 2000 resamples, seed 20261004"
+  },
+  "categories": {
+    "single-session-user": {
+      "questions": 64,
+      "qa_score": 0.953125
+    },
+    "temporal-reasoning": {
+      "questions": 127,
+      "qa_score": 0.8267716535433071
+    },
+    "single-session-assistant": {
+      "questions": 56,
+      "qa_score": 1.0
+    },
+    "knowledge-update": {
+      "questions": 72,
+      "qa_score": 0.9166666666666666
+    },
+    "single-session-preference": {
+      "questions": 30,
+      "qa_score": 0.6666666666666666
+    },
+    "multi-session": {
+      "questions": 121,
+      "qa_score": 0.7520661157024794
+    },
+    "abstention": {
+      "questions": 30,
+      "qa_score": 0.9
+    }
+  },
+  "reader_model": "gpt-6-luna",
+  "judge_model": "gpt-6-luna",
+  "reasoning_effort": "medium",
+  "context_limit_tokens": 16384,
+  "max_output_tokens": 4096,
+  "reader_api_latency_ms": {
+    "p50": 2551.4101670123637,
+    "p95": 6005.561249912716,
+    "p99": 8520.727667026222
+  },
+  "runtime_commit": "fafa202e165f9c467e8de344403437e704f9a24a",
+  "protocol": "Official LongMemEval judge rubric with GPT-6 Luna reader/judge; model variant, not official leaderboard parity. One full QA repetition. No competitor QA comparison.",
+  "scope": "Model QA from saved native retrieval contexts. External model calls are evaluation only; memory storage/retrieval remain local. Reader API timings exclude retrieval and judge calls.",
+  "verification": "Recomputed all 500 binary scores, failures, model identities and clustered bootstrap; verified question coverage against saved contexts and their hash.",
+  "raw_sha256": {
+    "longmemeval-s--instantkv--qa.jsonl": "0de29812df21d49ca32b7e2c35f4c3410d23fb00ba8735bde7e7239c788d102d",
+    "longmemeval-s--instantkv--qa-report.json": "7fe0083169f8e35859bd1420addf4000db849ad424d6e1cd5ad663e73745316d"
+  }
+}

@@ -1,0 +1,97 @@
+---
+import qa from '../../../docs/benchmarks/2026-10-04-full-retrieval/qa-summary.json';
+import { percent } from '../lib/evidence';
+---
+
+<section class="quality-eval" aria-labelledby="qa-eval-title">
+  <header class="chart-heading">
+    <div>
+      <p class="eyebrow">
+        Full end-to-end QA / LongMemEval-S / {qa.questions} questions
+      </p>
+      <h3 id="qa-eval-title">Can the model use the retrieved memory?</h3>
+    </div>
+    <span class="eval-state complete">Complete · one full pass</span>
+  </header>
+  <div class="resource-summary qa-summary">
+    <div>
+      <span>Answer accuracy</span>
+      <strong>
+        {percent(qa.qa_score)}
+        <small>%</small>
+      </strong>
+      <p>
+        {qa.correct} / {qa.questions} correct. All questions included.
+      </p>
+    </div>
+    <div>
+      <span>95% confidence interval</span>
+      <strong>
+        {percent(qa.confidence_interval.low)}
+        <small>–</small>
+        {percent(qa.confidence_interval.high)}
+        <small>%</small>
+      </strong>
+      <p>Source-history-cluster bootstrap, 2,000 resamples.</p>
+    </div>
+    <div>
+      <span>QA transport failures</span>
+      <strong>{qa.qa_failures}</strong>
+      <p>Rate-limited rescoring from saved native contexts.</p>
+    </div>
+  </div>
+  <p class="chart-note">
+    Reader and judge: GPT-6 Luna, medium reasoning, 16,384-token context limit.
+    Official LongMemEval judge rubric with a different reader/judge model; not
+    official leaderboard parity. Model API calls are evaluation only. instantKV
+    retrieval itself remains local. Competitor QA scores are not complete.
+  </p>
+  <details class="runtime-details">
+    <summary>QA categories and reader response time</summary>
+    <div
+      class="table-scroll"
+      role="region"
+      aria-label="Full QA results by category"
+      tabindex="0"
+    >
+      <table class="evidence-table">
+        <caption>All QA questions, including abstention</caption>
+        <thead>
+          <tr>
+            <th scope="col">Task</th>
+            <th scope="col">Questions</th>
+            <th scope="col">Accuracy</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(qa.categories).map(([name, value]) => (
+            <tr>
+              <th scope="row">{name.replaceAll('-', ' ')}</th>
+              <td>{value.questions}</td>
+              <td>{percent(value.qa_score)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="chart-note">
+      Cloud reader API latency: p50{' '}
+      {(qa.reader_api_latency_ms.p50 / 1000).toFixed(2)} s · p95{' '}
+      {(qa.reader_api_latency_ms.p95 / 1000).toFixed(2)} s · p99{' '}
+      {(qa.reader_api_latency_ms.p99 / 1000).toFixed(2)} s. These timings
+      exclude retrieval, rate-limit waiting and judge calls. They are not
+      local-model performance.
+    </p>
+  </details>
+  <div class="raw-links">
+    <a href="/benchmark-data/full-retrieval/qa-summary.json">
+      QA summary & verification ↗
+    </a>
+    <a href="/benchmark-data/full-retrieval/longmemeval-s--instantkv--qa.jsonl">
+      All 500 answers and judgements ↗
+    </a>
+    <a href="/benchmark-data/full-retrieval/longmemeval-s--instantkv--qa-report.json">
+      Model settings & full report ↗
+    </a>
+  </div>
+</section>

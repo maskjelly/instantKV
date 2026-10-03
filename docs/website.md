@@ -19,8 +19,9 @@ The build copies current benchmark JSON, ranking files, verification receipts,
 examples and documentation into static assets. It generates `llms.txt`,
 `llms-full.txt`, a sitemap and a Pagefind search index.
 
-Chart values come from committed reports in `src/lib/evidence.ts` and
-`src/lib/benchmarks.ts`. Retrieval scores and synthetic latency have different
+Chart and table values come from committed reports in `src/lib/evidence.ts` and
+`src/lib/benchmarks.ts`. The resource export retains raw samples and process scopes.
+The completed QA pass has separate model settings, failures and confidence intervals. Retrieval scores and synthetic latency have different
 workloads. Keep their labels and comparison limits visible.
 
 ## Publish

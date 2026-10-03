@@ -141,7 +141,7 @@ Future work should address gaps found in real tasks and measurements.
 - Full LongMemEval-S retrieval: 500 questions. Native and matched-page SQLite complete.
 - Full LoCoMo retrieval: all ten histories and 1,986 questions. Native, SQLite
   and local Supermemory complete; positive recall covers 1,533 questions.
-- All five ranking files independently verified. Full native QA rescoring is pending.
+- All five ranking files independently verified. Full native QA scored 85.20% (426/500) with zero API failures; GPT-6 Luna model variant. Competitor QA remains incomplete.
 - LongMemEval-V2, AMA-Bench, BEAM and 100K–10M+ record tests remain incomplete.
 - Next work: paraphrase recall, multi-hop evidence, time and update correctness,
   then device tests. Use separate development sets; preserve all failures.

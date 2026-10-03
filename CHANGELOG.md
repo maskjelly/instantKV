@@ -2,11 +2,15 @@
 
 ## Unreleased
 
+- Show measured RAM, query p50/p95/p99, failure counts, writes, startup, storage and throughput beside retrieval scores.
+- Highlight native runtime figures and the highest observed quality result for each provider.
+- Publish the full native LongMemEval-S GPT-6 Luna QA model variant: 426/500 correct, zero API failures, raw answers and a 95% clustered-bootstrap interval.
+
 - Publish full LongMemEval-S and LoCoMo retrieval results with independently verified rankings.
 - Replace the pilot on current public pages. Keep the previous reports as historical evidence.
 - Redesign the landing page, benchmark overview and engineering post with report-driven charts and editorial images.
 - Remove public demos, recordings, demo navigation and the Worker proxy bindings. Redirect old demo pages to setup; return HTTP 410 for demo API calls.
-- Keep full answer-quality scoring marked pending after the initial API rate-limit failures.
+- Exclude the initial API rate-limit failures from quality claims; preserve the failed runs.
 
 - Add fixed local retrieval tests for NFCorpus, ArguAna, LoCoMo and a LongMemEval-S pilot.
 - Publish raw rankings, rejected/truncated queries, independent scoring and short benchmark notes.

@@ -61,7 +61,7 @@ All **30,000** memories were verified after abrupt restarts.
 These warm local-HTTP results exclude the model and phones.
 
 The [full retrieval report](benchmarks/2026-10-04-full-retrieval/README.md) uses
-all 500 LongMemEval-S questions and all ten LoCoMo histories. Model QA scoring is pending.
+all 500 LongMemEval-S questions and all ten LoCoMo histories. Full native QA scored 85.20% (426/500), using the GPT-6 Luna model variant. Competitor QA remains incomplete.
 
 These alternatives have not been compared in this suite. Supermemory local is
 measured separately in the [retrieval notes](memory-benchmark-notes.md).

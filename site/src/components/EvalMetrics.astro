@@ -1,0 +1,273 @@
+---
+import {
+  runtimeRows,
+  nativeRuntime,
+  memoryEvidence,
+  irEvidence,
+  highestObserved,
+  percent,
+  mib,
+} from '../lib/evidence';
+const lc = nativeRuntime.find((r) => r.suite === 'LoCoMo')!;
+const lme = nativeRuntime.find((r) => r.suite === 'LongMemEval-S')!;
+const suites = [...memoryEvidence, ...irEvidence];
+const ms = (n: number | null) =>
+  n === null ? 'Not recorded' : n.toFixed(2) + ' ms';
+---
+
+<p class="bench-host">
+  <strong>Measured host:</strong> Apple M4 Pro · 24 GiB RAM · macOS 27.0 ARM64.
+  CPU utilization and energy were not recorded.
+</p>
+<div class="metric-key">
+  <span>
+    <i class="metric-key-native" aria-hidden="true"></i>Blue: measured instantKV
+    footprint and response time
+  </span>
+  <span>
+    <i class="metric-key-best" aria-hidden="true"></i>Green: highest observed
+    retrieval score in this suite
+  </span>
+</div>
+<div
+  class="table-scroll metrics-scroll"
+  role="region"
+  aria-label="Retrieval quality, RAM and response latency for every completed eval"
+  tabindex="0"
+>
+  <table class="evidence-table runtime-table">
+    <caption>
+      All complete retrieval runs · RSS in MiB · query latency in milliseconds
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Eval / provider</th>
+        <th scope="col">Recall@10 ↑</th>
+        <th scope="col">nDCG@10 ↑</th>
+        <th scope="col">Sampled RAM ↓</th>
+        <th scope="col">p50 ↓</th>
+        <th scope="col">p95 ↓</th>
+        <th scope="col">p99 ↓</th>
+        <th scope="col">Failed / limited ↓</th>
+      </tr>
+    </thead>
+    <tbody>
+      {suites.map((suite) =>
+        runtimeRows
+          .filter((row) => row.suite === suite.name)
+          .map((row, index) => (
+            <tr
+              class:list={{
+                'native-runtime': row.provider === 'instantKV',
+                'suite-first': index === 0,
+              }}
+            >
+              <th scope="row">
+                <a href={row.raw}>{row.suite}</a>
+                <span class="runtime-provider">{row.provider}</span>
+                <small>
+                  {suite.count.toLocaleString('en-US')} scored ·{' '}
+                  {row.repetitions} {row.repetitions === 1 ? 'pass' : 'passes'}
+                </small>
+              </th>
+              <td
+                class:list={{ 'observed-best': highestObserved(row, 'recall') }}
+              >
+                <strong>{percent(row.recall)}%</strong>
+                {highestObserved(row, 'recall') && (
+                  <small>Highest observed</small>
+                )}
+              </td>
+              <td
+                class:list={{ 'observed-best': highestObserved(row, 'ndcg') }}
+              >
+                <strong>{percent(row.ndcg)}%</strong>
+                {highestObserved(row, 'ndcg') && (
+                  <small>Highest observed</small>
+                )}
+              </td>
+              <td class="footprint-cell">
+                <strong>{mib(row.rss)}</strong>
+                <small>MiB · sampled RSS</small>
+              </td>
+              <td class="response-cell">{row.latency.p50.toFixed(2)}</td>
+              <td class="response-cell response-p95">
+                <strong>{row.latency.p95.toFixed(2)}</strong>
+                <small>ms · query p95</small>
+              </td>
+              <td class="response-cell">{row.latency.p99.toFixed(2)}</td>
+              <td>
+                <strong>
+                  {row.failures} / {row.truncated}
+                </strong>
+                <small>Failed / truncated</small>
+                {row.reduced > 0 && (
+                  <small>{row.reduced.toLocaleString('en-US')} reduced</small>
+                )}
+              </td>
+            </tr>
+          )),
+      )}
+    </tbody>
+  </table>
+</div>
+<p class="chart-note">
+  Absent providers have no complete published run: LongMemEval-S Supermemory is
+  incomplete; BEIR SQLite is not run. Query time is retrieval only; it excludes
+  model inference. Blue emphasizes the native measurements, not a proven
+  efficiency ratio. RAM process scopes and transports differ. Full memory
+  timings reflect shared host load; BEIR controls are separately recorded runs.
+  Highest observed scores are not significance claims.
+</p>
+<div class="resource-summary" aria-label="Native retrieval resource summary">
+  <div>
+    <span>LoCoMo / Rust server</span>
+    <strong>
+      {mib(lc.rss)} <small>MiB</small>
+    </strong>
+    <p>
+      {percent(lc.recall)}% Recall@10 at {lc.latency.p95.toFixed(2)} ms query
+      p95.
+    </p>
+  </div>
+  <div>
+    <span>LongMemEval-S / Rust server</span>
+    <strong>
+      {mib(lme.rss)} <small>MiB</small>
+    </strong>
+    <p>
+      {percent(lme.recall)}% Recall@10 at {lme.latency.p95.toFixed(2)} ms query
+      p95.
+    </p>
+  </div>
+  <div>
+    <span>Retrieval model requirement</span>
+    <strong>None</strong>
+    <p>No embedding model or model API in the memory engine.</p>
+  </div>
+</div>
+<details class="runtime-details">
+  <summary>More metrics: writes, startup, storage and throughput</summary>
+  <p class="chart-note">
+    Writes have different commit guarantees. Throughput is records divided by
+    ingestion time for BEIR, or summed write-request time for the memory suites.
+    It excludes query work and is not a concurrent query-throughput test.
+    Supermemory's full-memory database size is cumulative across corpus scopes;
+    others show the largest individual corpus database.
+  </p>
+  <div
+    class="table-scroll"
+    role="region"
+    aria-label="Recorded storage and ingestion metrics"
+    tabindex="0"
+  >
+    <table class="evidence-table runtime-table detail-table">
+      <caption>
+        Additional recorded metrics; — means not recorded, not zero
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Eval / provider</th>
+          <th scope="col">Database</th>
+          <th scope="col">Write p95</th>
+          <th scope="col">Startup p95</th>
+          <th scope="col">Write throughput</th>
+          <th scope="col">Binary</th>
+        </tr>
+      </thead>
+      <tbody>
+        {runtimeRows.map((row) => (
+          <tr class:list={{ 'native-runtime': row.provider === 'instantKV' }}>
+            <th scope="row">
+              {row.suite}
+              <span class="runtime-provider">{row.provider}</span>
+            </th>
+            <td>
+              {row.disk === null ? '—' : mib(row.disk) + ' MiB'}
+              <small>{row.diskScope}</small>
+            </td>
+            <td>
+              {row.writeP95 === null ? '—' : ms(row.writeP95)}
+              <small>{row.writeUnit}</small>
+            </td>
+            <td>{row.startupP95 === null ? '—' : ms(row.startupP95)}</td>
+            <td>
+              {row.writeThroughput === null
+                ? '—'
+                : row.writeThroughput.toFixed(1) + ' records/s'}
+            </td>
+            <td>{row.binary === null ? '—' : mib(row.binary) + ' MiB'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <h3 class="subsection-title">What the resource boundary includes</h3>
+  <ul class="resource-boundaries">
+    <li>
+      <strong>instantKV:</strong> native Rust server, fresh database per corpus.
+      RSS excludes the benchmark runner.
+    </li>
+    <li>
+      <strong>SQLite FTS5:</strong> Python runner, interpreter and in-process
+      adapter. No HTTP hop.
+    </li>
+    <li>
+      <strong>Supermemory local:</strong> server and descendants, including its
+      embedding runtime. Full LoCoMo retains corpus scopes in one suite server.
+    </li>
+    <li>
+      <strong>Host:</strong> Apple M4 Pro, 24 GiB RAM, macOS 27.0 ARM64.
+    </li>
+    <li>
+      <strong>Not recorded:</strong> CPU utilization, CPU time, energy, separate
+      index bytes and concurrent query throughput. RSS samples do not measure
+      true peak RAM.
+    </li>
+  </ul>
+  <a
+    class="text-link"
+    href="/benchmark-data/full-retrieval/runtime-metrics.json"
+  >
+    Raw resource samples and derivation ↗
+  </a>
+</details>
+<section class="native-resource-chart" aria-labelledby="native-resources-title">
+  <header class="chart-heading">
+    <div>
+      <p class="eyebrow">Native Rust process / complete retrieval sets</p>
+      <h3 id="native-resources-title">The footprint beside the score</h3>
+    </div>
+    <span class="eyebrow">Lower resource use is better</span>
+  </header>
+  <div class="native-resource-labels" aria-hidden="true">
+    <span>Full eval</span>
+    <span>Sampled RAM / linear 0–32 MiB</span>
+    <span>Query p95 / linear 0–50 ms</span>
+  </div>
+  {nativeRuntime.map((row) => (
+    <div class="native-resource-row">
+      <div>
+        <strong>{row.suite}</strong>
+        <small>{percent(row.recall)}% Recall@10</small>
+      </div>
+      <div>
+        <div class="native-resource-track">
+          <span style={`width:${(row.rss / 1024 ** 2 / 32) * 100}%`}></span>
+        </div>
+        <strong>{mib(row.rss)} MiB</strong>
+      </div>
+      <div>
+        <div class="native-resource-track latency">
+          <span style={`width:${(row.latency.p95 / 50) * 100}%`}></span>
+        </div>
+        <strong>{row.latency.p95.toFixed(2)} ms</strong>
+      </div>
+    </div>
+  ))}
+  <p class="chart-note">
+    Each row uses its own complete eval workload. ArguAna's long queries have
+    688 work-limit hits; the faster corpus timings do not guarantee the same
+    speed for all tasks.
+  </p>
+</section>

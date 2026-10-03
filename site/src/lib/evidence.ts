@@ -2,6 +2,8 @@ import full from '../../../docs/benchmarks/2026-10-04-full-retrieval/summary.jso
 import scifact from '../../../docs/benchmarks/2026-10-04-search/scifact.json';
 import arguana from '../../../docs/benchmarks/2026-10-04-search/default/arguana.json';
 import nfcorpus from '../../../docs/benchmarks/2026-10-04-search/default/nfcorpus.json';
+import runtime from '../../../docs/benchmarks/2026-10-04-full-retrieval/runtime-metrics.json';
+export { runtime };
 export { full };
 export const percent = (value: number) => (100 * value).toFixed(2);
 export const mib = (value: number) => (value / 1024 ** 2).toFixed(2);
@@ -99,3 +101,112 @@ export const irEvidence: EvidenceRow[] = secondary.map((row) => ({
   raw: row.raw,
   limits: row.limits,
 }));
+
+export interface RuntimeRow {
+  suite: string;
+  provider: string;
+  recall: number;
+  ndcg: number;
+  latency: { p50: number; p95: number; p99: number };
+  rss: number;
+  failures: number;
+  truncated: number;
+  reduced: number;
+  disk: number | null;
+  diskScope: string;
+  startupP95: number | null;
+  writeP95: number | null;
+  writeUnit: string;
+  writeThroughput: number | null;
+  binary: number | null;
+  rssScope: string;
+  samples: number;
+  repetitions: number;
+  raw: string;
+  context: string;
+}
+const fullRows: RuntimeRow[] = runtime.runs.map((run) => {
+  const source = memoryEvidence[run.suite === 'longmemeval-s' ? 0 : 1];
+  const index = ['instantkv', 'sqlite-fts5', 'supermemory-local'].indexOf(
+    run.provider,
+  );
+  return {
+    suite: source.name,
+    provider: providers[index],
+    recall: source.recall[index]!,
+    ndcg: source.ndcg[index]!,
+    latency: run.query_latency_ms,
+    rss: run.largest_sampled_rss_bytes,
+    failures: run.failures,
+    truncated: run.truncated_queries,
+    reduced: run.reduced_queries,
+    disk: run.largest_database_bytes,
+    diskScope: run.database_scope,
+    startupP95: run.startup_latency_ms?.p95 ?? null,
+    writeP95: run.write_latency_ms?.p95 ?? null,
+    writeUnit: run.write_latency_unit,
+    writeThroughput: run.write_throughput_records_per_second,
+    binary:
+      run.provider === 'instantkv'
+        ? 'binary_bytes' in run.resources[0]
+          ? run.resources[0].binary_bytes
+          : null
+        : null,
+    rssScope: run.rss_scope,
+    samples: run.query_samples,
+    repetitions: run.repetitions,
+    raw: '/benchmark-data/full-retrieval/runtime-metrics.json',
+    context:
+      run.provider === 'sqlite-fts5'
+        ? 'In-process · shared host load'
+        : 'Loopback HTTP · shared host load',
+  };
+});
+const irRows: RuntimeRow[] = secondary.flatMap((row) => {
+  return [row.report.providers.instantkv, row.report.providers.supermemory].map(
+    (outer, i) => {
+      const nested = i === 0 ? row.native : row.control;
+      return {
+        suite: row.name,
+        provider: i === 0 ? 'instantKV' : 'Supermemory local',
+        recall: nested.metrics.recall_at_10,
+        ndcg: nested.metrics.ndcg_at_10,
+        latency: nested.query_latency_ms,
+        rss: outer.largest_sampled_rss_bytes,
+        failures: outer.errors,
+        truncated: 'truncated_queries' in outer ? outer.truncated_queries : 0,
+        reduced: 'reduced_queries' in outer ? outer.reduced_queries : 0,
+        disk: 'database_bytes' in outer ? outer.database_bytes : null,
+        diskScope: 'One full corpus database',
+        startupP95: null,
+        writeP95: 'save_latency_ms' in outer ? outer.save_latency_ms.p95 : null,
+        writeUnit: 'Record request; provider commit guarantees differ',
+        writeThroughput:
+          'ingestion_total_ms' in outer
+            ? outer.saved_chunks / (outer.ingestion_total_ms / 1000)
+            : null,
+        binary: outer.binary_bytes,
+        rssScope:
+          i === 0
+            ? 'Native Rust server'
+            : 'Server + descendants, embedding runtime included',
+        samples: row.report.test_queries,
+        repetitions: 1,
+        raw: row.raw,
+        context:
+          i === 0
+            ? 'Current native run · loopback HTTP'
+            : 'Recorded 3 October control · loopback HTTP',
+      };
+    },
+  );
+});
+export const runtimeRows = [...fullRows, ...irRows];
+export const highestObserved = (row: RuntimeRow, metric: 'recall' | 'ndcg') =>
+  row[metric] ===
+  Math.max(
+    ...runtimeRows.filter((r) => r.suite === row.suite).map((r) => r[metric]),
+  );
+export const nativeRuntime = runtimeRows.filter(
+  (row) => row.provider === 'instantKV',
+);

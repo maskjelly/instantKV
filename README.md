@@ -88,8 +88,10 @@ The 446 adversarial questions and seven unresolved references are excluded only
 from positive-evidence recall. All five full memory retrieval files had zero
 failures and zero truncations. Independent `pytrec_eval` checks used official source labels.
 
-These are **retrieval scores, not end-to-end answer accuracy**. Full QA scoring
-is pending. The initial model runs hit API rate limits and are not valid QA comparisons.
+These are **retrieval scores, not end-to-end answer accuracy**. Full native LongMemEval-S QA scored **85.20%** (426/500) with zero
+API failures and a 95% confidence interval of 82.0–88.2%. This uses the official
+judge rubric with GPT-6 Luna as reader and judge, not official leaderboard model parity.
+[QA settings and raw outputs](docs/benchmarks/2026-10-04-full-retrieval/qa-summary.json). Competitor QA remains incomplete. The initial model runs hit API rate limits and are not valid QA comparisons.
 SQLite has slightly higher observed LongMemEval-S recall. Local Supermemory has
 slightly higher LoCoMo recall. No statistically significant win is established.
 

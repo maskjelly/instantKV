@@ -36,8 +36,31 @@ scopes in one fresh server per suite; its RSS and disk figures are cumulative.
 Do not use these values to claim a matched per-corpus RAM ratio.
 
 Initial GPT-6 Luna QA runs hit API rate limits. Their failures remain in the raw
-reports. Those scores are not valid quality comparisons. Full instantKV QA is
-being rescored from the saved contexts with a shared request/token limiter.
+reports. Those scores are not valid quality comparisons. Full instantKV QA was rescored from saved contexts with a shared request/token
+limiter. It scored **85.20%** (426/500), with zero API failures and a 95%
+source-history-cluster bootstrap interval of **82.0–88.2%**. The reader and judge
+are GPT-6 Luna. This uses the official judge rubric with a different model; it is
+not official leaderboard parity. Competitor QA remains incomplete.
+
+[QA summary](qa-summary.json) · [All answers and judgements](longmemeval-s--instantkv--qa.jsonl)
+· [Model settings](longmemeval-s--instantkv--qa-report.json).
+
+## Resource metrics
+
+[Runtime metrics and samples](runtime-metrics.json) include query p50/p95/p99,
+write request latency, startup, database size, sampled RSS and write throughput.
+CPU utilization, CPU time, energy and separate index bytes were not recorded.
+The resource process scopes and write guarantees differ between providers.
+No isolated speed or RAM ratio is supported.
+
+Recreate this export from the recorded result directory:
+
+```sh
+python3 scripts/export-eval-resources.py --results /path/to/results
+```
+
+The exporter checks complete question coverage and links runtime samples to the
+published ranking hashes. It makes no model calls and estimates no missing metrics.
 
 ## Check the evidence
 
@@ -51,3 +74,11 @@ records and run logs remain in the local campaign results folder.
 Run `eval/run.py --retrieval-only` with the full pinned dataset and the provider
 adapter to reproduce retrieval. Run `eval/score_saved.py` to score a complete
 saved retrieval pass without repeating ingestion. See [the runner guide](../../../eval/README.md).
+
+Recheck all QA answers, model identities, input coverage and the exact seeded
+confidence interval from the recorded run:
+
+```sh
+python3 scripts/export-qa-evidence.py --run-directory /path/to/qa-run \
+  --contexts /path/to/retrieval-run/contexts.jsonl
+```

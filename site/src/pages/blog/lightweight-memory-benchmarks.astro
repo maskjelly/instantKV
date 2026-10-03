@@ -113,10 +113,15 @@ import { memoryEvidence } from '../../lib/evidence';
         Keep every change accountable for CPU, RAM, storage and correctness.
       </p>
       <p>
-        Full GPT-6 Luna answer scoring is pending. The first parallel QA runs
-        hit API rate limits and cannot support quality claims. The full native
-        LongMemEval-S QA pass is being rescored from saved contexts with a
-        shared rate limiter. No partial accuracy is published.
+        Full native GPT-6 Luna QA is complete: 426/500 correct, or 85.20%, with
+        zero API failures and a 95% interval of 82.0–88.2%. The first parallel
+        runs hit API rate limits; their failures remain recorded. The completed
+        pass uses saved native contexts and a shared limiter. Its official judge
+        rubric uses a different model from the leaderboard. Competitor QA is
+        incomplete.
+        <a href="/benchmark-data/full-retrieval/qa-summary.json">
+          QA settings and raw outputs →
+        </a>
       </p>
       <p>
         LongMemEval-V2, AMA-Bench, BEAM, more baselines and 100K–10M+ record

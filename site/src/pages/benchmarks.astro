@@ -1,14 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
 import EvidenceChart from '../components/EvidenceChart.astro';
-import {
-  memoryEvidence,
-  irEvidence,
-  providers,
-  percent,
-  full,
-  mib,
-} from '../lib/evidence';
+import EvalMetrics from '../components/EvalMetrics.astro';
+import QualityEval from '../components/QualityEval.astro';
+import { memoryEvidence, irEvidence, full, mib } from '../lib/evidence';
 import {
   report,
   workloads,
@@ -20,7 +15,7 @@ import {
 
 <Base
   title="Benchmarks"
-  description="Full LongMemEval-S and LoCoMo evidence retrieval, secondary BEIR results, native footprint and raw verification receipts. See wins, gaps and test limits together."
+  description="Full retrieval and native QA results with RAM, query response time, write latency, startup and storage. Highlighted metrics, raw samples and comparison limits."
 >
   <main id="main" class="shell evidence-page" data-pagefind-body>
     <header class="editorial-title">
@@ -31,9 +26,8 @@ import {
         Open evidence.
       </h1>
       <p>
-        Full retrieval runs. Clear baselines. Raw rankings you can check. These
-        results measure source evidence retrieval; they do not measure final
-        answer accuracy.
+        Full retrieval runs. Clear baselines. Raw rankings you can check.
+        Retrieval scores and model answer accuracy are reported separately.
       </p>
     </header>
     <nav class="page-jump" aria-label="Benchmark sections">
@@ -45,73 +39,25 @@ import {
     </nav>
     <section id="overview" class="editorial-section">
       <div class="section-heading">
-        <p class="eyebrow">At a glance / Recall@10</p>
-        <h2>Every result, in one table.</h2>
+        <p class="eyebrow">At a glance / quality + resource use</p>
+        <h2>Quality, RAM and speed. Together.</h2>
         <p>
-          Higher is better. Different datasets use different source labels. Do
-          not average these scores into one quality claim.
+          See what each retrieval score costs to run. Full question sets,
+          measured RAM, response percentiles and visible failures. Higher
+          quality is better; lower resource use is better.
         </p>
       </div>
-      <div
-        class="table-scroll"
-        role="region"
-        aria-label="All retrieval results"
-        tabindex="0"
-      >
-        <table class="evidence-table">
-          <caption>Observed Recall@10, with full dataset scope</caption>
-          <thead>
-            <tr>
-              <th scope="col">Suite / evidence</th>
-              <th scope="col">Scored questions</th>
-              {providers.map((p) => (
-                <th scope="col">{p}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {[...memoryEvidence, ...irEvidence].map((row) => (
-              <tr>
-                <th scope="row">
-                  <a href={row.raw}>{row.name}</a>
-                  <small>
-                    {row.scope}
-                    {row.docs
-                      ? ` · ${row.docs.toLocaleString('en-US')} documents`
-                      : ''}
-                  </small>
-                </th>
-                <td>
-                  {row.count.toLocaleString('en-US')}
-                  <small>
-                    {row.queried !== row.count
-                      ? `${row.queried.toLocaleString('en-US')} queried`
-                      : 'Full question set'}
-                  </small>
-                </td>
-                {row.recall.map((value, i) => (
-                  <td class={i === 0 ? 'native-score' : ''}>
-                    {value === null ? '—' : percent(value) + '%'}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p class="chart-note">
-        — means no complete published run. BEIR controls were recorded
-        separately on 3 October. ArguAna hit work limits on 688 queries.{' '}
-        <a href="#method">Read the limits ↓</a>
-      </p>
-      <aside class="evidence-status">
-        <strong>Answer-quality scoring is pending.</strong>
+      <EvalMetrics />
+      <QualityEval />
+      <div class="evaluation-queue">
+        <h3>Other full evaluations</h3>
         <p>
-          The first GPT-6 Luna QA runs hit API rate limits. They cannot support
-          a quality comparison. A rate-limited full LongMemEval-S QA rerun is in
-          progress. No partial accuracy is published.
+          LongMemEval-V2 Small / Medium · AMA-Bench · BEAM · 100K / 1M / 10M+
+          record tests: incomplete. Mem0, Zep and independent dense-vector
+          controls: not complete. No measured CPU, RAM, latency or quality score
+          is assigned to an unfinished run.
         </p>
-      </aside>
+      </div>
     </section>
     <section id="memory" class="editorial-section">
       <div class="section-heading">
@@ -355,9 +301,10 @@ import {
         <div>
           <h3>Still to measure</h3>
           <p>
-            Official end-to-end QA, LongMemEval-V2, AMA-Bench, BEAM, Mem0, Zep,
-            dense-vector controls and 100K–10M+ record tests remain incomplete.
-            Phone latency, battery and native bindings remain planned.
+            Competitor end-to-end QA, LongMemEval-V2, AMA-Bench, BEAM, Mem0,
+            Zep, dense-vector controls and 100K–10M+ record tests remain
+            incomplete. Phone latency, battery and native bindings remain
+            planned.
           </p>
         </div>
       </div>

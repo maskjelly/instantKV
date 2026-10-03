@@ -198,7 +198,7 @@ assert(!article.includes('_PENDING'), 'Article has no incomplete sections');
 assert(
   article.includes('500') &&
     article.toLowerCase().includes('rejected') &&
-    article.includes('pending'),
+    article.includes('85.20%'),
   'Article includes scope and query failures',
 );
 
@@ -233,6 +233,79 @@ for (const file of htmlFiles) {
 const home = readFileSync(resolve(root, 'index.html'), 'utf8');
 assert(home.includes('95.13') && home.includes('14.34'));
 assert(!home.includes('91.67') && !home.includes('65.28'));
+
+const resources = JSON.parse(
+  readFileSync(
+    resolve(root, 'benchmark-data/full-retrieval/runtime-metrics.json'),
+    'utf8',
+  ),
+);
+assert.equal(resources.runs.length, 5);
+const percentile = (values, p) =>
+  [...values].sort((a, b) => a - b)[Math.ceil((values.length * p) / 100) - 1];
+for (const run of resources.runs) {
+  const rankingFile = `${run.suite}--${run.provider}.json`;
+  assert.equal(run.ranking_sha256, fullSummary.ranking_sha256[rankingFile]);
+  assert.equal(run.query_samples, run.queried_questions * run.repetitions);
+  assert.equal(run.query_latency_samples_ms.length, run.query_samples);
+  for (const p of [50, 95, 99])
+    assert.equal(
+      run.query_latency_ms[`p${p}`],
+      percentile(run.query_latency_samples_ms, p),
+    );
+  assert.equal(
+    run.largest_sampled_rss_bytes,
+    Math.max(...run.resources.map((r) => r.largest_sampled_rss_bytes)),
+  );
+  assert.equal(
+    run.largest_database_bytes,
+    Math.max(...run.resources.map((r) => r.database_bytes)),
+  );
+  const writes = run.resources.flatMap((r) => r.write_latency_samples_ms);
+  for (const p of [50, 95, 99])
+    assert.equal(run.write_latency_ms[`p${p}`], percentile(writes, p));
+}
+const qa = JSON.parse(
+  readFileSync(
+    resolve(root, 'benchmark-data/full-retrieval/qa-summary.json'),
+    'utf8',
+  ),
+);
+assert(qa.complete && qa.questions === 500);
+for (const [file, hash] of Object.entries(qa.raw_sha256))
+  assert.equal(
+    createHash('sha256')
+      .update(
+        readFileSync(resolve(root, 'benchmark-data/full-retrieval', file)),
+      )
+      .digest('hex'),
+    hash,
+  );
+const answers = readFileSync(
+  resolve(
+    root,
+    'benchmark-data/full-retrieval/longmemeval-s--instantkv--qa.jsonl',
+  ),
+  'utf8',
+)
+  .trim()
+  .split('\n')
+  .map((line) => JSON.parse(line));
+assert.equal(answers.length, 500);
+assert.equal(new Set(answers.map((row) => row.question_id)).size, 500);
+assert.equal(
+  answers.reduce((sum, row) => sum + row.score, 0),
+  qa.correct,
+);
+assert.equal(qa.qa_score, qa.correct / 500);
+assert.equal(answers.filter((row) => row.failure).length, qa.qa_failures);
+const benchPage = readFileSync(resolve(root, 'benchmarks/index.html'), 'utf8');
+assert(
+  benchPage.includes('Sampled RAM') &&
+    benchPage.includes('p99') &&
+    benchPage.includes('Highest observed'),
+);
+assert(benchPage.includes('85.20') && benchPage.includes('CPU utilization'));
 
 console.log(
   `Verified ${htmlFiles.length} HTML pages, their local links/anchors/assets, current memory and retrieval reports, search and machine-readable docs.`,

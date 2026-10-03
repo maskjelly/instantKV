@@ -1,0 +1,2730 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "suite": "longmemeval-s",
+  "provider": "instantkv",
+  "recorded_at": "2026-10-03T20:32:56.714897+00:00",
+  "config": {
+    "schema_version": 1,
+    "campaign": "official-full-gpt6-luna-2026-10-04",
+    "runtime_commit": "fafa202e165f9c467e8de344403437e704f9a24a",
+    "binary_sha256": "24e79fdbc28c351f356b9325add50cbbdc9a989fc20825d224be5e1fa104b045",
+    "reader_model": "gpt-6-luna",
+    "judge_model": "gpt-6-luna",
+    "reasoning_effort": "medium",
+    "service_tier": "default",
+    "api": "responses",
+    "max_output_tokens": 4096,
+    "context_limit_tokens": 16384,
+    "top_k": 10,
+    "total_api_cap_usd": 250,
+    "prices_per_million_tokens": {
+      "input": 0.1,
+      "cached_input": 0.01,
+      "cache_write": 0.125,
+      "output": 0.5,
+      "long_context_input": 0.2,
+      "long_context_output": 0.75
+    },
+    "api_concurrency": 8,
+    "retrieval_repetitions": 3,
+    "qa_repetitions": 1,
+    "qa_repetition_policy": "One full QA run first; additional full repetitions only within remaining cap. Never call a single repetition repeated evidence.",
+    "instantkv": {
+      "cache_size_bytes": 8388608,
+      "max_search_postings": 20000,
+      "max_candidates": 1000,
+      "max_scan_bytes": 4194304,
+      "max_result_bytes": 65536,
+      "expand": false,
+      "durability": "immediate per memory commit"
+    },
+    "scope": "Full official datasets; exact official rubric where available, GPT-6 Luna reader/judge variant. Not official leaderboard model parity.",
+    "tuning": "Frozen engine; no final-test tuning",
+    "baselines": [
+      "instantkv",
+      "sqlite-fts5",
+      "supermemory-local"
+    ],
+    "additional_baselines": {
+      "mem0": "pending adapter and matched model config",
+      "zep": "must use an accessible self-hosted implementation; hosted results cannot count as same hardware",
+      "tantivy": "pending adapter",
+      "dense-vector": "Supermemory local bge path is an initial dense baseline; independent model version remains planned"
+    },
+    "scalability_counts": [
+      10000,
+      100000,
+      1000000,
+      10000000,
+      11000000
+    ],
+    "datasets": {
+      "longmemeval-s": {
+        "source": "xiaowu0162/longmemeval-cleaned",
+        "revision": "98d7416c24c778c2fee6e6f3006e7a073259d48f",
+        "questions": 500,
+        "prior_exposed_pilot": 12
+      },
+      "longmemeval-v2-small": {
+        "source": "xiaowu0162/longmemeval-v2",
+        "revision": "f152293e235517d504809563c833d7190b8c713b",
+        "harness_commit": "2cc8c540bdb87fe6761629b585e727e1c4704520",
+        "questions": 451
+      },
+      "longmemeval-v2-medium": {
+        "source": "xiaowu0162/longmemeval-v2",
+        "revision": "f152293e235517d504809563c833d7190b8c713b",
+        "harness_commit": "2cc8c540bdb87fe6761629b585e727e1c4704520",
+        "questions": 451
+      },
+      "locomo": {
+        "source": "snap-research/locomo",
+        "revision": "3eb6f2c585f5e1699204e3c3bdf7adc5c28cb376",
+        "prior_exposure": "all previously published test questions",
+        "questions": 1986
+      },
+      "ama-bench": {
+        "source": "AMA-bench/AMA-bench",
+        "revision": "a5777378066f53229a94557a7b192435cd027909",
+        "harness_commit": "ddfd319e0be33424288c13806f1eafc63e625b59",
+        "questions": 2496
+      },
+      "beam": {
+        "source": "Mohammadta/BEAM",
+        "revision": "3205395e897e7318c7b094ef4e6047b9b82dbb03",
+        "harness_commit": "b2da22eac88bb0874c64665f13457eb99835774a",
+        "questions": 1800
+      },
+      "beam-10m": {
+        "source": "Mohammadta/BEAM-10M",
+        "revision": "9b2096193fe74e2837e4713e483351e19817773c",
+        "questions": 200
+      }
+    },
+    "failure_policy": "All official questions count. API errors remain failures. Budget stop preserves incomplete run; incomplete run has no full-suite score.",
+    "user_model_selection": "GPT6 LUNA",
+    "supermemory_binary": "/private/tmp/instantkv-ranked-retrieval/supermemory-server-darwin-arm64",
+    "supermemory_binary_sha256": "12b7817a105ed0a9e70f96c461fb6f8dded5d70eaeb6034e774778c257bed78a"
+  },
+  "config_sha256": "87d82da6a0f0a7cb7d846b9897f784f9045f79aaad9f26c2d5f977f65311836f",
+  "source_commit": "5065a2bd3e490fb128344ab328e1e6f3cc2e62bc",
+  "runtime_commit": "fafa202e165f9c467e8de344403437e704f9a24a",
+  "runtime_dirty": false,
+  "harness_sha256": {
+    "baselines.py": "858ce0d523967baf34134c52e37ef894ec30540c99070740e1007d943ddd24e6",
+    "run.py": "c2cf727662655e1952eccfa5fd18da084bf09beb912204299af8357dbbe82d16",
+    "backend.py": "399751ad04558a447f355f953366126913de7c0b8a151d2331d8918a286c2a7d",
+    "test_harness.py": "e8a37e297c1552a5724f455f9f503ca2034f7de444ca1f9bd3abd79cfaef88cf",
+    "budget.py": "b26ae5c4ea3b5a890e27500d363109d1a35c9537189d33183b18f9b9e443fa53",
+    "datasets.py": "9584858c5b8583d1370a978682a1f83099b26cfc37be65f76a4728df12f03c95",
+    "campaign.py": "47acacd9fe59d75b4b514716643fa2f66e5e3f917412c670fbbb98a8254f0f7d",
+    "api.py": "0988431e89e948aed32fb33345a1ea5c3c8dc3f5ba5a82c1a797226cd7092922",
+    "rubrics.py": "cb332b2f8d1ddaae9477fb2b34cd8bf26e37331707918f0b97ac97e532b8a81d"
+  },
+  "dataset_files": {
+    "longmemeval_s_cleaned.json": "d6f21ea9d60a0d56f34a05b609c79c88a451d2ae03597821ea3d5a9678c3a442"
+  },
+  "host": {
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+    "cpu": "Apple M4 Pro",
+    "ram_bytes": 25769803776
+  },
+  "expected_questions": 500,
+  "cases": [
+    {
+      "case_id": "e47becba",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "118b2229",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "51a45a95",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "58bf7951",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1e043500",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c5e8278d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6ade9755",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6f9b354f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "58ef2f1c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f8c5f88b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "5d3d2817",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "7527f7e2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c960da58",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3b6f954b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "726462e0",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "94f70d80",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "66f24dbb",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ad7109d1",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "af8d2e46",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "dccbc061",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c8c3f81d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8ebdbe50",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6b168ec8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "75499fd8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "21436231",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "95bcc1c8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0862e8bf",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "853b0a1d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a06e4cfe",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "37d43f65",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b86304ba",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d52b4f67",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "25e5aa4f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "caf9ead2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8550ddae",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "60d45044",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3f1e9474",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "86b68151",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "577d4d32",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ec81a493",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "15745da0",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e01b8e2f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "bc8a6e93",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ccb36322",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "001be529",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b320f3f8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "19b5f2b3",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4fd1909e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "545bd2b5",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8a137a7f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "76d63226",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "86f00804",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8e9d538c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "311778f1",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c19f7a0b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4100d0a0",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "29f2956b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1faac195",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "faba32e5",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f4f1d8a4",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c14c00dd",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "36580ce8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3d86fd0a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a82c026e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0862e8bf_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "15745da0_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "bc8a6e93_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "19b5f2b3_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "29f2956b_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f4f1d8a4_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0a995998",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6d550036",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_59c863d7",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b5ef892d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e831120c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3a704032",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_d84a3211",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "aae3761f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_f2262a51",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "dd2973ad",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c4a1ceb8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_a56e767c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6cb6f249",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "46a3abf7",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "36b9f61e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "28dc39ac",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2f8be40d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2e6d26dc",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_15e38248",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "88432d0a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "80ec1f4f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d23cf73b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_7fce9456",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d682f1a2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "7024f17c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_5501fe77",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2ba83207",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2318644b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2ce6a0f2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_d12ceb0e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "00ca467f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b3c15d39",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_31ff4165",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "eeda8a6d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2788b940",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "60bf93ed",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "9d25d4e0",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "129d1232",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "60472f9c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_194be4b3",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a9f6b44c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d851d5ba",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "5a7937c8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_ab202e7f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_e05b82a6",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_731e37d7",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "edced276",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "10d9b85a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e3038f8c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2b8f3739",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1a8a66a6",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c2ac3c61",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "bf659f65",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_372c3eed",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2f91af09",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "81507db6",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "88432d0a_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "80ec1f4f_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "eeda8a6d_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "60bf93ed_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "edced276_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_372c3eed_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8a2466db",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "06878be2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "75832dbd",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0edc2aef",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "35a27287",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "32260d93",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "195a1a1b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "afdc33df",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "caf03d32",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "54026fce",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "06f04340",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6b7dfb22",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1a1907b4",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "09d032c9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "38146c39",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d24813b1",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "57f827a0",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "95228167",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "505af2f5",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "75f70248",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d6233ab6",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1da05512",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "fca70973",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b6025781",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a89d7624",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b0479f84",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1d4e3b97",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "07b6f563",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1c0ddc50",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0a34ad58",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d3ab962e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2311e44b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "cc06de0d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a11281a2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4f54b7c9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "85fa3a3f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "9aaed6a3",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1f2b8d4f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e6041065",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "51c32626",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d905b33f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "7405e8b1",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f35224e0",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6456829e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a4996e51",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3c1045c8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "60036106",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "681a1674",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e25c3b8d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4adc0475",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4bc144e2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ef66a6e5",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "5025383b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a1cc6108",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "9ee3ecd6",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3fdac837",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "91b15a6e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "27016adc",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "720133ac",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "77eafa52",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8979f9ec",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0100672e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a96c20ee",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "92a0aa75",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3fe836c9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1c549ce4",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6c49646a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1192316e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0ea62687",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "67e0d0f2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "bb7c3b45",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ba358f49",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "61f8c8f8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "60159905",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ef9cf60a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "73d42213",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "bc149d6b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "099778bb",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "09ba9854",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d6062bb9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "157a136e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c18a7dc8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a3332713",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "55241a1f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a08a253f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f0e564bc",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "078150f1",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8cf4d046",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a346bb18",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "37f165cf",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8e91e7d9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "87f22b4a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e56a43b9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "efc3f7c2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "21d02d0d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2311e44b_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6456829e_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e5ba910e_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a96c20ee_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ba358f49_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "09ba9854_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_59149c77",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_f49edff3",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "71017276",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b46e15ed",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_fa19884c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0bc8ad92",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "af082822",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_4929293a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_b5700ca9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "9a707b81",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_1d4ab0c9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_e072b769",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0db4c65d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_1d80365e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_7f6b06db",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_6dc9b45b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_8279ba02",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_18c2b244",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_a1b77f9c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_1916e0ea",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_7a0daae1",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_468eb063",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_7abb270c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_1e4a8aeb",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_4fc4f797",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4dfccbf7",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_61e13b3c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_45189cb4",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2ebe6c90",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_e061b84f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "370a8ff4",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_d6585ce8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_4ef30696",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_ec93e27f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6e984301",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8077ef71",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_f420262c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_8e165409",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_74aed68e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "bcbe585f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_21adecb5",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "5e1b23de",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_98f46fc6",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_af6db32f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "eac54adc",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_7ddcf75f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_a2d1d1f6",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_85da3956",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_b0863698",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_68e94287",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_e414231e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_7ca326fa",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_7bc6cf22",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2ebe6c92",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_e061b84g",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "71017277",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b46e15ee",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_d6585ce9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_1e4a8aec",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_f420262d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_59149c78",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_e414231f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_4929293b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_468eb064",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_fa19884d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "9a707b82",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "eac54add",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4dfccbf8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0bc8ad93",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6e984302",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_8279ba03",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_b5700ca0",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_68e94288",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2655b836",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2487a7cb",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_76048e76",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2312f94c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0bb5a684",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "08f4fc43",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2c63a862",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_385a5000",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2a1811e2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "bbf86515",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_5dcc0aab",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_0b2f1d21",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f0853d11",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_6ed717ea",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_70e84552",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a3838d2b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_93159ced",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2d58bcd6",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_65aabe59",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "982b5123",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b9cfe692",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_4edbafa2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c8090214",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_483dd43c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e4e14d04",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c9f37c46",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2c50253f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "dcfa8644",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_b4a80587",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_9a159967",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "cc6d1ec1",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_8c8961ae",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_d9af6064",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_7de946e7",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d01c6aa8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "993da5e2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a3045048",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_d31cdae3",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_cd90e484",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_88806d6e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_4cd9eba1",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_93f6379c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b29f3365",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2f56ae70",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6613b389",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_78cf46a3",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_0a05b494",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_1a1dc16d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_2f584639",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_213fd887",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_5438fa52",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_c27434e8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_fe651585",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8c18457d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_70e84552_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_93159ced_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "982b5123_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c8090214_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_c27434e8_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "gpt4_fe651585_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6a1eabeb",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6aeb4375",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "830ce83f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "852ce960",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "945e3d21",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d7c942c3",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "71315a70",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "89941a93",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ce6d2d27",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "9ea5eabc",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "07741c44",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a1eacc2a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "184da446",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "031748ae",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4d6b87c8",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0f05491a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "08e075c7",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f9e8c073",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "41698283",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2698e78f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b6019101",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "45dc21b6",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "5a4f22c0",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6071bd76",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e493bb7c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "618f13b2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "72e3ee87",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c4ea545c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "01493427",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6a27ffc2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2133c1b5",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "18bc8abd",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "db467c8c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "7a87bd0c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e61a7584",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1cea1afa",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ed4ddc30",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8fb83627",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b01defab",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "22d2cb42",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0e4e4c46",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4b24c848",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "7e974930",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "603deb26",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "59524333",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "5831f84d",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "eace081b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "affe2881",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "50635ada",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e66b632c",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0ddfec37",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f685340e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "cc5ded98",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "dfde3500",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "69fee5aa",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "7401057b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "cf22b7bf",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a2f3aa27",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c7dc5443",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "06db6396",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3ba21379",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "9bbe84a2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "10e09553",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "dad224aa",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ba61f0b9",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "42ec0761",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "5c40ec5b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c6853660",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "26bdc477",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0977f2af",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6aeb4375_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "031748ae_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2698e78f_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2133c1b5_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0ddfec37_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f685340e_abs",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "89941a94",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "07741c45",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "7161e7e2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c4f10528",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "89527b6b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e9327a54",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4c36ccef",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6ae235be",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "7e00a6cb",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1903aded",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ceb54acb",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "f523d9fe",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "0e5e2d1a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "fea54f57",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "cc539528",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "dc439ea3",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "18dcd5a5",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "488d3006",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "58470ed2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8cf51dda",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1d4da289",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8464fc84",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8aef76bc",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "71a3fd6b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "2bf43736",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "70b3e69b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8752c811",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3249768e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1b9b7252",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1568498a",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "6222b6eb",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e8a79c70",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "d596882b",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e3fc4d6e",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "51b23612",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "3e321797",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e982271f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "352ab8bd",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "fca762bc",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "7a8d0b71",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "a40e080f",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "8b9d4367",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "5809eb10",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "41275add",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4388e9dd",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "4baee567",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "561fabcd",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "b759caee",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "ac031881",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "28bcfaac",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "16c90bf4",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c8f1aeed",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "eaca4986",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "c7cf7dfd",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "e48988bc",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "1de5cff2",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "65240037",
+      "questions": 1,
+      "trajectory_count": null
+    },
+    {
+      "case_id": "778164c6",
+      "questions": 1,
+      "trajectory_count": null
+    }
+  ],
+  "retrieval_repetitions": 3,
+  "qa_repetitions": 1,
+  "protocol": "Full official sources and official evaluators where available; GPT-6 Luna variant. LoCoMo additionally uses a declared matched-model judge. No official leaderboard model-parity claim.",
+  "budget": {
+    "cap_usd": 250,
+    "accounted_upper_usd": 3.52215025,
+    "remaining_usd": 246.47784975,
+    "statuses": {
+      "failed": 8022,
+      "reserved": 8,
+      "settled": 4244
+    },
+    "pricing": "Conservative billed upper estimate, including potential cache-write premium; not an account invoice."
+  },
+  "phase": "complete",
+  "completed_retrieval_questions": 1500,
+  "completed_qa_questions": 500,
+  "retrieval_metrics": {
+    "recall_at_1": 0.5453333333333333,
+    "recall_at_5": 0.9178999999999999,
+    "recall_at_10": 0.9513333333333334,
+    "ndcg_at_10": 0.8942944854736631,
+    "mrr": 0.9054641136641136
+  },
+  "retrieval_metric_questions_per_repetition": 500,
+  "unavailable_retrieval_metrics_reason": null,
+  "retrieval_latency_ms": {
+    "p50": 4.401791957207024,
+    "p95": 5.648916936479509,
+    "p99": 6.64070900529623
+  },
+  "qa_latency_ms": null,
+  "truncation_rate": 0.0,
+  "query_reduction_rate": 0.0,
+  "retrieval_failure_rate": 0.0,
+  "resource_summary": {
+    "largest_sampled_rss_bytes": 15040512,
+    "write_latency_ms": {
+      "p50": 8.82,
+      "p95": 13.872833,
+      "p99": 28.443334
+    },
+    "startup_latency_ms": {
+      "p50": 41.530041955411434,
+      "p95": 73.40062491130084,
+      "p99": 119.88829099573195
+    },
+    "largest_case_database_bytes": 8425472
+  },
+  "qa_started_at": "2026-10-03T21:07:22.361844+00:00",
+  "parent_report": "/private/tmp/instantkv-official-eval/results/longmemeval-s--instantkv/report.json",
+  "saved_contexts_sha256": "127512c7a3b98a0137dbb323dc72e3f0ab809e0f345e8484ca03a7ad70e13d2b",
+  "rate_policy": "Shared conservative 150K estimated TPM / 400 RPM against verified account 200K TPM / 500 RPM",
+  "qa_status": "Fresh full scoring; previous burst failures retained in parent raw outputs",
+  "qa_score": 0.852,
+  "qa_failure_rate": 0.0,
+  "qa_confidence_interval": {
+    "low": 0.82,
+    "high": 0.882,
+    "method": "95% percentile bootstrap clustered by source history; 2000 resamples, seed 20261004"
+  },
+  "categories": {
+    "single-session-user": {
+      "questions": 64,
+      "qa_score": 0.953125
+    },
+    "temporal-reasoning": {
+      "questions": 127,
+      "qa_score": 0.8267716535433071
+    },
+    "single-session-assistant": {
+      "questions": 56,
+      "qa_score": 1.0
+    },
+    "knowledge-update": {
+      "questions": 72,
+      "qa_score": 0.9166666666666666
+    },
+    "single-session-preference": {
+      "questions": 30,
+      "qa_score": 0.6666666666666666
+    },
+    "multi-session": {
+      "questions": 121,
+      "qa_score": 0.7520661157024794
+    },
+    "abstention": {
+      "questions": 30,
+      "qa_score": 0.9
+    }
+  },
+  "raw_sha256": {
+    "qa.jsonl": "0de29812df21d49ca32b7e2c35f4c3410d23fb00ba8735bde7e7239c788d102d"
+  }
+}

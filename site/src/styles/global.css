@@ -2564,3 +2564,285 @@ textarea {
 .photo-pair img {
   height: auto;
 }
+/* Retrieval quality and native resource use remain visible together. */
+.metric-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin: 20px 0;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.metric-key > span {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.metric-key i {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.metric-key-native {
+  background: #dbeafe;
+}
+.metric-key-best {
+  background: #dcfce7;
+}
+.runtime-table {
+  min-width: 1020px;
+}
+.runtime-table th,
+.runtime-table td {
+  padding: 16px 12px;
+  font-size: 12px;
+}
+.runtime-table th:first-child {
+  padding-left: 12px;
+}
+.runtime-table small {
+  min-width: 0;
+  font-size: 10px;
+  max-width: 190px;
+}
+.runtime-table strong {
+  font-size: 15px;
+  font-weight: 550;
+  letter-spacing: -0.015em;
+}
+.runtime-provider {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-top: 6px;
+}
+.runtime-table .suite-first > * {
+  border-top: 2px solid var(--line-2);
+}
+.runtime-table .native-runtime .footprint-cell,
+.runtime-table .native-runtime .response-cell {
+  background: #eff6ff;
+  color: #164a82;
+}
+.runtime-table .native-runtime .response-p95 strong,
+.runtime-table .native-runtime .footprint-cell strong {
+  font-weight: 700;
+  font-size: 20px;
+}
+.runtime-table .native-runtime .footprint-cell small,
+.runtime-table .native-runtime .response-cell small {
+  color: #164a82;
+}
+.runtime-table .observed-best {
+  background: #f0fdf4;
+  color: #166534;
+}
+.runtime-table .observed-best small {
+  color: #166534;
+}
+.runtime-table .native-runtime th {
+  border-left: 3px solid #1765b8;
+}
+.metrics-scroll {
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+.resource-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 32px 0;
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+}
+.resource-summary > div {
+  padding: 24px;
+}
+.resource-summary > div + div {
+  border-left: 1px solid #dbeafe;
+}
+.resource-summary span {
+  font-size: 11px;
+  color: #164a82;
+}
+.resource-summary strong {
+  display: block;
+  font-size: 36px;
+  line-height: 1.4;
+  letter-spacing: -0.04em;
+  font-weight: 600;
+  color: #164a82;
+  margin: 8px 0;
+}
+.resource-summary strong small {
+  font-size: 16px;
+}
+.resource-summary p {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.runtime-details {
+  margin: 28px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 20px 0;
+}
+.runtime-details > summary {
+  font-size: 14px;
+  font-weight: 550;
+  cursor: pointer;
+  min-height: 24px;
+}
+.runtime-details[open] > summary {
+  margin-bottom: 20px;
+}
+.runtime-details .table-scroll {
+  margin: 24px 0;
+}
+.resource-boundaries {
+  font-size: 13px;
+  color: var(--ink-2);
+  padding-left: 20px;
+  max-width: 90ch;
+}
+.resource-boundaries li {
+  margin: 10px 0;
+}
+.runtime-details > .text-link {
+  font-size: 13px;
+  display: inline-block;
+  margin-top: 16px;
+}
+.native-resource-chart {
+  padding: 28px;
+  border: 1px solid var(--line);
+  margin: 32px 0;
+  background: var(--surface);
+}
+.native-resource-labels,
+.native-resource-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 1fr;
+  gap: 24px;
+}
+.native-resource-labels {
+  font-size: 10px;
+  color: var(--ink-2);
+  margin: 24px 0 12px;
+}
+.native-resource-row {
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  align-items: center;
+}
+.native-resource-row > div > strong {
+  font-size: 13px;
+  font-weight: 550;
+}
+.native-resource-row small {
+  display: block;
+  font-size: 10px;
+  color: var(--ink-2);
+  margin-top: 5px;
+}
+.native-resource-track {
+  height: 12px;
+  background: #e5e7eb;
+  margin-bottom: 8px;
+}
+.native-resource-track span {
+  height: 100%;
+  display: block;
+  background: #1765b8;
+}
+.native-resource-track.latency span {
+  background: #171717;
+}
+@media (max-width: 600px) {
+  .resource-summary {
+    grid-template-columns: 1fr;
+  }
+  .resource-summary > div + div {
+    border-left: 0;
+    border-top: 1px solid #dbeafe;
+  }
+  .resource-summary > div {
+    padding: 20px;
+  }
+  .native-resource-chart {
+    padding: 20px 14px;
+  }
+  .native-resource-labels,
+  .native-resource-row {
+    grid-template-columns: 80px 1fr 1fr;
+    gap: 12px;
+  }
+  .native-resource-labels {
+    font-size: 9px;
+  }
+  .native-resource-row > div > strong {
+    font-size: 10px;
+  }
+  .native-resource-row small {
+    font-size: 9px;
+  }
+  .metric-key {
+    font-size: 11px;
+  }
+  .native-resource-track {
+    height: 10px;
+  }
+}
+.quality-eval {
+  margin-top: 40px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.quality-eval .resource-summary {
+  margin: 20px 0;
+}
+.qa-summary strong {
+  font-size: 32px;
+}
+.eval-state {
+  font-size: 11px;
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+.eval-state.complete {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.evaluation-queue {
+  padding: 24px 0 0;
+}
+.evaluation-queue h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.evaluation-queue p {
+  font-size: 13px;
+  color: var(--ink-2);
+  max-width: 85ch;
+}
+@media (max-width: 600px) {
+  .quality-eval {
+    padding: 20px 14px;
+  }
+  .qa-summary strong {
+    font-size: 30px;
+  }
+}
+.bench-host {
+  font-size: 12px;
+  color: var(--ink-2);
+  margin: 16px 0;
+  max-width: 90ch;
+}
+.bench-host strong {
+  color: var(--ink);
+  font-weight: 550;
+}
