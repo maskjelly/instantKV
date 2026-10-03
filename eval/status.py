@@ -30,6 +30,17 @@ def snapshot(root):
             qa_failure_rate=report.get('qa_failure_rate'),retrieval_metrics=report.get('retrieval_metrics'),
             query_latency_ms=report.get('retrieval_latency_ms'),
             error=report.get('failure'),report_path=str(path))
+        qualification_path=path.parent/'qualification.json'
+        invalid=qualification_path.exists() and not json.loads(qualification_path.read_text()).get('quality_valid',True)
+        if invalid or job.get('work_type')=='retrieval':
+            job['score']=None
+        if job.get('work_type')=='retrieval':
+            job['status']='complete';job['phase']='retrieval complete; QA pending'
+            job['error']=None
+        if job.get('work_type')=='qa' and report.get('phase')=='qa':
+            elapsed=(datetime.now(timezone.utc)-datetime.fromisoformat(report['qa_started_at'])).total_seconds()
+            if job['qa_done']:
+                job['qa_eta_minutes']=round(elapsed*(expected/job['qa_done']-1)/60,1)
         if job['phase']=='retrieval' and job['retrieval_done']:
             began=datetime.fromisoformat(job['started_at'])
             elapsed=(datetime.now(timezone.utc)-began).total_seconds()
@@ -57,6 +68,7 @@ def text(data):
         line=f"{j['suite']} / {j['provider']}: {j['phase']} | retrieval {j['retrieval_done']}/{j['retrieval_total']} | QA {j['qa_done']}/{j['expected_questions']}"
         if j['score'] is not None:line+=f" | QA score {j['score']:.2%}"
         if 'retrieval_eta_minutes' in j:line+=f" | retrieval ETA ~{j['retrieval_eta_minutes']} min (QA follows)"
+        if 'qa_eta_minutes' in j:line+=f" | QA ETA ~{j['qa_eta_minutes']} min"
         if j['error']:line+=' | ERROR: '+j['error']
         lines.append(line)
     if data['stop_reason']:lines.append('STOP: '+data['stop_reason'])
@@ -71,6 +83,7 @@ def page(data):
         metric=j['retrieval_metrics'] or {};recall=f"{metric['recall_at_10']:.2%}" if 'recall_at_10' in metric else '—'
         latency=j['query_latency_ms'] or {};p95=f"{latency['p95']:.2f} ms" if 'p95' in latency else '—'
         eta=f"~{j['retrieval_eta_minutes']} min of retrieval, then QA" if 'retrieval_eta_minutes' in j else ''
+        if 'qa_eta_minutes' in j:eta=f"~{j['qa_eta_minutes']} min of QA (rolling estimate)"
         values=[j['suite'],j['provider'],j['phase'],f"{j['retrieval_done']}/{j['retrieval_total']}",f"{j['qa_done']}/{j['expected_questions']}",score,recall,p95,eta]
         rows.append('<tr>'+''.join('<td>'+html.escape(str(v))+'</td>' for v in values)+'</tr>')
         if j['error']:rows.append('<tr><td colspan="9">Error: '+html.escape(j['error'])+'</td></tr>')
@@ -82,7 +95,7 @@ def page(data):
         f"API accounted upper cost: ${b.get('accounted_upper_usd',0):.4f} / ${b.get('cap_usd',250):.2f}</p>"
         '<p>GPT-6 Luna answers and judges. One QA pass per provider. The parallel profile uses one retrieval pass; the initial instantKV run retains three. Parallel timings are under shared load. Partial runs have no full-suite score.</p>'
         '<div class="table"><table><thead><tr>'+''.join('<th>'+v+'</th>' for v in ['Suite','Provider','Phase','Retrieval','QA','QA score','Recall@10','Query p95','Estimate'])+'</tr></thead><tbody>'+''.join(rows)+'</tbody></table></div>'
-        '<p>Priority queue: full LongMemEval-S, LoCoMo, AMA-Bench and V2 Small, each with instantKV, SQLite FTS5 and local Supermemory. V2 Medium and BEAM large histories are deferred.</p>'
+        '<p>Evidence first: full LongMemEval-S and LoCoMo retrieval, independently checked with pytrec_eval. Complete instantKV LongMemEval-S QA is being rescored with a shared rate limiter.</p>'
         '<p>Comparison limits: GPT-6 Luna protocol variant; SQLite latency is in process; Supermemory is its local embedding path, not its full hosted pipeline. A dash means a metric is pending or unavailable.</p>'
         '<p>The full queue can take days. V2 Medium has 447 separate corpora. Estimates depend on corpus size and provider speed.</p>'
         '<small>Refreshes every 10 seconds. Updated '+html.escape(data['updated_at'])+'</small></body></html>')

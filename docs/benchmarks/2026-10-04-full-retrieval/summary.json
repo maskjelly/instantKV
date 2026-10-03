@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "runtime_commit": "fafa202e165f9c467e8de344403437e704f9a24a",
+  "scope": "Full evidence retrieval evaluations, not end-to-end model QA",
+  "suites": {
+    "longmemeval-s": {
+      "instantkv": {
+        "all_questions": 500,
+        "positive_evidence_questions": 500,
+        "recall_at_10": 0.9513333333333334,
+        "ndcg_at_10": 0.8942944854736631,
+        "failures": 0,
+        "truncated_queries": 0,
+        "largest_sampled_rss_bytes": 15040512,
+        "report": "/private/tmp/instantkv-official-eval/results/longmemeval-s--instantkv/report.json",
+        "source_commit": "fd2c88cb021bd4d79e5b2de66bf68dd6b4d36307",
+        "qa_status": "Not valid as a quality comparison: burst API rate-limit failures. Separate scoring rerun required."
+      },
+      "sqlite-fts5": {
+        "all_questions": 500,
+        "positive_evidence_questions": 500,
+        "recall_at_10": 0.9542666666666666,
+        "ndcg_at_10": 0.9019955868852236,
+        "failures": 0,
+        "truncated_queries": 0,
+        "largest_sampled_rss_bytes": 249233408,
+        "report": "/private/tmp/instantkv-official-eval/results/longmemeval-s--sqlite-fts5--matched-pages/report.json",
+        "source_commit": "5065a2bd3e490fb128344ab328e1e6f3cc2e62bc",
+        "qa_status": "Not attempted in matched-pagination retrieval rerun"
+      }
+    },
+    "locomo": {
+      "instantkv": {
+        "all_questions": 1986,
+        "positive_evidence_questions": 1533,
+        "recall_at_10": 0.5765862593899649,
+        "ndcg_at_10": 0.4442184599452825,
+        "failures": 0,
+        "truncated_queries": 0,
+        "largest_sampled_rss_bytes": 11796480,
+        "report": "/private/tmp/instantkv-official-eval/results/locomo--instantkv--parallel/report.json",
+        "source_commit": "ca26e84652a259bc327574ba5071c37a2a6daa36",
+        "qa_status": "Not valid as a quality comparison: burst API rate-limit failures. Separate scoring rerun required."
+      },
+      "sqlite-fts5": {
+        "all_questions": 1986,
+        "positive_evidence_questions": 1533,
+        "recall_at_10": 0.5719286263076743,
+        "ndcg_at_10": 0.43931489256081513,
+        "failures": 0,
+        "truncated_queries": 0,
+        "largest_sampled_rss_bytes": 183107584,
+        "report": "/private/tmp/instantkv-official-eval/results/locomo--sqlite-fts5--parallel/report.json",
+        "source_commit": "ca26e84652a259bc327574ba5071c37a2a6daa36",
+        "qa_status": "Not valid as a quality comparison: burst API rate-limit failures. Separate scoring rerun required."
+      },
+      "supermemory-local": {
+        "all_questions": 1986,
+        "positive_evidence_questions": 1533,
+        "recall_at_10": 0.5797382287777797,
+        "ndcg_at_10": 0.44078244945942163,
+        "failures": 0,
+        "truncated_queries": 0,
+        "largest_sampled_rss_bytes": 2671165440,
+        "report": "/private/tmp/instantkv-official-eval/results/locomo--supermemory-local--parallel/report.json",
+        "source_commit": "ca26e84652a259bc327574ba5071c37a2a6daa36",
+        "qa_status": "Not valid as a quality comparison: burst API rate-limit failures. Separate scoring rerun required."
+      }
+    }
+  },
+  "comparison_limits": [
+    "Session-level evidence for LongMemEval-S; turn-level evidence for LoCoMo.",
+    "Supermemory local v0.0.8 direct-memory embedding path; not its full hosted/extraction/reranking pipeline.",
+    "SQLite latency is in process and RSS includes Python; do not claim an RSS efficiency ratio from these values.",
+    "Parallel timings reflect shared load and cannot support isolated speed claims.",
+    "Initial QA was invalidated by widespread API rate limits. All failures remain in raw outputs.",
+    "Initial SQLite used a single 64KiB response cap. It was rerun with the same 64KiB/page and 64-page bound as instantKV; this summary uses the corrected full run."
+  ],
+  "host": {
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+    "cpu": "Apple M4 Pro",
+    "ram_bytes": 25769803776
+  },
+  "verification": {
+    "longmemeval-s": "pytrec_eval independent official-source qrels verification; receipts retained alongside rankings"
+  },
+  "ranking_sha256": {
+    "locomo--instantkv.json": "a7b8e174cf115cc1f282fa2d2ae5a99befdc145241a862350882a6c9a7480d5d",
+    "longmemeval-s--sqlite-fts5.json": "1683b85e4815d84be93f5ebae42b0c10b61bf215af2dca33f2c2139283a8927f",
+    "locomo--sqlite-fts5.json": "fd49f0699d5c29e0ba1d27decaa029fdd8f55ef5106951b38b3309eeabadbf90",
+    "locomo--supermemory-local.json": "0ab819d110c02594fceb1c5f46e77d0c6c55ce661a960292f2d1ebe157983dc8",
+    "longmemeval-s--instantkv.json": "d09ec8aa0d0cbafd3fe88c19745909fc2e8f466b89bb832476e3367f151e0066"
+  }
+}

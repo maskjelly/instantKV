@@ -1,0 +1,60 @@
+{
+  "tool": "pytrec_eval",
+  "receipts": {
+    "locomo--instantkv.json": {
+      "verified": true,
+      "full_queried_questions": 1986,
+      "positive_evidence_questions": 1533,
+      "metrics": {
+        "recall_10": 0.5765862593899649,
+        "ndcg_cut_10": 0.4442184599452825
+      },
+      "rankings_sha256": "a7b8e174cf115cc1f282fa2d2ae5a99befdc145241a862350882a6c9a7480d5d",
+      "official_source_sha256": "79fa87e90f04081343b8c8debecb80a9a6842b76a7aa537dc9fdf651ea698ff4"
+    },
+    "locomo--sqlite-fts5.json": {
+      "verified": true,
+      "full_queried_questions": 1986,
+      "positive_evidence_questions": 1533,
+      "metrics": {
+        "recall_10": 0.5719286263076743,
+        "ndcg_cut_10": 0.43931489256081513
+      },
+      "rankings_sha256": "fd49f0699d5c29e0ba1d27decaa029fdd8f55ef5106951b38b3309eeabadbf90",
+      "official_source_sha256": "79fa87e90f04081343b8c8debecb80a9a6842b76a7aa537dc9fdf651ea698ff4"
+    },
+    "locomo--supermemory-local.json": {
+      "verified": true,
+      "full_queried_questions": 1986,
+      "positive_evidence_questions": 1533,
+      "metrics": {
+        "recall_10": 0.5797382287777797,
+        "ndcg_cut_10": 0.44078244945942163
+      },
+      "rankings_sha256": "0ab819d110c02594fceb1c5f46e77d0c6c55ce661a960292f2d1ebe157983dc8",
+      "official_source_sha256": "79fa87e90f04081343b8c8debecb80a9a6842b76a7aa537dc9fdf651ea698ff4"
+    },
+    "longmemeval-s--instantkv.json": {
+      "verified": true,
+      "full_queried_questions": 500,
+      "positive_evidence_questions": 500,
+      "metrics": {
+        "recall_10": 0.9513333333333334,
+        "ndcg_cut_10": 0.8942944854736631
+      },
+      "rankings_sha256": "d09ec8aa0d0cbafd3fe88c19745909fc2e8f466b89bb832476e3367f151e0066",
+      "official_source_sha256": "d6f21ea9d60a0d56f34a05b609c79c88a451d2ae03597821ea3d5a9678c3a442"
+    },
+    "longmemeval-s--sqlite-fts5.json": {
+      "verified": true,
+      "full_queried_questions": 500,
+      "positive_evidence_questions": 500,
+      "metrics": {
+        "recall_10": 0.9542666666666666,
+        "ndcg_cut_10": 0.9019955868852236
+      },
+      "rankings_sha256": "1683b85e4815d84be93f5ebae42b0c10b61bf215af2dca33f2c2139283a8927f",
+      "official_source_sha256": "d6f21ea9d60a0d56f34a05b609c79c88a451d2ae03597821ea3d5a9678c3a442"
+    }
+  }
+}

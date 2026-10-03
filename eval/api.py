@@ -3,16 +3,19 @@ import time
 from pathlib import Path
 from openai import OpenAI, APIStatusError
 from budget import Budget
+from rate import RateLimiter
 
 
 class EvaluationAPI:
     def __init__(self, config, key_file, budget_file):
         self.config = config
         self.budget = Budget(budget_file, config['total_api_cap_usd'])
+        self.rate = RateLimiter(self.budget)
         self.client = OpenAI(api_key=Path(key_file).read_text().strip(), max_retries=0, timeout=180)
 
     def respond(self, messages, role):
         model = self.config[role+'_model']
+        self.rate.acquire(self.rate.estimate(messages,self.config['max_output_tokens']))
         identity = self.budget.reserve(model, role, self.config['max_output_tokens'])
         started = time.perf_counter()
         try:

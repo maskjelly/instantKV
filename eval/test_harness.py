@@ -51,3 +51,17 @@ class HarnessTests(unittest.TestCase):
         self.assertTrue(cut)
 
 if __name__=='__main__':unittest.main()
+
+class RateTests(unittest.TestCase):
+    def test_shared_rate_accounting(self):
+        from rate import RateLimiter
+        with tempfile.TemporaryDirectory() as tmp:
+            budget=Budget(Path(tmp)/'budget.sqlite')
+            a=RateLimiter(budget);b=RateLimiter(budget)
+            units=a.estimate([{'role':'user','content':'Hello'}],4096)
+            self.assertGreaterEqual(units,4097)
+            a.acquire(units);b.acquire(units)
+            with budget.connect() as db:
+                count,total=db.execute('SELECT COUNT(*),SUM(units) FROM rate_events').fetchone()
+            self.assertEqual(count,2);self.assertEqual(total,units*2)
+            with self.assertRaises(ValueError):a.acquire(150001)

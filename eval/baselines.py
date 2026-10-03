@@ -36,15 +36,17 @@ class SQLiteBackend:
         started=time.perf_counter();terms=list(dict.fromkeys(re.findall(r'\w+',text)))
         expression=' OR '.join('"'+t+'"' for t in terms)
         rows=self.db.execute('SELECT rowid,content,metadata,bm25(documents) FROM documents WHERE documents MATCH ? ORDER BY bm25(documents) LIMIT 1000',(expression,)).fetchall() if expression else []
-        hits=[];sources=set();used=0;cut=False
+        hits=[];sources=set();used=0;cut=False;pages=1
         for key,content,metadata,score in rows:
             size=len(content.encode())
-            if used+size>65536:cut=True;break
+            if used+size>65536:
+                if pages==64:cut=True;break
+                pages+=1;used=0
             meta=json.loads(metadata);sources.add(meta['source_id']);used+=size
             hits.append({'key':str(key),'memory':{'content':content,'metadata':meta},'score':-score})
             if len(sources)>=limit:break
         elapsed=(time.perf_counter()-started)*1000;self.sample_rss()
-        return {'status':200,'hits':hits,'latency_ms':elapsed,'failure':False,'pages':1,'truncated':cut,'query_reduced':False,'work':{},'transport':'in-process SQLite FTS5, no HTTP'}
+        return {'status':200,'hits':hits,'latency_ms':elapsed,'failure':False,'pages':pages,'truncated':cut,'query_reduced':False,'work':{},'transport':'in-process SQLite FTS5, no HTTP; same 64KiB/page and 64-page content budget'}
     def resources(self):
         self.sample_rss()
         return {'startup_ms':self.startup_ms,'sampled_rss_bytes':self.rss_samples,'largest_sampled_rss_bytes':max(self.rss_samples),

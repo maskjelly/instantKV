@@ -157,6 +157,20 @@ def run(args):
         if len(contexts)!=count or len(retrieval_rows)!=count*config['retrieval_repetitions']:raise ValueError('Full suite coverage mismatch')
         with (destination/'contexts.jsonl').open('w') as f:
             for row in contexts:f.write(json.dumps(row,ensure_ascii=False)+'\n')
+        if args.retrieval_only:
+            available=[x['metrics'] for x in retrieval_rows if x['metrics'] is not None]
+            report.update(phase='retrieval_complete',retrieval_complete=True,
+                qa_status='Not attempted; retrieval-only run',
+                retrieval_metrics={k:sum(r[k] for r in available)/len(available) for k in available[0]} if available else None,
+                retrieval_latency_ms=percentiles([x['latency_ms'] for x in retrieval_rows]),
+                retrieval_failure_rate=sum(x['failure'] for x in retrieval_rows)/len(retrieval_rows),
+                truncation_rate=sum(x['truncated'] for x in retrieval_rows)/len(retrieval_rows),
+                resource_summary={'largest_sampled_rss_bytes':max(r['largest_sampled_rss_bytes'] for r in resource_rows),
+                    'largest_case_database_bytes':max(r['database_bytes'] for r in resource_rows)},
+                raw_sha256={p.name:sha(p) for p in destination.glob('*.jsonl')})
+            write(destination/'report.json',report)
+            print(args.suite,'FULL RETRIEVAL COMPLETE',count,'questions; QA not attempted',flush=True)
+            return
         report['phase']='qa';write(destination/'report.json',report)
         qa_rows=[]
         def answer(row):
@@ -217,6 +231,7 @@ def main():
     p.add_argument('--data-root',type=Path,required=True);p.add_argument('--sources',type=Path,required=True)
     p.add_argument('--key-file',type=Path,required=True);p.add_argument('--budget-file',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--retrieval-only',action='store_true')
     run(p.parse_args())
 
 if __name__=='__main__':main()

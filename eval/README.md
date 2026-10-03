@@ -84,3 +84,27 @@ Supermemory's fast profile uses batches of 16 for ingestion. All source chunks
 must round-trip without changes; the final partial batch is flushed before any
 query. Write-latency samples are batch requests, not per-record durable latency.
 Interrupted runs stay in the ledger. A fresh full retry gets a new output folder.
+
+## Evidence first and API limits
+
+The account reports 500 requests/minute and 200K tokens/minute for GPT-6 Luna.
+The initial parallel QA burst hit that limit. Those QA scores must not be cited
+as model quality. Raw failures and interrupted runs are preserved.
+
+`rate.py` shares a conservative 400 RPM / 150K estimated TPM allowance across
+processes. It does not change the model, reasoning effort or context budget.
+`score_saved.py` reuses all saved contexts for a complete suite. The current
+priority is a full 500-question instantKV QA run after the verified retrieval
+results. Large suites are deferred; they are not marked complete.
+
+Independently verify the published rankings with an environment that has
+`pytrec_eval` installed:
+
+```sh
+python eval/verify_saved.py \
+  --data-root /private/tmp/instantkv-official-eval/data \
+  --results docs/benchmarks/2026-10-04-full-retrieval
+```
+
+[The evidence report](../docs/benchmarks/2026-10-04-full-retrieval/README.md)
+contains the full dataset counts, scores and comparison limits.
