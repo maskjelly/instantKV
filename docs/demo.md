@@ -1,6 +1,9 @@
 # Demo: remember, recall, browse and forget
 
-[Open the browser demo](https://instantkv.com/demo/) to use the current memory API.
+**Historical guide.** The public website demo is retired. Use [quick start](quickstart.md) to run the memory service locally.
+
+
+[Read local setup](quickstart.md) to use the current memory API.
 Save synthetic memories, clear local context, filter results and delete an exact memory.
 Open a separate reader tab to fetch stored values independently.
 Recorded mode shows saved responses from fresh memory runs.

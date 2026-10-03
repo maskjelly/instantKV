@@ -13,8 +13,6 @@
   Cache-Control: public, max-age=3600
 /benchmark-data/*
   Cache-Control: public, max-age=0, must-revalidate
-/recordings/memory/*
-  Cache-Control: public, max-age=0, must-revalidate
 /llms.txt
   Cache-Control: public, max-age=0, must-revalidate
 /llms-full.txt

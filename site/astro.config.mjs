@@ -13,7 +13,6 @@ import {
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { docs, repository } from './src/lib/docs.ts';
-import { buildReplay } from '../demo/replay-data.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 function repositoryLinks() {
@@ -36,9 +35,14 @@ function repositoryLinks() {
           node.url = `/docs/${guide.slug}/${fragment ? '#' + fragment : ''}`;
         else if (
           source.startsWith('docs/assets/') &&
-          /\.(png|svg)$/.test(source)
+          /\.(png|svg|webp|jpg)$/.test(source)
         )
           node.url = '/assets/' + source.slice('docs/assets/'.length);
+        else if (
+          source.startsWith('docs/benchmarks/2026-10-04-full-retrieval/')
+        )
+          node.url =
+            '/benchmark-data/full-retrieval/' + source.split('/').at(-1);
         else if (source.startsWith('docs/benchmarks/2026-10-03-memory/'))
           node.url = '/benchmark-data/previous/' + source.split('/').at(-1);
         else if (source.startsWith('docs/benchmarks/2026-10-04-search/'))
@@ -52,8 +56,6 @@ function repositoryLinks() {
             (source.endsWith('mac-arm64.json')
               ? '/benchmark-data/memory/'
               : '/benchmark-data/search/') + source.split('/').at(-1);
-        else if (source.startsWith('docs/demo-results/2026-10-03-memory/'))
-          node.url = '/recordings/memory/' + source.split('/').at(-1);
         else if (source.startsWith('examples/')) node.url = '/' + source;
         else
           node.url = `${repository}/${existsSync(resolve(root, source)) && statSync(resolve(root, source)).isDirectory() ? 'tree' : 'blob'}/main/${source}${fragment ? '#' + fragment : ''}`;
@@ -97,6 +99,11 @@ function prepareAssets() {
     resolve(target, 'benchmark-data/search-v2'),
     { recursive: true },
   );
+  cpSync(
+    resolve(root, 'docs/benchmarks/2026-10-04-full-retrieval'),
+    resolve(target, 'benchmark-data/full-retrieval'),
+    { recursive: true },
+  );
   for (const kind of ['memory', 'search']) {
     for (const name of ['mac-arm64.json', 'scifact.json', 'README.md'])
       cpSync(
@@ -110,44 +117,23 @@ function prepareAssets() {
     recursive: true,
     filter: (path) => !path.includes('__pycache__'),
   });
-  const recordings = resolve(root, 'docs/demo-results/2026-10-03-memory');
-  cpSync(recordings, resolve(target, 'recordings/memory'), { recursive: true });
-  writeFileSync(
-    resolve(target, 'recordings/memory/replay.json'),
-    JSON.stringify(buildReplay(recordings)),
-  );
-  const memoryReport = JSON.parse(
+  const full = JSON.parse(
     readFileSync(
-      resolve(root, 'docs/benchmarks/2026-10-04-search/mac-arm64.json'),
+      resolve(root, 'docs/benchmarks/2026-10-04-full-retrieval/summary.json'),
       'utf8',
     ),
   );
-  const p95 = memoryReport.runs.map((run) => run.queries.topic.latency_ms.p95);
-  const rankedReport = JSON.parse(
-    readFileSync(
-      resolve(root, 'docs/benchmarks/2026-10-04-search/scifact.json'),
-      'utf8',
-    ),
-  );
-  const ranked = rankedReport.providers.instantkv;
-  const supermemory = rankedReport.providers.supermemory;
-  const topicRange = `${Math.min(...p95).toFixed(3)}–${Math.max(...p95).toFixed(3)}`;
-  const sampledRam = (
-    Math.max(...memoryReport.runs.map((run) => run.largest_sampled_rss_bytes)) /
-    1024 ** 2
-  ).toFixed(1);
-  const recovered = memoryReport.runs
-    .reduce((n, run) => n + run.exact_memories_after_kill_restart, 0)
-    .toLocaleString('en-US');
+  const percent = (n) => (100 * n).toFixed(2);
   const index = [
     '# instantKV',
-    'instantKV stores local-agent memory in one Rust process. The source MVP is unreleased. Earlier 0.1.2 archives do not include the new memory tools.',
-    'Use remember, recall, search, browse and forget through Rust, HTTP, CLI or MCP. Search ranks content with BM25 and English stemming; recall uses ordered topic/tag/time indexes and literal AND filters. Check truncated; managed writes invalidate ranked cursors. Custom JSON metadata and configurable limits support app-specific use. Retrieval requires both get and list grants.',
-    `Local BEIR SciFact: instantKV BM25 recall@10 ${(100 * ranked.scifact.metrics.recall_at_10).toFixed(2)}%, versus Supermemory local v0.0.8 ${(100 * supermemory.scifact.metrics.recall_at_10).toFixed(2)}% with bge-base embeddings and no reranker. Fresh instantKV database; Supermemory is the recorded 3 October same-host control, not rerun here. Ranked query p95 ${ranked.scifact.query_latency_ms.p95.toFixed(2)} ms, sampled RSS ${(ranked.largest_sampled_rss_bytes / 1024 ** 2).toFixed(2)} MiB, binary ${(ranked.binary_bytes / 1024 ** 2).toFixed(2)} MiB. Document save p95 ${ranked.save_latency_ms.p95.toFixed(2)} ms. This is a dataset-specific document retrieval result, not agent quality or phone performance. Raw rankings: https://instantkv.com/benchmark-data/search/scifact.json`,
-    'Current bounded search accepts 16 KiB questions, selects at most 64 original indexed terms and reports query_reduced separately from truncated. WAND skips low-score postings within a 20,000 index-read budget. Optional English or app expansion adds up to eight low-weight related terms, off by default. ArguAna improved from 12.73% to 76.96% Recall@10 against the recorded Supermemory 56.40% control. Zero query rejections; 688 of 1,406 searches still hit work limits. Read all results and losses: https://instantkv.com/blog/lightweight-memory-benchmarks/ . These are evidence retrieval measurements, not answer quality or hosted Supermemory scores.',
-    'The service needs no cloud API or embedding model. The runtime selects what to save and adds retrieved facts to model context.',
-    `Three warm synthetic Mac runs stored 10,000 memories each. Topic query p95 was ${topicRange} ms. The largest sampled server RSS was ${sampledRam} MiB. All ${recovered} memories were recovered after abrupt restarts. These results exclude inference, energy use and phones.`,
-    'Linux x86_64, Linux ARM64 and macOS ARM64 passed source MVP CI. ARM-board performance targets remain unverified. Native Swift/Kotlin bindings and real-model quality evaluation are planned. The browser demo uses the same structured-memory API for live saves, filtered queries, browse and revision-checked deletion. Recorded mode serves saved responses from three fresh memory runs; it makes no new storage calls.',
+    'Local-first memory for AI agents. One Rust binary. Source MVP, unreleased. Older releases do not include the new memory APIs.',
+    'Five memory tools: remember, recall, search, browse and forget. Rust core, HTTP, CLI and MCP. Store content, topic, tags, event time and custom JSON metadata. Topic/tag/time indexes and bounded BM25 with English stemming. Recall uses literal AND filters; search uses OR terms. No embedding model, cloud API or automatic model call is required by the memory service.',
+    `Full LongMemEval-S evidence retrieval: all 500 questions. instantKV Recall@10 ${percent(full.suites['longmemeval-s'].instantkv.recall_at_10)}%; SQLite FTS5 ${percent(full.suites['longmemeval-s']['sqlite-fts5'].recall_at_10)}%. Local Supermemory full run is incomplete. Session-level labels, not end-to-end QA.`,
+    `Full LoCoMo: all 1,986 questions across ten histories queried; 1,533 have positive source labels. Turn-level Recall@10: instantKV ${percent(full.suites.locomo.instantkv.recall_at_10)}%, SQLite FTS5 ${percent(full.suites.locomo['sqlite-fts5'].recall_at_10)}%, Supermemory local ${percent(full.suites.locomo['supermemory-local'].recall_at_10)}%. All five published retrieval runs have zero failures and zero truncations.`,
+    'Independent pytrec_eval verification against official source labels: https://instantkv.com/benchmark-data/full-retrieval/verification.json . Raw rankings and settings: https://instantkv.com/benchmark-data/full-retrieval/summary.json . Read comparison limits before quoting scores. These are retrieval metrics, not official model QA scores. GPT-6 Luna QA rescoring is pending; failed burst API runs do not provide valid QA comparisons.',
+    'Native measured binary 8.31 MiB. Largest sampled Rust server RSS: 14.34 MiB on LongMemEval-S; 11.25 MiB on LoCoMo. Separate three-run 10,000-memory workload: topic query p95 0.152–0.173 ms, durable write p95 6.665–6.923 ms, 30,000/30,000 records recovered after abrupt process restarts. Apple M4 Pro, 24 GiB, macOS 27.0. Sampled RSS is not peak RAM. Parallel competitor timings and differing process scopes do not support speed or RAM ratios.',
+    'Supermemory comparisons use local v0.0.8, direct embedding retrieval without model extraction, rewriting or reranking; they do not represent the hosted product. Secondary BEIR results: SciFact 81.43% vs 74.80%; ArguAna 76.96% vs 56.40%; NFCorpus 15.31% vs 17.08%. BEIR controls were recorded separately on 3 October. ArguAna: 688/1,406 truncated queries, 1,149 reduced, zero rejections. Optional English/app expansion is off by default.',
+    'Records and indexes change in one redb transaction for writes, deletes and expiry. Keep both get and list permissions for retrieval. Check query_reduced and truncated. Search budgets bound CPU and response size. Custom metadata can extend the schema. Native Swift/Kotlin integration, real phone tests, semantic retrieval and larger-scale tests remain planned.',
     '## Documentation',
     docs
       .map(
@@ -155,7 +141,7 @@ function prepareAssets() {
           `- [${d.title}](https://instantkv.com/docs/${d.slug}/): ${d.description}`,
       )
       .join('\n'),
-    `- [Structured-memory raw report](https://instantkv.com/benchmark-data/memory/mac-arm64.json)\n- [Current memory demo](https://instantkv.com/demo/)\n- [Measured benchmarks](https://instantkv.com/benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`,
+    `- [Benchmarks](https://instantkv.com/benchmarks/)\n- [Engineering notes](https://instantkv.com/blog/lightweight-memory-benchmarks/)\n- [Complete Markdown](https://instantkv.com/llms-full.txt)\n- [Source](${repository})\n`,
   ].join('\n\n');
   writeFileSync(resolve(target, 'llms.txt'), index);
   writeFileSync(

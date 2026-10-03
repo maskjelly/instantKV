@@ -60,16 +60,15 @@ Topic query p95 was **0.152–0.173 ms**. The largest sampled server RSS was **2
 All **30,000** memories were verified after abrupt restarts.
 These warm local-HTTP results exclude the model and phones.
 
-The current [browser demo](live-demo.md) exercises structured saves, filtered recall,
-browse and revision-checked deletion. Its independent reader fetches from storage.
-Three recorded Mac runs preserve real query responses and deletion receipts.
+The [full retrieval report](benchmarks/2026-10-04-full-retrieval/README.md) uses
+all 500 LongMemEval-S questions and all ten LoCoMo histories. Model QA scoring is pending.
 
 These alternatives have not been compared in this suite. Supermemory local is
 measured separately in the [retrieval notes](memory-benchmark-notes.md).
 The results do not establish a speed or cost ranking.
 Semantic search, automatic runtime hooks and replicas remain [planned](roadmap.md).
 
-[Try the browser demo](https://instantkv.com/demo/) or [run your own node](quickstart.md).
+[Run your own node](quickstart.md) and read the [benchmark limits](performance.md).
 Agent knowledge and task checkpoints are separate from a model's inference KV cache.
 
 A separate [SciFact comparison](benchmarks/2026-10-04-search/README.md) measured

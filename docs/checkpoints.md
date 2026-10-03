@@ -1,5 +1,10 @@
 # Verified build checkpoints
 
+Current public site: static documentation and verified retrieval evidence.
+The demo deployments below are historical. Public demos and their proxy have been
+retired. Use the [quick start](quickstart.md) for local storage operations.
+
+
 The entries below record historical checks. Earlier themes and deployment states are not current product claims.
 The latest source MVP and deployment are recorded in checkpoint 20.
 
@@ -216,7 +221,7 @@ Website/runtime integration checkpoint `17c2bf3` is committed and pushed;
 [website CI](https://github.com/maskjelly/instantKV/actions/runs/36897862088) and
 [Rust/Docker CI](https://github.com/maskjelly/instantKV/actions/runs/36897862154)
 passed. Cloudflare deployment `2565000a-fd33-4ee9-9fb9-ae6703f6c4ff` serves
-[the public demo](https://instantkv.com/demo/). The Worker reaches an isolated
+[the earlier demo architecture](live-demo.md). The Worker reaches an isolated
 Rust container through a private Workers VPC service and QUIC Tunnel. The
 coordinator generates bounded synthetic batches and reuses backend HTTP connections;
 every acknowledged value is actually stored and fetched through instantKV.

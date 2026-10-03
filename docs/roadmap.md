@@ -54,7 +54,7 @@ The memory service remains usable offline.
 - [x] Offline backup and isolated restore drill.
 - [x] Three VPS benchmark runs per workload with raw reports and environment.
 - [x] Cloudflare website with setup, feature, contributor and benchmark pages.
-- [x] Live Rust-backed demo with independent writer/reader, temporary workloads and measured latency.
+- [x] Static evidence site with full retrieval results and independent score receipts.
 - [x] Three 10,000-memory local HTTP runs and exact recovery after abrupt restarts.
 
 Deployment and measured results are recorded in [operations](operations.md),
@@ -108,7 +108,7 @@ Native mobile bindings, packaging and device tests remain planned.
 
 Local operation is the priority. Managed hosting is a possible later service.
 There is no availability date or price.
-The public demo uses temporary synthetic records, separate from your local memory.
+The public website publishes static evidence. Run the source MVP locally for memory operations.
 Hosting would need tenant isolation, backups, scoped setup and operational monitoring.
 
 ## Distributed knowledge consolidation
@@ -135,3 +135,15 @@ Connected agents can follow accepted updates and inspect permitted peer status.
 This distributed workflow is a proposal. It does not provide a current consensus database.
 Automatic failover, a custom write-ahead log and Redis compatibility need separate designs and evidence.
 Future work should address gaps found in real tasks and measurements.
+
+## Full evaluation status — 4 October 2026
+
+- Full LongMemEval-S retrieval: 500 questions. Native and matched-page SQLite complete.
+- Full LoCoMo retrieval: all ten histories and 1,986 questions. Native, SQLite
+  and local Supermemory complete; positive recall covers 1,533 questions.
+- All five ranking files independently verified. Full native QA rescoring is pending.
+- LongMemEval-V2, AMA-Bench, BEAM and 100K–10M+ record tests remain incomplete.
+- Next work: paraphrase recall, multi-hop evidence, time and update correctness,
+  then device tests. Use separate development sets; preserve all failures.
+
+[Full results](benchmarks/2026-10-04-full-retrieval/README.md) · [Evaluation policy](evaluation-policy.md).

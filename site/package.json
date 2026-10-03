@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "astro dev --host 127.0.0.1",
     "check": "prettier --check . && astro check && tsc -p worker/tsconfig.json",
-    "test": "node --test ../demo/gateway.test.mjs ../demo/replay-data.test.mjs && node --experimental-strip-types --test worker/index.test.ts",
+    "test": "node --experimental-strip-types --test worker/index.test.ts",
     "format": "prettier --write .",
     "build": "astro build && pagefind --site dist",
     "preview": "wrangler dev --ip 127.0.0.1",

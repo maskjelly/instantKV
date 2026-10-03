@@ -1,104 +1,72 @@
-# Small memory. Measured tradeoffs.
+# Small local memory: results and next steps
 
-Updated: 4 October 2026. Source MVP; unreleased.
+Updated: 2026-10-04. Engine: `fafa202`.
 
-instantKV keeps facts, sources and task state beside a local model.
-The memory service needs no cloud API or embedding model.
-Our aim is useful recall with little extra load.
+instantKV stores structured memory and ranks its content in one Rust process.
+Retrieval needs no embedding model or cloud API. The model runtime decides what
+to save and how to use returned facts.
 
-## What we changed
+## What we measured
 
-Our first literal search required every query word to match.
-It reached 3.75% Recall@10 on BEIR SciFact.
-BM25 with English stemming raised that result to 81.43%.
-But ArguAna exposed a contract problem: 1,149 of 1,406 questions were rejected.
-All 257 accepted searches hit work limits. Full-set recall was 12.73%.
+| Full dataset | Scored questions | instantKV Recall@10 | SQLite FTS5 | Supermemory local |
+| --- | ---: | ---: | ---: | ---: |
+| LongMemEval-S, source sessions | 500 | 95.13% | 95.43% | Incomplete |
+| LoCoMo, source turns | 1,533 | 57.66% | 57.19% | 57.97% |
+| BEIR SciFact, documents | 300 | 81.43% | Not run | 74.80% |
+| BEIR ArguAna, documents | 1,406 | 76.96% | Not run | 56.40% |
+| BEIR NFCorpus, documents | 323 | 15.31% | Not run | 17.08% |
 
-We made four changes:
+All 500 LongMemEval-S questions and all ten LoCoMo histories were used.
+LoCoMo queried 1,986 questions; 1,533 have scored positive source labels.
+The 446 adversarial questions and seven unresolved references are excluded only
+from positive-evidence recall. All five full memory retrieval files had zero
+failures and zero truncations. Independent `pytrec_eval` checks used official source labels.
 
-1. Accept questions up to 16 KiB. Select up to 64 original indexed terms from the whole question by rarity and square-root query frequency. Report `query_reduced`.
-2. Keep exhaustive sparse scoring for short searches. Use WAND score bounds for larger searches. Skip low-score postings within the 20,000 index-read budget.
-3. Add optional related words at one-quarter weight. Use a small fixed English list or up to eight words from the app. Expansion stays off by default.
-4. Rerun the fixed datasets. Include failed and truncated questions. Verify every query with an independent trec_eval implementation.
+These are **retrieval scores, not end-to-end answer accuracy**. Full QA scoring
+is pending. The initial model runs hit API rate limits and are not valid QA comparisons.
+SQLite has slightly higher observed LongMemEval-S recall. Local Supermemory has
+slightly higher LoCoMo recall. No statistically significant win is established.
 
-Records and indexes still change in one redb transaction.
-The database format is unchanged. Old ranked cursors need a new search after upgrade.
-The binary is **8.31 MiB**, compared with 8.28 MiB before this update.
+Supermemory local v0.0.8 uses direct embedding retrieval without model extraction,
+query rewriting or reranking. It does not represent the hosted product.
+BEIR controls are separate same-host runs recorded on 3 October. ArguAna has
+688 truncated and 1,149 reduced queries; none were rejected. Expansion is off by default.
 
-## Current results
+## How the engine stays small
 
-| Workload | Queries | instantKV Recall@10 | Recorded Supermemory local |
-| --- | ---: | ---: | ---: |
-| BEIR SciFact | 300 | 81.43% | 74.80% |
-| BEIR nfcorpus | 323 | 15.31% | 17.08% |
-| BEIR arguana | 1,406 | 76.96% | 56.40% |
-| LoCoMo evidence retrieval | 1,533 | 57.65% | 58.28% |
-| LongMemEval-S session retrieval sample | 12 | 91.67% | 65.28% |
+Topic, tag and event-time indexes select records directly. BM25 ranks indexed
+content. English stemming reduces word-form differences. WAND skips postings
+that cannot improve the current top results. Fixed work and response budgets
+bound each search. Writes keep records and indexes in one redb transaction.
 
-These are fresh instantKV runs on one Apple M4 Pro with fresh databases.
-The Supermemory column reuses recorded 3 October local v0.0.8 results.
-It uses bge-base embeddings, direct source text, no extraction, reranker or query rewrite.
-Supermemory was not rerun here. No answer model or judge runs here.
+Long questions select up to 64 indexed terms. The response reports `query_reduced`.
+A separate `truncated` flag means a work limit stopped the search. Do not treat
+that response as an exact top-k guarantee. Optional related-term expansion is off
+by default: its small recall gain did not justify worse ranking metrics.
 
-Recall@10 is the share of labelled evidence found in ten results.
-Compare systems within a row. The evidence units differ across datasets.
-LoCoMo measures labelled turns from ten full histories.
-LongMemEval measures source sessions for twelve fixed questions. It is a pilot,
-not the full benchmark or an official answer-quality score.
+## The footprint
 
-## ArguAna: the gain and the limit
+The measured Mac binary is **8.31 MiB**. Full LongMemEval-S retrieval reached
+**14.34 MiB** largest sampled native RSS; LoCoMo reached **11.25 MiB**.
+A separate three-run test stored 10,000 memories per database. Topic-query p95
+was **0.152–0.173 ms**. Durable-save p95 was **6.665–6.923 ms**. All **30,000**
+records were verified after abrupt process restarts. Samples do not measure true
+peak memory, power-loss behavior, phone latency or battery use.
 
-Default recall rose from **12.73% to 76.96%**.
-Recorded Supermemory recall was **56.40%**.
-All 1,406 questions were accepted. **Zero were rejected.**
+## What we improve next
 
-Work limits still stopped **688 searches**.
-**1149 questions** used fewer original terms.
-The score includes both groups. These searches do not guarantee the complete
-ranking for every word in the original question. Search does not infer argument stance.
+1. Inspect missed evidence on separate development data. Improve paraphrases
+   and zero-overlap queries without storing a large model in the core.
+2. Preserve multi-hop links, event order and fact updates. Test contradictions,
+   stale facts, deletion and abstention.
+3. Reduce ArguAna work-limit hits with general index improvements. Keep budgets.
+4. Finish full end-to-end QA and the remaining official suites. Publish failures,
+   configuration, confidence intervals and raw results.
+5. Measure 100K, 1M and 10M+ records, then real ARM boards and native phones.
 
-Query p95 was **46.83 ms**,
-including pages needed for up to twenty unique sources.
-The previous 7.11 ms covered only the 257 accepted short questions.
-That subset is not a speed comparison with the new complete set.
-Recorded Supermemory p95 was **332.66 ms**.
-Sampled instantKV RSS was **24.78 MiB**.
+Quality comes first. A change must justify its latency, RAM and storage cost.
+Use development tests for iteration; reserve untouched tests for checkpoints.
 
-Optional expansion reached **77.03%**, with
-**701 truncated searches** and p95
-**49.54 ms**.
-The gain is one extra question at @10. nDCG and MRR fell slightly.
-This test does not justify making expansion the default.
-The fixed list was set before the run and was not tuned to relevance labels.
-
-## Small memory still has costs
-
-SciFact top-ten query p95 was **1.55 ms**.
-Sampled RSS was **23.14 MiB**.
-The database used **81.00 MiB** and durable save p95 was
-**12.57 ms**. Search indexes add disk space and write work.
-The largest instantKV RSS sample in the four-workload and expansion runs was
-**25.00 MiB**. Samples do not measure peak RAM.
-
-Three fresh 10,000-memory runs verified **30,000 of 30,000 records** after abrupt restarts.
-Known topics, tags and times still use ordered filters.
-[Current structured-memory samples](benchmarks/2026-10-04-search/mac-arm64.json).
-
-## Where we still need work
-
-NFCorpus remains at **15.31%**, below the recorded **17.08%**.
-LoCoMo remains close overall: **57.65% vs 58.28%**.
-The same multi-hop and temporal gaps remain. The LongMemEval preference miss remains.
-Better argument matching must improve recall without hiding work or output limits.
-
-Next: tighter posting score bounds, optional source links and correction history,
-a local semantic adapter with measured costs, and full answer-quality evaluations.
-These are planned. Native phone performance and battery use remain unverified.
-
-[Supermemory's report](https://supermemory.ai/research/longmembench/) describes a larger
-extraction, aggregation and answer-judging pipeline. Its published 97% is not
-comparable with our direct evidence retrieval. We have not evaluated that pipeline.
-
-Read the [current method and raw reports](benchmarks/2026-10-04-search/README.md),
-the [fixed design](search-improvement-plan.md), and the
-[earlier suite](benchmarks/2026-10-03-suite/README.md).
+[Full raw evidence](benchmarks/2026-10-04-full-retrieval/README.md) ·
+[Secondary BEIR evidence](benchmarks/2026-10-04-search/README.md) ·
+[Performance](performance.md) · [Evaluation policy](evaluation-policy.md).

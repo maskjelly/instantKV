@@ -1,9 +1,12 @@
 # Historical KV browser demo
 
+**Historical guide.** The public website demo is retired. Use [quick start](quickstart.md) to run the memory service locally.
+
+
 Archived verification notes. Use [the current memory demo](live-demo.md) for current behavior.
 
 
-[Open the demo](https://instantkv.com/demo/). No account or model API key is needed.
+[Read local setup](quickstart.md). No account or model API key is needed.
 The default mode replays recorded Mac KV measurements.
 Live VPS mode writes temporary synthetic records to the Rust service.
 The page counts only acknowledged writes.

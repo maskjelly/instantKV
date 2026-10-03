@@ -1,6 +1,9 @@
 # Live memory demo
 
-[Open the demo](https://instantkv.com/demo/). No account or model key is needed.
+**Historical guide.** The public website demo is retired. Use [quick start](quickstart.md) to run the memory service locally.
+
+
+[Read local setup](quickstart.md). No account or model key is needed.
 Live mode calls the current structured-memory API on our Rust service.
 Recorded mode shows saved responses from fresh Mac runs.
 
@@ -47,7 +50,7 @@ The website is hosted; the memory engine itself needs no cloud service.
 
 ## Recorded responses and timing
 
-[Recorded mode](https://instantkv.com/demo/?source=recorded) loads the median-throughput
+Recorded mode (retired) loads the median-throughput
 run from three new 10,000-memory sessions on an Apple M4 Pro with 24 GiB RAM.
 All 30,000 saves were acknowledged; four exact reads per run matched every fixture field.
 Each run saved six query types, browse continuation and a verified deletion.

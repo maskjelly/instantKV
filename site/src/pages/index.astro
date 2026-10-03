@@ -1,297 +1,229 @@
 ---
 import Base from '../layouts/Base.astro';
+import EvidenceChart from '../components/EvidenceChart.astro';
+import MemoryFlow from '../components/MemoryFlow.astro';
+import { memoryEvidence, full, percent, mib } from '../lib/evidence';
+import { report } from '../lib/benchmarks';
 import { repository } from '../lib/docs';
-import footprint from '../../../docs/benchmarks/2026-10-04-search/mac-arm64.json';
-import ranked from '../../../docs/benchmarks/2026-10-04-search/scifact.json';
-import arguana from '../../../docs/benchmarks/2026-10-04-search/default/arguana.json';
-const recallPercent = (
-  100 * ranked.providers.instantkv.scifact.metrics.recall_at_10
-).toFixed(2);
-const mib = (bytes: number) => (bytes / 1024 ** 2).toFixed(1);
-const sampledRss = Math.max(
-  ...footprint.runs.map((run) => run.largest_sampled_rss_bytes),
-);
-const topicP95 = Math.max(
-  ...footprint.runs.map((run) => run.queries.topic.latency_ms.p95),
-);
-const save = `instantkv remember "Prefer Rust for local tools" \\
-  --key preferences/language \\
-  --topic preferences --tag local
-
-instantkv search "preferred language for local tooling"`;
-const install = `# From the MVP source checkout:
-cargo install --path crates/instantkv --locked
-
+const install = `cargo install --path crates/instantkv --locked
 instantkv init
 instantkv serve`;
+const memory = `instantkv remember "Prefer Rust for local tools" \\
+  --key preferences/language --topic preferences --tag local
+
+instantkv search "preferred language for local tooling"
+instantkv recall --topic preferences
+instantkv browse --limit 10`;
 ---
 
 <Base
   title="instantKV"
-  description="Local-first memory for local LLMs. Save and recall by topic, tag, time or keywords. A small Rust core, configurable budgets and a native mobile roadmap."
+  description="Persistent local memory for AI agents. A small Rust engine with structured recall, bounded BM25 search and full, independently checked retrieval results."
 >
-  <main id="main" class="shell landing" data-pagefind-body>
-    <section class="landing-hero">
-      <p class="hero-kicker">Local-first. Open source.</p>
-      <h1>
-        Memory for agents.
-        <br />
-        <span>On your device.</span>
-      </h1>
-      <p class="landing-description">
-        Save facts, preferences and task state beside your local model. Find
-        memories by topic, tag or time. Rank documents with lightweight BM25
-        search. Keep them across sessions and server restarts.
-      </p>
-      <div class="hero-actions">
-        <a class="button button--key" href="/demo/">
-          Try the memory tools
-        </a>
-        <a class="hero-source" href={repository}>
-          View on GitHub <span aria-hidden="true">↗</span>
-        </a>
-      </div>
-      <p class="hero-meta">
-        Rust · HTTP · CLI · MCP <span aria-hidden="true">/</span> Source MVP ·
-        MIT
-      </p>
-    </section>
-
-    <section class="memory-example" aria-labelledby="example-title">
-      <header class="example-heading">
-        <h2 id="example-title">Remember once. Recall next session.</h2>
-        <a href="/docs/cli/">
-          CLI reference <span aria-hidden="true">↗</span>
-        </a>
-      </header>
-      <div class="example-columns">
-        <div class="example-command">
-          <span class="example-label">Your terminal</span>
-          <pre><code>{save}</code></pre>
+  <main id="main" class="shell refresh-home" data-pagefind-body>
+    <section class="editorial-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Local-first memory / Rust / MIT</p>
+        <h1>
+          Small engine.
+          <br />
+          Lasting memory.
+        </h1>
+        <p class="hero-deck">
+          Give your agent a place to keep facts, preferences and task state.
+          Retrieve them next session. Keep the data on your device.
+        </p>
+        <div class="hero-actions">
+          <a class="button button--key" href="/docs/quickstart/">
+            Start locally <span aria-hidden="true">→</span>
+          </a>
+          <a class="hero-source" href={repository}>
+            Read the source ↗
+          </a>
         </div>
-        <div class="example-record">
-          <span class="example-label">Example memory fields</span>
-          <div class="record-location">
-            <span>knowledge</span>
-            <span aria-hidden="true">/</span>
-            <strong>preferences/language</strong>
-          </div>
-          <pre><code>{`{
-  "content": "Prefer Rust for local tools",
-  "topic": "preferences",
-  "tags": ["local"]
-}`}</code></pre>
+        <p class="hero-meta">
+          Rust core · HTTP · CLI · MCP
+          <br />
+          Source MVP, unreleased. Native phone integration is planned.
+        </p>
+      </div>
+      <figure class="hero-photo">
+        <img
+          src="/assets/local-devices-hero.webp"
+          width="1400"
+          height="788"
+          alt="Illustration of a compact desktop computer and a phone on a quiet desk"
+          fetchpriority="high"
+        />
+        <figcaption>
+          Designed for local compute. Device imagery; phone support is planned.
+        </figcaption>
+      </figure>
+    </section>
+    <section class="proof-row" aria-label="Measured evidence">
+      <a href="/benchmarks/#memory">
+        <span>LongMemEval-S · 500 questions</span>
+        <strong>
+          {percent(full.suites['longmemeval-s'].instantkv.recall_at_10)}
+          <small>%</small>
+        </strong>
+        <span>Source-session Recall@10</span>
+      </a>
+      <a href="/benchmarks/#footprint">
+        <span>LongMemEval-S · native server</span>
+        <strong>
+          {mib(
+            full.suites['longmemeval-s'].instantkv.largest_sampled_rss_bytes,
+          )}
+          <small> MiB</small>
+        </strong>
+        <span>Largest sampled RSS on Mac</span>
+      </a>
+      <a href="/benchmarks/#footprint">
+        <span>Measured macOS ARM64 build</span>
+        <strong>
+          {mib(report.binary_bytes)}
+          <small> MiB</small>
+        </strong>
+        <span>One native binary</span>
+      </a>
+    </section>
+    <section class="editorial-section" aria-labelledby="how-title">
+      <div class="section-heading">
+        <p class="eyebrow">01 / Built to sit beside your model</p>
+        <h2 id="how-title">
+          Your runtime thinks.
+          <br />
+          instantKV remembers.
+        </h2>
+        <p>
+          The agent decides what matters. The engine stores it, applies your
+          limits and retrieves useful records. Storage and retrieval need no
+          embedding model or cloud API.
+        </p>
+      </div>
+      <MemoryFlow />
+      <div class="feature-columns">
+        <div>
+          <h3>Save structured memory</h3>
           <p>
-            Each save has an event time. Add your own JSON metadata.
-            <a href="/demo/">Try topic, tag and time queries →</a>
+            Content, topic, tags, event time and your own JSON metadata. Keep
+            facts and checkpoints in private namespaces.
+          </p>
+        </div>
+        <div>
+          <h3>Find it with bounded work</h3>
+          <p>
+            Use ordered filters or BM25 ranking with English stemming. Set
+            limits for candidates, bytes, index work and storage.
+          </p>
+        </div>
+        <div>
+          <h3>Keep the pieces consistent</h3>
+          <p>
+            Writes, deletion and expiry update records and indexes in one redb
+            transaction. Restore durable memory after a restart.
           </p>
         </div>
       </div>
     </section>
-
-    <aside class="footprint-strip" aria-label="Measured local footprint">
-      <div class="footprint-caption">
-        <span>10,000 memories. Three measured Mac runs.</span>
-        <a href="/benchmarks/">Current measurements & limits ↗</a>
-        <a href="/blog/lightweight-memory-benchmarks/">
-          Engineering notes: wins, losses and costs →
-        </a>
-      </div>
-      <dl>
-        <div>
-          <dt>Native binary</dt>
-          <dd>
-            {mib(footprint.binary_bytes)} <span>MiB</span>
-          </dd>
-        </div>
-        <div>
-          <dt>Largest sampled server RAM</dt>
-          <dd>
-            {mib(sampledRss)} <span>MiB</span>
-          </dd>
-        </div>
-        <div>
-          <dt>Topic query p95, slowest run</dt>
-          <dd>
-            {topicP95.toFixed(2)} <span>ms</span>
-          </dd>
-        </div>
-      </dl>
-    </aside>
-
-    <section class="local-details" aria-labelledby="recall-title">
-      <div class="details-intro">
-        <h2 id="recall-title">
-          Relevant documents.
+    <section class="editorial-section" aria-labelledby="evidence-title">
+      <div class="section-heading">
+        <p class="eyebrow">02 / Measured, then checked</p>
+        <h2 id="evidence-title">
+          Full questions.
           <br />
-          Small footprint.
+          Inspectable results.
         </h2>
         <p>
-          Rank content without an embedding model or cloud API. English
-          stemming, bounded WAND search, optional related terms and atomic
-          storage.
+          All 500 LongMemEval-S questions. All ten LoCoMo histories. Five
+          ranking files independently checked against official source labels.
         </p>
-        <a class="text-link" href="/benchmarks/">
-          Retrieval results and tradeoffs ↗
+        <a href="/benchmarks/" class="text-link">
+          See every result and comparison limit ↗
         </a>
       </div>
-      <dl class="memory-features">
-        <div>
-          <dt>
-            {(100 * arguana.providers.instantkv.metrics.recall_at_10).toFixed(
-              2,
-            )}
-            % counterargument recall@10
-          </dt>
-          <dd>
-            Full BEIR ArguAna: 8,674 documents, 1,406 questions. Zero
-            rejections; 688 searches hit work limits and 1,149 used reduced
-            queries. Recorded Supermemory local control: 56.40%.
-          </dd>
-        </div>
-        <div>
-          <dt>{recallPercent}% document recall@10</dt>
-          <dd>
-            BEIR SciFact: 5,183 documents, 300 judged queries. Supermemory local
-            scored{' '}
-            {(
-              100 * ranked.providers.supermemory.scifact.metrics.recall_at_10
-            ).toFixed(2)}
-            % with bge-base embeddings and no reranker in the recorded 3 October
-            same-host control. It was not rerun here.
-          </dd>
-        </div>
-        <div>
-          <dt>
-            {ranked.providers.instantkv.scifact.query_latency_ms.p95.toFixed(2)}{' '}
-            ms ranked search p95
-          </dt>
-          <dd>
-            One sequential loopback HTTP run on an Apple M4 Pro. This measures
-            document retrieval. Real-agent quality and phone performance remain
-            unverified.
-          </dd>
-        </div>
-      </dl>
+      <EvidenceChart
+        rows={memoryEvidence}
+        id="home-evidence"
+        title="Finding the source evidence"
+      />
+      <p class="evidence-caveat">
+        Retrieval scores, not end-to-end answer accuracy. Local Supermemory uses
+        its direct embedding path. Full hosted-product performance is not
+        measured.
+      </p>
     </section>
-
-    <section class="local-details" aria-labelledby="details-title">
-      <div class="details-intro">
-        <h2 id="details-title">
-          Add memory to
-          <br />
-          your runtime.
-        </h2>
-        <p>
-          Use your existing agent runtime. Store and retrieve records without a
-          separate database service, embedding model or cloud API.
-        </p>
-        <a class="text-link" href="/docs/features/">
-          Explore the features ↗
-        </a>
-      </div>
-      <dl class="memory-features">
-        <div>
-          <dt>Persistent facts</dt>
-          <dd>
-            Remember content with a topic, tags, event time and your own JSON
-            metadata. Retrieve with small, bounded pages.
-          </dd>
-        </div>
-        <div>
-          <dt>Checkpoints for unfinished work</dt>
-          <dd>
-            Save the goal and next action before context clears. Restore the
-            checkpoint when the agent returns.
-          </dd>
-        </div>
-        <div>
-          <dt>Configurable and extensible</dt>
-          <dd>
-            Configure namespaces, permissions and budgets. Call the Rust core in
-            process or connect your runtime through HTTP and typed tools.
-          </dd>
-        </div>
-      </dl>
-    </section>
-
-    <section class="local-install" aria-labelledby="install-title">
+    <section
+      class="editorial-section start-section"
+      aria-labelledby="start-title"
+    >
       <div>
-        <p class="section-kicker">Start locally</p>
-        <h2 id="install-title">
-          One binary.
-          <br />
-          Local storage.
-        </h2>
+        <p class="eyebrow">03 / A small, hackable core</p>
+        <h2 id="start-title">Start with three commands.</h2>
         <p>
-          Install once. Then save and recall memory offline. Setup creates your
-          configuration and private credentials.
+          Build the source MVP with Rust 1.98 or later. Setup creates private
+          credentials; the server binds to loopback.
         </p>
-        <a class="text-link" href="/docs/quickstart/">
-          Installation guide ↗
+        <pre><code>{install}</code></pre>
+        <a href="/docs/agents/" class="text-link">
+          Connect your agent through MCP →
         </a>
       </div>
-      <div class="install-command">
-        <pre><code>{install}</code></pre>
+      <div class="terminal-example">
+        <span class="eyebrow">Save, rank, filter, inspect</span>
+        <pre><code>{memory}</code></pre>
         <p>
-          The source MVP is unreleased. Build with Rust 1.98 or later. Older
-          release archives contain only the original KV and checkpoint APIs.
+          Five memory tools: remember, recall, search, browse and forget. Embed
+          the Rust core to use it without HTTP.
         </p>
+        <a href="/docs/memory-mvp/">Read the API and query limits ↗</a>
       </div>
     </section>
     <section
-      class="local-details direction-section"
-      aria-labelledby="direction-title"
+      class="editorial-section future-section"
+      aria-labelledby="next-title"
     >
-      <div class="details-intro">
-        <p class="section-kicker">Where we are going</p>
-        <h2 id="direction-title">
-          Local memory today.
+      <div class="section-heading">
+        <p class="eyebrow">04 / Where we go next</p>
+        <h2 id="next-title">
+          Quality first.
           <br />
-          Phone support next.
+          Local by design.
         </h2>
         <p>
-          Apps can embed the Rust core. Agents can add custom metadata. Native
-          phone integration and real-model evaluation are the next priorities.
+          Better paraphrase recall, reliable multi-hop retrieval, native mobile
+          integration and real device tests. Each step must earn its CPU, RAM
+          and storage cost.
         </p>
-        <a class="text-link" href="/docs/roadmap/">
-          Roadmap & acceptance gates ↗
+        <a href="/docs/roadmap/" class="text-link">
+          Read the roadmap →
         </a>
       </div>
-      <dl class="memory-features">
-        <div>
-          <dt>Working in source</dt>
-          <dd>
-            Four tools save, find, list and delete memories. Ordered indexes
-            support topic, tag and time filters. Queries have scan and response
-            limits.
-          </dd>
-        </div>
-        <div>
-          <dt>Next: real apps and devices</dt>
-          <dd>
-            Evaluate recall with a real local model. Add Swift/Kotlin bindings.
-            Test phone storage, app lifecycle and battery use.
-          </dd>
-        </div>
-        <div>
-          <dt>ARM-board performance goals</dt>
-          <dd>
-            Initial goals: indexed recall p95 ≤5 ms and loaded server RSS ≤32
-            MiB with 10,000 memories. These device targets are unverified.{' '}
-            <a href="/docs/performance/#next-device-targets--not-yet-measured">
-              Read the performance plan ↗
-            </a>
-          </dd>
-        </div>
-      </dl>
+      <div class="photo-pair">
+        <figure>
+          <img
+            src="/assets/local-storage.webp"
+            width="1400"
+            height="788"
+            loading="lazy"
+            alt="Conceptual image of a small local solid state drive"
+          />
+          <figcaption>Persistent local storage. Concept image.</figcaption>
+        </figure>
+        <figure>
+          <img
+            src="/assets/arm-board.webp"
+            width="1400"
+            height="788"
+            loading="lazy"
+            alt="Conceptual image of a small ARM board"
+          />
+          <figcaption>
+            ARM boards and phones: device tests still ahead.
+          </figcaption>
+        </figure>
+      </div>
     </section>
-    <div class="landing-bottom">
-      <p>
-        CI passed on Linux x86_64, Linux ARM64 and macOS ARM64. Physical
-        ARM-board measurements and native phone support remain pending.
-      </p>
-      <a href="/docs/local-first/">Device support ↗</a>
-    </div>
   </main>
 </Base>

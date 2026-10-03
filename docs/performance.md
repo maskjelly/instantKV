@@ -1,26 +1,44 @@
 # Performance: measured and planned
 
 Status: source MVP. Updated: 2026-10-04.
-Latency includes the local HTTP client and server. RAM samples cover only the Rust server.
+Structured-memory latency includes the local HTTP client and server.
+Native RAM samples cover only the Rust server; competitor process scopes differ.
 No model inference runs.
 Targets are engineering goals for a defined workload.
 
-## Current ranked retrieval
+## Current retrieval evidence
 
-| Workload | Queries | instantKV Recall@10 | Recorded Supermemory local |
-| --- | ---: | ---: | ---: |
-| BEIR SciFact | 300 | 81.43% | 74.80% |
-| BEIR nfcorpus | 323 | 15.31% | 17.08% |
-| BEIR arguana | 1,406 | 76.96% | 56.40% |
-| LoCoMo evidence retrieval | 1,533 | 57.65% | 58.28% |
-| LongMemEval-S session retrieval sample | 12 | 91.67% | 65.28% |
+| Full dataset | Scored questions | instantKV Recall@10 | SQLite FTS5 | Supermemory local |
+| --- | ---: | ---: | ---: | ---: |
+| LongMemEval-S, source sessions | 500 | 95.13% | 95.43% | Incomplete |
+| LoCoMo, source turns | 1,533 | 57.66% | 57.19% | 57.97% |
+| BEIR SciFact, documents | 300 | 81.43% | Not run | 74.80% |
+| BEIR ArguAna, documents | 1,406 | 76.96% | Not run | 56.40% |
+| BEIR NFCorpus, documents | 323 | 15.31% | Not run | 17.08% |
 
-Fresh instantKV runs; recorded 3 October Supermemory local controls, not rerun.
-ArguAna rejected zero questions; 688 hit work limits and
-1149 used reduced queries. Expansion Recall@10: 77.03%.
-Expansion stays off. Reduced rankings describe selected terms; truncated rankings
-have no complete top-k guarantee. LongMemEval is a twelve-question pilot.
-[Method and raw rankings](benchmarks/2026-10-04-search/README.md) · [Engineering notes](memory-benchmark-notes.md).
+All 500 LongMemEval-S questions and all ten LoCoMo histories were used.
+LoCoMo queried 1,986 questions; 1,533 have scored positive source labels.
+The 446 adversarial questions and seven unresolved references are excluded only
+from positive-evidence recall. All five full memory retrieval files had zero
+failures and zero truncations. Independent `pytrec_eval` checks used official source labels.
+
+These are **retrieval scores, not end-to-end answer accuracy**. Full QA scoring
+is pending. The initial model runs hit API rate limits and are not valid QA comparisons.
+SQLite has slightly higher observed LongMemEval-S recall. Local Supermemory has
+slightly higher LoCoMo recall. No statistically significant win is established.
+
+Supermemory local v0.0.8 uses direct embedding retrieval without model extraction,
+query rewriting or reranking. It does not represent the hosted product.
+BEIR controls are separate same-host runs recorded on 3 October. ArguAna has
+688 truncated and 1,149 reduced queries; none were rejected. Expansion is off by default.
+
+Largest sampled native server RSS: **14.34 MiB** on LongMemEval-S and **11.25 MiB**
+on LoCoMo. Parallel timings do not support isolated speed claims. SQLite RSS
+includes the Python runner; Supermemory retains corpus scopes in one server per
+suite. Do not claim a matched RAM ratio from different process scopes.
+
+[Full report and verification](benchmarks/2026-10-04-full-retrieval/README.md) ·
+[BEIR method](benchmarks/2026-10-04-search/README.md).
 
 ## Structured memory measured on a Mac
 
@@ -113,6 +131,5 @@ Component limits do not cap total process RSS.
 4. **Optional retrieval:** evaluate BM25 on more corpora and real-agent tasks before local embeddings.
    Measure task quality, index size, model download size and resource use.
 
-The [current browser demo](live-demo.md) uses the same structured-memory API.
-Its recorder uses 16 concurrent saves; the benchmark above uses concurrency one.
-[Benchmark methodology](benchmarks.md) explains both workloads.
+[Benchmark methodology](benchmarks.md) separates full retrieval, structured-memory
+operations and model QA. The public site publishes static results.

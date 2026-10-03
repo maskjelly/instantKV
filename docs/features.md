@@ -5,9 +5,7 @@ The five structured-memory tools are implemented but unreleased.
 Earlier 0.1.2 archives contain only the original KV and checkpoint tools.
 [Quick start](quickstart.md) · [Memory guide](memory-mvp.md) · [Performance](performance.md).
 
-The [browser demo](https://instantkv.com/demo/) uses temporary synthetic records on a hosted Rust server.
-Your own installation keeps memory on your machine and works offline.
-[Next milestones](roadmap.md).
+Read the [full retrieval results](benchmarks/2026-10-04-full-retrieval/README.md).
 
 ## Record memory
 
@@ -58,7 +56,7 @@ All workers use one process and database.
 
 ## Three ways to connect
 
-- [CLI](cli.md): setup, doctor, record/checkpoint operations, demos and benchmarks.
+- [CLI](cli.md): setup, doctor, record/checkpoint operations, local examples and benchmarks.
 - [HTTP](http.md): bearer-authenticated routes with the same namespace policies.
 - [MCP stdio](agents.md): twelve typed model-callable tools in the source MVP; connects to an existing server.
 

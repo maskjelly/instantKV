@@ -4,7 +4,7 @@ instantKV stores facts and checkpoints in your own data directory, beside your l
 Storage and retrieval work offline after installation.
 The service requires no account, embedding model or LLM API.
 It makes no telemetry calls and has no automatic cloud fallback.
-The public website and hosted demo are separate, optional services.
+The public website publishes documentation and results. The memory service runs locally.
 
 The source MVP adds `remember`, `recall`, `browse` and `forget`.
 It provides indexed topic/tag/time retrieval and bounded keyword filtering.

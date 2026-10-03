@@ -1,6 +1,22 @@
 export const repository = 'https://github.com/maskjelly/instantKV';
 export const docs = [
   {
+    slug: 'evaluation-policy',
+    title: 'Evaluation policy',
+    group: 'Start here',
+    source: 'docs/evaluation-policy.md',
+    description:
+      'Frozen tests, reproducible results and honest comparison limits.',
+  },
+  {
+    slug: 'full-retrieval',
+    title: 'Full retrieval report',
+    group: 'Start here',
+    source: 'docs/benchmarks/2026-10-04-full-retrieval/README.md',
+    description:
+      'All 500 LongMemEval-S questions and all ten LoCoMo histories.',
+  },
+  {
     slug: 'memory-mvp',
     title: 'Memory API & local models',
     group: 'Start here',
@@ -14,7 +30,7 @@ export const docs = [
     group: 'Start here',
     source: 'docs/performance.md',
     description:
-      'Mac measurements, unverified ARM targets and required phone tests.',
+      'Full retrieval results, Mac measurements and planned phone tests.',
   },
   {
     slug: 'memory-benchmark-notes',
@@ -22,7 +38,7 @@ export const docs = [
     group: 'Start here',
     source: 'docs/memory-benchmark-notes.md',
     description:
-      'Small local memory: measured retrieval wins, losses, costs and next steps.',
+      'Full memory suites, retrieval wins, remaining gaps and raw evidence.',
   },
   {
     slug: 'local-first',
@@ -41,14 +57,6 @@ export const docs = [
       'Who it helps, what makes it useful and when another memory tool fits better.',
   },
   {
-    slug: 'live-demo',
-    title: 'Demo architecture',
-    group: 'Start here',
-    source: 'docs/live-demo.md',
-    description:
-      'Live memory tools, saved Mac responses, filters and safe deletion.',
-  },
-  {
     slug: 'quickstart',
     title: 'Quick start',
     group: 'Start here',
@@ -62,14 +70,6 @@ export const docs = [
     group: 'Start here',
     source: 'docs/features.md',
     description: 'Available features, the source MVP and planned work.',
-  },
-  {
-    slug: 'demo',
-    title: 'Run the demo',
-    group: 'Start here',
-    source: 'docs/demo.md',
-    description:
-      'Watch memory survive context clearing and a real server restart.',
   },
   {
     slug: 'cloud-agents',
@@ -199,14 +199,6 @@ export const docs = [
     group: 'Project',
     source: 'docs/checkpoints.md',
     description: 'What changed at each stage and how we checked it.',
-  },
-  {
-    slug: 'request-audit',
-    title: 'Request audit',
-    group: 'Project',
-    source: 'docs/request-audit.md',
-    description:
-      'Requested scope compared with shipped behavior and future proposals.',
   },
 ] as const;
 export const groups = [...new Set(docs.map((doc) => doc.group))];

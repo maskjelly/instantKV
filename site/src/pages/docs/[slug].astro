@@ -6,7 +6,6 @@ import SwarmDiagram from '../../components/diagrams/SwarmDiagram.astro';
 import LifecycleDiagram from '../../components/diagrams/LifecycleDiagram.astro';
 import ArchitectureDiagram from '../../components/diagrams/ArchitectureDiagram.astro';
 import ConsolidationDiagram from '../../components/diagrams/ConsolidationDiagram.astro';
-import DemoFlowDiagram from '../../components/diagrams/DemoFlowDiagram.astro';
 
 export function getStaticPaths() {
   return docs.map((doc) => ({ params: { slug: doc.slug }, props: { doc } }));
@@ -61,7 +60,6 @@ const slug = doc.slug;
 
       {[
         'cloud-agents',
-        'live-demo',
         'architecture',
         'distributed-memory',
         'agents',
@@ -70,7 +68,6 @@ const slug = doc.slug;
         <details class="docs-diagram">
           <summary>View the diagram</summary>
           {(slug === 'cloud-agents' && <SwarmDiagram />) ||
-            (slug === 'live-demo' && <DemoFlowDiagram />) ||
             (slug === 'architecture' && <ArchitectureDiagram />) ||
             (slug === 'distributed-memory' && <ConsolidationDiagram />) ||
             (slug === 'agents' && <LifecycleDiagram />) ||

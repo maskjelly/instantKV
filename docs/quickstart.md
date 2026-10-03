@@ -3,9 +3,8 @@
 Run the native binary beside your model. Storage and retrieval work offline after installation.
 A source build needs Rust 1.98 or later. Docker is optional.
 
-The [browser demo](https://instantkv.com/demo/) needs no account.
-Live mode saves, recalls, browses and deletes structured memories on the Rust server.
-Recorded mode shows saved responses from fresh memory runs.
+Use the [full benchmark results](benchmarks/2026-10-04-full-retrieval/README.md)
+to inspect retrieval evidence. Follow this guide to run your own memory service.
 
 For a fresh swarm setup, use `instantkv init --profile swarm` or `INSTANTKV_PROFILE=swarm` with Docker.
 The examples below use the default local profile.
@@ -88,18 +87,6 @@ It compiles from source if that archive is unavailable.
 To use the current MVP, force a source build with `INSTANTKV_BUILD_SOURCE=source-build ./scripts/quickstart.sh`.
 
 Initial builds and downloads need internet access. The running local node does not.
-
-## Run the demo without setup
-
-```sh
-instantkv demo
-instantkv demo --swarm
-```
-
-The demo starts an isolated server and saves knowledge and a checkpoint through HTTP.
-It clears simulated context, terminates the server and restarts it.
-It verifies the restored capsule, retained knowledge and empty scratch cache.
-The demo removes its child processes and temporary directory.
 
 ## Save before compaction
 

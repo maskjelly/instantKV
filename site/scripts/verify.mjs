@@ -93,36 +93,9 @@ assert(
       run.verified_remaining_memories === 9700,
   ),
 );
-const recordingFiles = files(resolve(root, 'recordings/memory')).filter(
-  (path) => /memory-\d\.json$/.test(path),
-);
-assert.equal(recordingFiles.length, 3);
-const recordings = recordingFiles.map((path) =>
-  JSON.parse(readFileSync(path, 'utf8')),
-);
-assert.equal(
-  recordings.reduce((n, r) => n + r.written, 0),
-  30000,
-);
-assert(
-  recordings.every(
-    (r) =>
-      r.schema_version === 2 &&
-      r.errors === 0 &&
-      r.queries.length === 7 &&
-      r.forgotten.value.deleted,
-  ),
-);
-const replay = JSON.parse(
-  readFileSync(resolve(root, 'recordings/memory/replay.json'), 'utf8'),
-);
-assert.equal(replay.recording.count, 10000);
-assert.equal(replay.schema_version, 2);
-for (const route of [
-  'index.html',
-  'benchmarks/index.html',
-  'demo/index.html',
-]) {
+assert(!existsSync(resolve(root, 'demo/index.html')));
+assert(!existsSync(resolve(root, 'recordings')));
+for (const route of ['index.html', 'benchmarks/index.html']) {
   const page = readFileSync(resolve(root, route), 'utf8');
   assert(
     !page.includes('100,000 cache') && !page.includes('raw KV API'),
@@ -223,9 +196,43 @@ const article = readFileSync(
 );
 assert(!article.includes('_PENDING'), 'Article has no incomplete sections');
 assert(
-  article.includes('pilot') && article.toLowerCase().includes('rejected'),
+  article.includes('500') &&
+    article.toLowerCase().includes('rejected') &&
+    article.includes('pending'),
   'Article includes scope and query failures',
 );
+
+const fullSummary = JSON.parse(
+  readFileSync(
+    resolve(root, 'benchmark-data/full-retrieval/summary.json'),
+    'utf8',
+  ),
+);
+const fullReceipt = JSON.parse(
+  readFileSync(
+    resolve(root, 'benchmark-data/full-retrieval/verification.json'),
+    'utf8',
+  ),
+);
+assert.equal(Object.keys(fullReceipt.receipts).length, 5);
+for (const [name, hash] of Object.entries(fullSummary.ranking_sha256)) {
+  const raw = readFileSync(
+    resolve(root, 'benchmark-data/full-retrieval', name),
+  );
+  assert.equal(createHash('sha256').update(raw).digest('hex'), hash);
+  const receipt = fullReceipt.receipts[name];
+  assert(receipt?.verified, `${name}: official source labels verified`);
+}
+for (const file of htmlFiles) {
+  const html = readFileSync(file, 'utf8');
+  assert(
+    !/href="\/(?:demo|docs\/(?:live-demo|demo))\//.test(html),
+    'No retired demo navigation',
+  );
+}
+const home = readFileSync(resolve(root, 'index.html'), 'utf8');
+assert(home.includes('95.13') && home.includes('14.34'));
+assert(!home.includes('91.67') && !home.includes('65.28'));
 
 console.log(
   `Verified ${htmlFiles.length} HTML pages, their local links/anchors/assets, current memory and retrieval reports, search and machine-readable docs.`,

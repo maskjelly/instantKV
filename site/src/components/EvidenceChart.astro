@@ -1,0 +1,117 @@
+---
+import { providers, percent, type EvidenceRow } from '../lib/evidence';
+interface Props {
+  rows: EvidenceRow[];
+  id: string;
+  title: string;
+}
+const { rows, id, title } = Astro.props;
+---
+
+<section
+  class="evidence-chart"
+  aria-labelledby={`${id}-title`}
+  data-evidence-chart
+>
+  <header class="chart-heading">
+    <div>
+      <p class="eyebrow">Evidence retrieval · higher is better</p>
+      <h3 id={`${id}-title`}>{title}</h3>
+    </div>
+    <div class="metric-switch" role="group" aria-label="Chart metric">
+      <button type="button" data-evidence-metric="recall" aria-pressed="true">
+        Recall@10
+      </button>
+      <button type="button" data-evidence-metric="ndcg" aria-pressed="false">
+        nDCG@10
+      </button>
+    </div>
+  </header>
+  <p class="metric-explainer" aria-live="polite">
+    Recall@10: the share of labelled source evidence found in the first ten
+    results.
+  </p>
+  <div class="chart-legend">
+    {providers.map((p, i) => (
+      <span>
+        <i class={`provider-${i}`} aria-hidden="true"></i>
+        {p}
+      </span>
+    ))}
+  </div>
+  <div class="chart-scale" aria-hidden="true">
+    <span>0%</span>
+    <span>50%</span>
+    <span>100%</span>
+  </div>
+  {rows.map((row) => (
+    <div class="evidence-group">
+      <div class="evidence-label">
+        <strong>{row.name}</strong>
+        <span>
+          {row.scope} · {row.count.toLocaleString('en-US')} scored questions
+        </span>
+      </div>
+      {providers.map((provider, i) => (
+        <div class="evidence-bar-row">
+          <span class="provider-name">{provider}</span>
+          <div class="evidence-track" aria-hidden="true">
+            <div
+              class={`evidence-bar provider-${i}`}
+              style={`width:${(row.recall[i] ?? 0) * 100}%`}
+              data-recall={row.recall[i]}
+              data-ndcg={row.ndcg[i]}
+            ></div>
+          </div>
+          <span
+            class="evidence-value"
+            data-recall={row.recall[i]}
+            data-ndcg={row.ndcg[i]}
+          >
+            {row.recall[i] === null
+              ? 'Not complete'
+              : percent(row.recall[i]) + '%'}
+          </span>
+        </div>
+      ))}
+      <p class="chart-note">
+        {row.limits} <a href={row.raw}>Raw data ↗</a>
+      </p>
+    </div>
+  ))}
+</section>
+<script>
+  document
+    .querySelectorAll<HTMLElement>('[data-evidence-chart]')
+    .forEach((chart) => {
+      chart
+        .querySelectorAll<HTMLButtonElement>('[data-evidence-metric]')
+        .forEach((button) => {
+          button.addEventListener('click', () => {
+            const metric = button.dataset.evidenceMetric!;
+            chart
+              .querySelectorAll('[data-evidence-metric]')
+              .forEach((b) =>
+                b.setAttribute('aria-pressed', String(b === button)),
+              );
+            chart
+              .querySelectorAll<HTMLElement>('.evidence-bar, .evidence-value')
+              .forEach((element) => {
+                const value = element.dataset[metric];
+                if (element.classList.contains('evidence-bar'))
+                  element.style.width = `${Number(value || 0) * 100}%`;
+                else
+                  element.textContent = value
+                    ? `${(Number(value) * 100).toFixed(2)}%`
+                    : 'Not complete';
+              });
+            const explainer = chart.querySelector('.metric-explainer');
+            if (explainer)
+              explainer.textContent =
+                metric === 'recall'
+                  ? 'Recall@10: the share of labelled source evidence found in the first ten results.'
+                  : 'nDCG@10: ranking quality, with more credit for placing relevant evidence near the top.';
+          });
+        });
+    });
+</script>

@@ -4,57 +4,32 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
-  "observability": { "enabled": true },
-  "secrets": { "required": ["DEMO_GATEWAY_TOKEN"] },
-  "vars": { "DEMO_ORIGIN": "http://instantkv-demo.internal" },
-  "vpc_services": [
-    {
-      "binding": "DEMO_BACKEND",
-      "service_id": "01a0f870-cc92-7322-8d91-9962974c9bcc",
-      "remote": true,
-    },
-  ],
-  "ratelimits": [
-    {
-      "name": "DEMO_RATE_LIMIT",
-      "namespace_id": "8461001",
-      "simple": { "limit": 240, "period": 60 },
-    },
-  ],
+  "observability": {
+    "enabled": true,
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/demo/*"],
+    "run_worker_first": ["/api/demo", "/api/demo/*"],
     "not_found_handling": "404-page",
     "html_handling": "force-trailing-slash",
   },
   "env": {
     "production": {
       "name": "instantkv-site",
-      "secrets": { "required": ["DEMO_GATEWAY_TOKEN"] },
       "assets": {
         "directory": "./dist",
         "binding": "ASSETS",
-        "run_worker_first": ["/api/demo/*"],
+        "run_worker_first": ["/api/demo", "/api/demo/*"],
         "not_found_handling": "404-page",
         "html_handling": "force-trailing-slash",
       },
-      "vars": { "DEMO_ORIGIN": "http://instantkv-demo.internal" },
-      "vpc_services": [
+      "routes": [
         {
-          "binding": "DEMO_BACKEND",
-          "service_id": "01a0f870-cc92-7322-8d91-9962974c9bcc",
-          "remote": true,
+          "pattern": "instantkv.com",
+          "custom_domain": true,
         },
       ],
-      "ratelimits": [
-        {
-          "name": "DEMO_RATE_LIMIT",
-          "namespace_id": "8461001",
-          "simple": { "limit": 240, "period": 60 },
-        },
-      ],
-      "routes": [{ "pattern": "instantkv.com", "custom_domain": true }],
     },
   },
 }
