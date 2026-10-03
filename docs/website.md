@@ -118,7 +118,7 @@ Do not copy expiring interactive OAuth tokens into GitHub secrets.
 ## Verification and rollback
 
 Browser search and `llms-full.txt` include the memory guide, performance plan and roadmap.
-`llms.txt` describes the four tools, unreleased status and measured/planned boundaries.
+`llms.txt` describes the five tools, unreleased status and measured/planned boundaries.
 The Ollama example and memory schemas are available under `/examples/`.
 
 1. Verify HTTPS on `/`, `/docs/quickstart/`, `/benchmarks/` and `/llms.txt`.

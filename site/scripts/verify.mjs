@@ -75,7 +75,17 @@ assert(agentDocs.includes('unreleased'));
 const memorySchema = JSON.parse(
   readFileSync(resolve(root, 'examples/memory.schema.json'), 'utf8'),
 );
-assert(memorySchema.remember && memorySchema.recall);
+assert(memorySchema.remember && memorySchema.recall && memorySchema.search);
+const rankedReport = JSON.parse(
+  readFileSync(resolve(root, 'benchmark-data/search/scifact.json'), 'utf8'),
+);
+assert(rankedReport.complete);
+assert.equal(rankedReport.test_queries, 300);
+assert(
+  rankedReport.providers.instantkv.scifact.queries.every(
+    (q) => !q.work.truncated,
+  ),
+);
 assert(
   memoryReport.runs.every(
     (run) =>

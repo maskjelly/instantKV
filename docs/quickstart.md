@@ -12,7 +12,7 @@ The examples below use the default local profile.
 [Shared and private agent setup](cloud-agents.md).
 
 The structured-memory MVP is implemented in source and remains unreleased.
-Build from this checkout for `remember`, `recall`, `browse` and `forget`.
+Build from this checkout for `remember`, `recall`, `search`, `browse` and `forget`.
 Earlier archives contain the original KV and checkpoint tools.
 [MVP guide](memory-mvp.md).
 
@@ -38,6 +38,7 @@ In another terminal in the same directory:
 ```sh
 instantkv remember "Prefer Rust for local tools" --topic preferences --tag local
 instantkv recall --topic preferences --query Rust
+instantkv search "preferred language for local tooling"
 instantkv browse --limit 10
 instantkv doctor
 ```

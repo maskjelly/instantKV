@@ -24,10 +24,10 @@ The deployed CLI demos, filtered retrieval, real restarts and revision-checked d
 | -------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | Local memory for LLMs            | Four tools; content, topic, tags, event time and metadata               | [Memory guide](memory-mvp.md)                                                            |
 | Small, configurable service      | One Rust binary; local limits; embedded core                            | [Local profile](../config/local.toml), [device support](local-first.md)                  |
-| Simple retrieval                 | Ordered topic/tag/time indexes; bounded literal keywords                | [Query contract](memory-mvp.md#keyword-retrieval-and-pagination)                         |
+| Simple retrieval                 | Ordered topic/tag/time indexes; bounded literal keywords                | [Query contract](memory-mvp.md#literal-retrieval-and-pagination)                         |
 | Recovery after compaction        | Immutable checkpoint and latest pointer in one transaction              | [Checkpoint contract](agent-memory.md)                                                   |
 | Shared facts and private workers | One server with per-namespace grants                                    | [Swarm guide](cloud-agents.md)                                                           |
-| Real memory benchmarks           | Three 10,000-memory Mac runs; all 30,000 recovered                      | [Performance](performance.md), [raw report](benchmarks/2026-10-03-memory/mac-arm64.json) |
+| Real memory benchmarks           | Three 10,000-memory Mac runs; all 30,000 recovered                      | [Performance](performance.md), [raw report](benchmarks/2026-10-03-ranked/mac-arm64.json) |
 | Clear device targets             | Defined ARM-board workload; targets labeled unverified                  | [Device targets](performance.md#next-device-targets--not-yet-measured)                   |
 | Clean website                    | White surfaces, neutral type, local Geist and expandable diagrams       | [Website guide](website.md)                                                              |
 | Working public demo              | Current memory tools, filtered queries, paging and deletion                       | [Demo architecture](live-demo.md)                                                        |

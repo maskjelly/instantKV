@@ -28,7 +28,7 @@ It browses memory and deletes it with a revision check.
 06  RECALL    topic + tag + time + keywords recovered the exact memory
 07  BROWSE    bounded page lists durable memories; scratch is empty
 08  FORGET    revision-checked deletion removes the record and indexes
-PASS: four memory tools + checkpoint handoff + restart via real HTTP
+PASS: five memory tools + checkpoint handoff + restart via real HTTP
 ```
 
 It verifies every saved field, the latest checkpoint pointer and empty scratch.
@@ -64,3 +64,7 @@ The [Ollama example](../examples/local-llm.py) reads actual MCP tool schemas.
 Run it with your installed model to evaluate tool use and task correctness.
 Model evaluation is separate from the storage demos above.
 [Memory guide](memory-mvp.md) · [MCP setup](agents.md) · [Current benchmarks](benchmarks.md).
+
+The local CLI demo also calls BM25 `search` after restart and verifies the saved
+preference. The browser demo and its archived recordings exercise literal filters.
+Use `instantkv search "preferred language for local tooling"` to try ranking.

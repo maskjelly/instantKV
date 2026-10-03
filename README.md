@@ -11,7 +11,7 @@
 **Local memory for AI agents. One Rust binary. No cloud dependency.**
 
 Save facts, preferences and task state on your device. Find memories by topic,
-tag, time or keywords. Keep them across sessions and server restarts.
+tag, time or keywords. Rank documents with BM25 search. Keep them across sessions and server restarts.
 Your runtime chooses what to save and adds retrieved facts to the model context.
 Storage and retrieval work offline after installation.
 
@@ -39,6 +39,7 @@ Open another terminal in the same directory:
 ```sh
 instantkv remember "Prefer Rust for local tools" --key preferences/language --topic preferences --tag local
 instantkv recall --topic preferences --query Rust
+instantkv search "preferred language for local tooling" --limit 10
 instantkv browse --limit 10
 instantkv forget preferences/language
 ```
@@ -53,31 +54,39 @@ the running memory service needs no account, model API or embedding service.
 
 | Feature             | Behavior                                                                |
 | ------------------- | ----------------------------------------------------------------------- |
-| Four memory tools   | `remember`, `recall`, `browse`, `forget`                                |
+| Five memory tools   | `remember`, `recall`, `search`, `browse`, `forget`                      |
 | Structured records  | Content, topic, tags, event time and custom JSON metadata               |
-| Indexed retrieval   | Ordered topic/tag/time indexes; bounded literal keyword filtering       |
+| Indexed retrieval   | Topic/tag/time indexes, literal filters and bounded BM25 relevance ranking |
 | Task checkpoints    | Save the goal and next action before a context reset; restore afterward |
 | Private namespaces  | Share project facts while each agent keeps separate notes               |
 | Configurable limits | Storage quotas, expiry, request limits and query budgets                |
-| Integration         | HTTP, CLI, eleven MCP tools or an embedded Rust core                    |
+| Integration         | HTTP, CLI, twelve MCP tools or an embedded Rust core                    |
 
-Keyword search matches literal content. Semantic search and automatic memory extraction are planned.
+`search` ranks content with English stemming and OR terms. `recall --query` applies literal AND filters.
+Check `truncated` on ranked results. Embedding search and automatic extraction remain planned.
 Records and indexes change in one redb transaction, including updates, deletion and expiry cleanup.
 
 [API and limits](docs/memory-mvp.md) · [HTTP](docs/http.md) · [CLI](docs/cli.md)
 
 ## Measured performance
 
+**Document recall:** 81.43% Recall@10 on BEIR SciFact, versus 74.80% for
+Supermemory local v0.0.8 with bge-base embeddings and no reranker.
+Ranked query p95: 1.29 ms. One Mac run, 5,183 documents, 300 judged queries.
+Supermemory numbers reuse the earlier same-host run. This is a scoped retrieval
+result, not an agent-quality or phone benchmark.
+[Full comparison, costs and raw data](docs/benchmarks/2026-10-03-ranked/README.md).
+
 Apple M4 Pro, 24 GiB memory, macOS 27.0. Three fresh databases, 10,000 memories per run,
 512-byte content plus metadata. Warm, sequential loopback HTTP; concurrency one.
 
 | Measurement                          | Result across three runs  |
 | ------------------------------------ | ------------------------- |
-| Native binary                        | 8.0 MiB |
-| Idle server RSS                      | 6.19 MiB |
-| Largest sampled server RSS           | 19.6 MiB |
-| Topic query p95                      | 0.130–0.132 ms |
-| Durable save p95                     | 5.899–5.928 ms |
+| Native binary                        | 8.28 MiB |
+| Idle server RSS                      | 6.44–6.45 MiB |
+| Largest sampled server RSS           | 20.89 MiB |
+| Topic query p95                      | 0.131–0.139 ms |
+| Durable save p95                     | 6.235–6.531 ms |
 | Exact recovery after abrupt restarts | 30,000 of 30,000 memories |
 
 p95 is the time within which 95% of measured operations complete.
@@ -88,7 +97,7 @@ The browser demo uses the same memory API. Live mode saves, filters, browses and
 Recorded mode shows verified responses from three fresh 10,000-memory runs.
 
 [Full workload and reproduction](docs/performance.md) ·
-[Raw report](docs/benchmarks/2026-10-03-memory/mac-arm64.json) · [Benchmark methodology](docs/benchmarks.md)
+[Raw report](docs/benchmarks/2026-10-03-ranked/mac-arm64.json) · [Benchmark methodology](docs/benchmarks.md)
 
 ## Small by default
 
@@ -111,7 +120,7 @@ The checkpoint and the session's latest pointer commit together.
 
 <img src="docs/assets/lifecycle.png" width="1100" alt="Save a checkpoint and restore task state after a context reset">
 
-Try all four memory tools across a real restart, then test agent isolation:
+Try the memory tools, including ranked search, across a real restart, then test agent isolation:
 
 ```sh
 instantkv demo
@@ -130,7 +139,7 @@ Context clearing is simulated; real model-quality evaluation is pending.
 | ARM devices        | Measure latency, RSS and recovery on a named Linux ARM64 board                              |
 | Native phones      | Add Swift/Kotlin bindings; test storage, lifecycle and battery use                          |
 | Portable memory    | Add export, import and schema migration tools                                               |
-| Optional retrieval | Evaluate ranked keyword search and local embeddings                                         |
+| Retrieval quality  | Evaluate more corpora, real-agent tasks and optional local embeddings                       |
 
 Linux x86_64, Linux ARM64 and macOS ARM64 passed [source MVP CI](https://github.com/maskjelly/instantKV/actions/runs/37060413210).
 Physical ARM-board measurements and native phone support remain pending.

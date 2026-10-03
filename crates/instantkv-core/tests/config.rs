@@ -158,7 +158,13 @@ fn memory_query_budgets_default_for_old_configs_and_reject_invalid_bounds() {
     ))
     .unwrap();
     assert_eq!(config.memory.max_candidates, 1000);
+    assert_eq!(config.memory.max_search_postings, 20000);
     assert_eq!(config.memory.max_result_bytes, 65536);
+    config.memory.max_search_postings = 0;
+    assert!(config.validate().is_err());
+    config.memory.max_search_postings = 1_000_001;
+    assert!(config.validate().is_err());
+    config.memory.max_search_postings = 20000;
     config.memory.max_candidates = 0;
     assert!(config.validate().is_err());
     config.memory.max_candidates = 100;

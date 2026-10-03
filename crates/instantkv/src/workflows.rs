@@ -3,6 +3,7 @@ use instantkv::client::Client;
 use instantkv_core::{
     memory::{MemoryInput, MemoryQuery, RememberRequest},
     model::{Capsule, CheckpointRequest, MemoryReference},
+    search::SearchQuery,
 };
 use serde_json::json;
 use std::{
@@ -159,6 +160,18 @@ pub async fn demo() -> Result<()> {
     );
     println!("05  RESTORE   recovered goal, constraints, decisions, sources, next action");
     println!("06  RECALL    topic + tag + time + keywords recovered the exact memory");
+    let ranked = client
+        .search(
+            "knowledge",
+            &SearchQuery {
+                query: "preferred language for local tooling".into(),
+                ..Default::default()
+            },
+        )
+        .await?;
+    assert_eq!(ranked.items[0].hit.key, saved.key);
+    assert!(!ranked.truncated);
+    println!("    SEARCH    BM25 ranked the saved preference after restart; no model call");
     let browsed = client.recall("knowledge", &MemoryQuery::default()).await?;
     assert_eq!(browsed.items.len(), 1);
     println!("07  BROWSE    bounded page lists durable memories; scratch is empty");
@@ -182,7 +195,7 @@ pub async fn demo() -> Result<()> {
     );
     println!("08  FORGET    revision-checked deletion removes the record and indexes");
     println!("\nNext action: {}", restored.capsule.next_action);
-    println!("PASS: four memory tools + checkpoint handoff + restart via real HTTP");
+    println!("PASS: five memory tools + checkpoint handoff + restart via real HTTP");
     process.stop()?;
     Ok(())
 }

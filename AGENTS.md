@@ -6,7 +6,7 @@ The MVP is unreleased. Keep user-facing explanations concise.
 ## What to evaluate
 
 - `remember`, `recall`, `browse`, `forget`: content + topic/tags + event time + custom JSON metadata.
-- Ordered time/topic/tag indexes; bounded literal keyword filtering, not semantic search.
+- Ordered time/topic/tag indexes; literal filtering plus bounded BM25 `search` with English stemming, not semantic search.
 - All memory writes/deletes/expiry cleanup keep record/index changes in one redb transaction.
 - Core can run in-process; HTTP/CLI/MCP add transports and scoped permissions.
 - Local profile: loopback, private credentials, small cache, configurable quotas/query budgets.

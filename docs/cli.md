@@ -13,6 +13,7 @@ Build the current checkout for these unreleased commands:
 ```sh
 instantkv remember "Prefer Rust for local tools" --topic preferences --tag local
 instantkv recall --topic preferences --query Rust
+instantkv search "preferred language for local tooling" --limit 10
 instantkv browse --limit 10
 instantkv forget RETURNED_KEY
 instantkv schema --kind memory
@@ -28,6 +29,10 @@ New keys are create-only. Updating requires a stable key and its observed revisi
 inclusive Unix milliseconds. All keyword terms must occur in content,
 case-insensitively. Use the same filters with each cursor, including empty pages.
 [Shapes, integration example and limits](memory-mvp.md).
+
+`search QUERY` ranks content with BM25 and English stemming. It accepts the same
+label/time/page options; supply query text as a positional argument, without `--query`.
+Check `truncated`. Managed writes invalidate ranked cursors.
 
 ## Connection and credentials
 
@@ -97,7 +102,7 @@ The latest checkpoint is protected until a newer checkpoint advances the pointer
 
 ## MCP and demos
 
-`instantkv mcp` provides eleven source-MVP tools over stdin/stdout.
+`instantkv mcp` provides twelve source-MVP tools over stdin/stdout.
 It connects to the running HTTP server. Diagnostics use stderr.
 [Agent setup](agents.md).
 

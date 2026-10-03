@@ -2,6 +2,7 @@ use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand, ValueEnum};
 use instantkv::{auth::read_secrets, client::Client, server};
 use instantkv_core::memory::{MemoryInput, MemoryQuery, RememberRequest};
+use instantkv_core::search::SearchQuery;
 use instantkv_core::{config::Config, model::CheckpointRequest};
 use std::{
     fs,
@@ -51,6 +52,12 @@ enum Command {
     },
     /// Retrieve structured memory by topic, tag, time range or keywords.
     Recall(Retrieval),
+    /// Rank relevant memories with BM25 and English stemming. No embedding model.
+    Search {
+        text: String,
+        #[command(flatten)]
+        filters: Retrieval,
+    },
     /// Browse structured memories newest first; follow next_cursor until null.
     Browse(Retrieval),
     /// Delete a structured memory and its indexes atomically.
@@ -272,7 +279,8 @@ async fn run(cli: Cli) -> Result<()> {
             if kind == "memory" {
                 print_json(
                     &serde_json::json!({"remember": schemars::schema_for!(RememberRequest),
-                    "recall": schemars::schema_for!(MemoryQuery)}),
+                    "recall": schemars::schema_for!(MemoryQuery),
+                    "search": schemars::schema_for!(SearchQuery)}),
                 )
             } else {
                 print_json(&schemars::schema_for!(CheckpointRequest))
@@ -314,6 +322,31 @@ async fn run(cli: Cli) -> Result<()> {
                                     },
                                     ttl_seconds: ttl,
                                     if_revision,
+                                },
+                            )
+                            .await?,
+                    )
+                }
+                Command::Search {
+                    text: query,
+                    filters: input,
+                } => {
+                    if input.query.is_some() {
+                        bail!("search uses its positional query; omit --query");
+                    }
+                    print_json(
+                        &client
+                            .search(
+                                &input.namespace,
+                                &SearchQuery {
+                                    query,
+                                    topic: input.topic,
+                                    tag: input.tag,
+                                    since_ms: input.since_ms,
+                                    until_ms: input.until_ms,
+                                    limit: input.limit,
+                                    max_bytes: input.max_bytes,
+                                    cursor: input.cursor,
                                 },
                             )
                             .await?,

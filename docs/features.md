@@ -1,7 +1,7 @@
 # What you can do today
 
 The current source stores local-agent knowledge and task checkpoints.
-The four structured-memory tools are implemented but unreleased.
+The five structured-memory tools are implemented but unreleased.
 Earlier 0.1.2 archives contain only the original KV and checkpoint tools.
 [Quick start](quickstart.md) · [Memory guide](memory-mvp.md) · [Performance](performance.md).
 
@@ -13,8 +13,8 @@ Your own installation keeps memory on your machine and works offline.
 
 | Feature                        | How to use it                                                                          |
 | ------------------------------ | -------------------------------------------------------------------------------------- |
-| Structured memory (source MVP) | `remember` / `recall` / `browse` / `forget`; topic, tags, event time, custom metadata  |
-| Indexed retrieval (source MVP) | Ordered topic/tag/time indexes; bounded literal keyword filtering and paginated values |
+| Structured memory (source MVP) | `remember` / `recall` / `search` / `browse` / `forget`; topic, tags, event time, custom metadata  |
+| Indexed retrieval (source MVP) | Ordered topic/tag/time indexes; literal filtering and bounded BM25 relevance ranking |
 | Exact recall                   | `put` and `get` with namespace + descriptive key                                       |
 | Prefix discovery               | `list --prefix` returns metadata pages; values remain separate                         |
 | Conditional creation           | `put --if-absent` rejects overwriting an existing live key                             |
@@ -60,7 +60,7 @@ All workers use one process and database.
 
 - [CLI](cli.md): setup, doctor, record/checkpoint operations, demos and benchmarks.
 - [HTTP](http.md): bearer-authenticated routes with the same namespace policies.
-- [MCP stdio](agents.md): eleven typed model-callable tools in the source MVP; connects to an existing server.
+- [MCP stdio](agents.md): twelve typed model-callable tools in the source MVP; connects to an existing server.
 
 CLI and MCP calls use HTTP authorization and the same storage engine.
 Tokens belong in a private environment or credentials file, never memory records.

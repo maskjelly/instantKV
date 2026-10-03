@@ -5,6 +5,18 @@ Latency includes the local HTTP client and server. RAM samples cover only the Ru
 No model inference runs.
 Targets are engineering goals for a defined workload.
 
+## Ranked document recall
+
+BM25 search reached **81.43% Recall@10** on BEIR SciFact, versus **74.80%** for
+Supermemory local v0.0.8 with local bge-base embeddings and no reranker.
+Ranked query p95: **1.292 ms**; sampled RSS: **22.66 MiB**; binary: **8.28 MiB**.
+One run, 300 judged queries, 5,183 documents. Supermemory results reuse an earlier
+same-host run. This is a corpus-specific document-retrieval comparison.
+Sparse indexing increases write work: document-save p95 was **12.438 ms**,
+versus **6.759 ms** in the old literal baseline. The physical SciFact database used
+**81.00 MiB**. No semantic, phone or agent-quality claim is implied.
+[Method, costs, raw rankings and reproduction](benchmarks/2026-10-03-ranked/README.md).
+
 ## Structured memory measured on a Mac
 
 | Workload setting | Value                                                     |
@@ -23,20 +35,20 @@ Targets are engineering goals for a defined workload.
 
 | Measurement                                   | Observed across three runs          |
 | --------------------------------------------- | ----------------------------------- |
-| Native binary                                 | 8.0 MiB |
-| Idle server RSS                               | 6.19 MiB |
-| Largest sampled server RSS                    | 19.6 MiB |
-| Topic query p95                               | 0.130–0.132 ms |
-| Tag query p95                                 | 0.131–0.133 ms |
-| Time-range query p95                          | 0.130–0.131 ms |
-| Topic + tag + keywords p95                    | 0.131–0.133 ms |
-| Browse p95                                    | 0.359–0.390 ms |
-| Keyword first-page p95                        | 1.250–1.267 ms |
-| Immediate durable save p95                    | 5.899–5.928 ms |
-| Physical database after workload              | 25.3 MiB per run                    |
+| Native binary                                 | 8.28 MiB |
+| Idle server RSS                               | 6.44–6.45 MiB |
+| Largest sampled server RSS                    | 20.89 MiB |
+| Topic query p95                               | 0.131–0.139 ms |
+| Tag query p95                                 | 0.131–0.134 ms |
+| Time-range query p95                          | 0.132–0.133 ms |
+| Topic + tag + keywords p95                    | 0.132–0.135 ms |
+| Browse p95                                    | 0.338–0.426 ms |
+| Keyword first-page p95                        | 1.242–1.312 ms |
+| Immediate durable save p95                    | 6.235–6.531 ms |
+| Physical database after workload              | 24.10 MiB per run                    |
 | Exact memories recovered after abrupt restart | 10,000/10,000 per run; 30,000 total |
 
-[Raw report, latency samples, hardware and binary hash](benchmarks/2026-10-03-memory/mac-arm64.json).
+[Raw report, latency samples, hardware and binary hash](benchmarks/2026-10-03-ranked/mac-arm64.json).
 p95 is the time within which 95% of measured operations complete.
 RSS means resident set size: process memory reported by the operating system.
 The samples do not measure peak RSS.
@@ -61,8 +73,8 @@ It verifies every saved field and removes the temporary databases.
 It does not change your running node or retain credentials.
 Source compilation can download dependencies. The script does not download a model.
 
-Exact-key read p95: **0.101–0.104 ms**.
-Revision-checked forget p95: **5.303–5.915 ms**.
+Exact-key read p95: **0.102–0.111 ms**.
+Revision-checked forget p95: **6.240–7.011 ms**.
 After recovery, 300 memories per run were deleted. A full browse verified exactly
 9,700 remaining memories per run and no deleted index results.
 
@@ -81,7 +93,7 @@ Phone targets need separate tests in a native app.
 | Idle memory service RSS    | ≤12 MiB                            | Repeated process samples; add true peak measurements         |
 | Loaded memory service RSS  | ≤32 MiB                            | Writes, indexed reads and bounded keyword scans              |
 | Indexed recall p95         | ≤5 ms                              | Topic/tag/time pages, 10 results, concurrency one            |
-| Immediate durable save p95 | 5.899–5.928 ms |
+| Immediate durable save p95 | ≤20 ms |
 | Recovery correctness       | Every acknowledged memory retained | Repeated abrupt exits; then disk-full/commit fault injection |
 | Context budget             | Default page ≤16 KiB               | Include content, metadata, timestamps and cursor             |
 
@@ -99,7 +111,7 @@ Component limits do not cap total process RSS.
    Test app suspension, restart, backup, encryption design and battery use.
 3. **Larger workloads:** repeat with 100,000 records and an explicit larger quota.
    Measure index growth, cold reads, concurrent writes and expiry backlog.
-4. **Optional retrieval:** evaluate ranked keyword search before local embeddings.
+4. **Optional retrieval:** evaluate BM25 on more corpora and real-agent tasks before local embeddings.
    Measure task quality, index size, model download size and resource use.
 
 The [current browser demo](live-demo.md) uses the same structured-memory API.

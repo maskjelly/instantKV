@@ -23,6 +23,7 @@ Use `/v1/namespaces/{namespace}` as the base:
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `POST /memories`                         | Structured memory; create-only or revision-protected update; returns memory, key, revision and timestamps |
 | `GET /memories`                          | Topic/tag/query/since_ms/until_ms/limit/max_bytes/cursor; bounded values; requires get + list             |
+| `POST /search`                           | JSON query and optional filters; BM25 scores, next_cursor and work counters; requires get + list |
 | `GET /memories/{key}`                    | Exact structured memory with revision and timestamps                                                      |
 | `DELETE /memories/{key}`                 | Deletes structured memory and indexes; optional If-Match; 204                                             |
 | `PUT /records/{key}`                     | Raw value bytes; optional `ttl_seconds` query; returns revision, bytes, write/expiry timestamps           |

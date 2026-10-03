@@ -4,6 +4,7 @@ use instantkv_core::{
     config::Config,
     memory::{MemoryInput, MemoryQuery},
     model::Condition,
+    search::SearchQuery,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -42,10 +43,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         serde_json::to_string_pretty(&memories)?
     );
     let browsed = engine.recall("knowledge", MemoryQuery::default())?;
+    let ranked = engine.search(
+        "knowledge",
+        SearchQuery {
+            query: "Which language is preferred for local tooling?".into(),
+            ..Default::default()
+        },
+    )?;
+    assert_eq!(ranked.items[0].hit.key, "preferences/language");
     assert!(!browsed.items.is_empty());
     let saved = &memories.items[0];
     engine.forget("knowledge", &saved.key, Condition::Revision(saved.revision))?;
     assert!(engine.memory_get("knowledge", &saved.key).is_err());
-    println!("PASS: remember, reopen, recall, browse and revision-checked forget in process");
+    assert!(
+        engine
+            .search(
+                "knowledge",
+                SearchQuery {
+                    query: "Rust".into(),
+                    ..Default::default()
+                }
+            )?
+            .items
+            .is_empty()
+    );
+    println!(
+        "PASS: remember, reopen, ranked search, recall, browse and revision-checked forget in process"
+    );
     Ok(())
 }

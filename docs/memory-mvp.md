@@ -5,16 +5,17 @@ Status: source MVP, unreleased. Updated: 2026-10-03.
 Build from this checkout to use these commands. Earlier release archives do not contain them.
 
 instantKV stores facts, preferences, decisions and observations beside your model.
-Queries can select a topic, tag, event time or literal keywords.
+Queries can rank content by relevance or select a topic, tag, event time and literal keywords.
 The memory engine requires no model or embedding calls.
 Your runtime selects what to save and adds retrieved facts to the model context.
 
-## Four everyday tools
+## Five everyday tools
 
 | CLI / MCP tool | Use                                                                |
 | -------------- | ------------------------------------------------------------------ |
 | `remember`     | Save content, topic, tags, optional event time and custom metadata |
 | `recall`       | Find memories using any combination of supported filters           |
+| `search`       | Rank content with BM25, English stemming and optional label/time filters |
 | `browse`       | Page through permitted memories, newest event time first           |
 | `forget`       | Explicitly delete one memory and its indexes                       |
 
@@ -45,6 +46,7 @@ instantkv remember "Prefer Rust for local tools" \
   --key preferences/language --topic preferences --tag local \
   --metadata '{"source":"user","app":{"confidence":0.9}}'
 instantkv recall --topic preferences --query Rust
+instantkv search "preferred language for local tooling"
 instantkv browse --limit 10
 ```
 
@@ -98,13 +100,43 @@ Times use Unix milliseconds. Both time-range endpoints are inclusive.
 The host runtime must convert phrases such as "last week" with the user's timezone.
 Results have descending event-time order. Equal times have descending key order.
 
-## Keyword retrieval and pagination
+## Ranked retrieval
+
+Use `search` when you need relevant documents, rather than newest events:
+
+```sh
+instantkv search "preferred language for local tooling" --limit 10
+instantkv search "storage decisions" --topic decisions --tag local
+```
+
+The engine splits content into alphanumeric words, removes common English stop words,
+and applies English Snowball stemming. BM25 combines term rarity, term frequency and
+document length. Query words use OR matching. More relevant records come first;
+equal scores use ascending key order. Custom metadata is returned but is not searched.
+Scores compare results within one query. They are not confidence scores.
+
+This is lexical retrieval. It does not infer synonyms or provide embedding similarity.
+English stemming is fixed; other languages need separate evaluation.
+
+Queries accept 1–1,024 UTF-8 bytes and at most 64 unique indexed terms.
+The default posting budget is 20,000 per request, configurable with
+`memory.max_search_postings`. Candidate, scan-byte and response limits also apply.
+Always check `truncated`: a work limit can produce partial scores and no complete
+top-k guarantee. Raise the posting budget or narrow the corpus when needed.
+Topic/tag/time filters run after scoring. They can require further pages.
+
+Continue with `next_cursor` and unchanged filters. Ranked pages rescore the query.
+A managed memory write, delete or expiry cleanup invalidates the namespace's ranked
+cursor; start a new search after such a change. Unchanged data permits continuation
+after restart. Expired records are hidden; corpus statistics include them until cleanup.
+
+## Literal retrieval and pagination
 
 `--query "Rust local"` requires both literal substrings in the content.
 Matching ignores letter case. A query accepts at most eight terms and 256 bytes.
 Whitespace separates the terms.
 The MVP returns metadata but does not search its fields.
-It does not provide semantic similarity, relevance ranking or automatic fact extraction.
+Use `search` for relevance ranking. Neither tool provides semantic similarity or automatic fact extraction.
 
 Time, topic and tag queries use ordered indexes.
 A combined topic/tag query uses the topic index, then tests the tag.
@@ -147,6 +179,7 @@ Routes under `/v1/namespaces/{namespace}`:
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------- | --------------- |
 | `POST /memories`         | `{key?, memory: {content, topic?, tags?, metadata?, occurred_at_ms?}, ttl_seconds?, if_revision?}` → saved memory | put             |
 | `GET /memories`          | Query filters → `{items, next_cursor, scanned, scanned_bytes}`                                                    | list + get      |
+| `POST /search`           | `{query, topic?, tag?, since_ms?, until_ms?, limit?, max_bytes?, cursor?}` → scored items and work counters | list + get |
 | `GET /memories/{key}`    | Exact structured memory, revision and timestamps                                                                  | get             |
 | `DELETE /memories/{key}` | Forget; optional `If-Match: "revision"`                                                                           | delete          |
 
@@ -156,7 +189,7 @@ TTL follows the namespace policy.
 The `forget` operation rejects raw KV records.
 
 The MCP `remember` tool accepts memory fields directly. It does not use the HTTP `memory` wrapper.
-The `recall` and `browse` tools accept query fields directly.
+The `recall`, `search` and `browse` tools accept query fields directly.
 Credentials, request limits and namespace permissions apply to each call.
 
 [MCP setup](agents.md).
@@ -180,7 +213,7 @@ It removes its temporary state.
 
 This test verifies storage and transport. The model example below tests inference behavior.
 
-The [Ollama example](../examples/local-llm.py) reads four tool schemas from the instantKV MCP adapter.
+The [Ollama example](../examples/local-llm.py) reads five tool schemas from the instantKV MCP adapter.
 It sends tool calls and results between the model and adapter.
 It uses the Python standard library.
 
@@ -229,11 +262,14 @@ The service does not execute uploaded plugins.
 
 Structured records use the reserved `_instantkv_memory: 1` JSON envelope in `records_v1`.
 The additional `memory_index_v1` table contains time, topic and tag entries.
+`search_postings_v1`, `search_terms_v1` and `search_stats_v1` hold the sparse search index.
 Each entry points to a structured record.
 Writes, updates, deletes and expiry cleanup change records and indexes in the same immediate transaction.
 A raw KV write that replaces a structured record also removes the old index entries.
 
-Ordinary records need no conversion.
+On first open, this build backfills the search index in one transaction.
+Stored record bytes and revisions do not change. Large existing corpora can take longer
+to open. Subsequent opens reuse the index. Ordinary records need no conversion.
 
 1. Back up existing data offline before you use this unreleased build.
 2. Use `remember` to create indexed memories when needed.
@@ -248,4 +284,4 @@ Logical quotas count the full JSON envelope. They exclude physical index and dat
 
 The [performance plan](performance.md) separates Mac measurements from device targets.
 The [roadmap](roadmap.md) defines local-model evaluation, native mobile integration and portable exports.
-Richer retrieval remains optional future work.
+Local embeddings and real-agent retrieval evaluation remain future work.

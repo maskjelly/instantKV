@@ -51,12 +51,14 @@ defaults; new local setups include them explicitly:
 ```toml
 [memory]
 max_candidates = 1000
+max_search_postings = 20000
 max_scan_bytes = 4194304
 max_result_bytes = 65536
 ```
 
 | Query setting                 | Accepted range                             |
 | ----------------------------- | ------------------------------------------ |
+| Ranked postings examined      | 1–1,000,000; default 20,000                 |
 | Candidate records examined    | 1–100,000                                  |
 | Encoded record bytes examined | 64 KiB–64 MiB                              |
 | Complete response cap         | 1 KiB–1 MiB                                |

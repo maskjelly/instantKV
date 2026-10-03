@@ -74,7 +74,7 @@ Structured-memory APIs use a `_instantkv_memory: 1` envelope in durable JSON rec
 Time, topic and tag indexes change in the same transaction as records, quotas and expiry entries.
 Deletion, replacement and expiry cleanup remove old index entries.
 Recall reads indexes and values in one snapshot, with candidate, scan-byte and response limits.
-Keyword filtering uses literal content; it requires no vector index or model.
+Literal recall filters content. Ranked search uses sparse BM25 postings and English stemming in the same redb transaction. Neither requires a vector index or model.
 [Memory shape and cursor contract](memory-mvp.md).
 
 Checkpoint namespace reserved records:
@@ -139,7 +139,7 @@ One process must own each data file.
 3. Measure writer contention, expiry delay and memory growth before adding storage concurrency features.
 4. Implement the [distributed proposal](distributed-memory.md) in stages.
    Start with export/import, immutable baselines and private overlays. Add reviewed publication before synchronization.
-5. Evaluate ranked keyword search and local embeddings with real tasks.
+5. Evaluate BM25 ranking with more corpora and real tasks before adding local embeddings.
 
-Topic/tag/time indexes and bounded literal keywords work in the source MVP.
+Topic/tag/time indexes, literal filters and bounded BM25 ranking work in the source MVP.
 Semantic search, automatic failover, a custom write-ahead log and Redis compatibility remain separate design choices.

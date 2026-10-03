@@ -13,7 +13,7 @@ Native phone support and model-quality improvements need further tests.
 | Linux ARM64 validation    | Native CI and packaging passed; device measurements pending | Named-board benchmarks, cold/warm latency, RSS and recovery                                      |
 | Native phone embedding    | Rust core available; Swift/Kotlin bindings planned          | Android/iOS build, sandbox paths, suspension/relaunch, backup/encryption design, battery profile |
 | Portable app memory       | Custom metadata works; export/import and migrations planned | Versioned bundles, size limits, provenance, round-trip integrity, index rebuild                  |
-| Richer optional retrieval | Ranked lexical search and local embeddings proposed         | Task-recall improvement, dependency/index size, latency and power costs                          |
+| Richer optional retrieval | BM25 ranking implemented; local embeddings proposed         | Task-recall improvement, dependency/index size, latency and power costs                          |
 
 The [performance plan](performance.md) records Mac measurements and unverified ARM-board targets.
 Its 10,000-memory workload has these initial targets:
@@ -25,7 +25,7 @@ Its 10,000-memory workload has these initial targets:
 
 These targets exclude model inference and app overhead.
 
-Daily memory operations use four tools.
+Daily memory operations use five tools.
 Custom JSON metadata, typed APIs and configurable limits provide extension points.
 The memory service remains usable offline.
 
@@ -35,14 +35,15 @@ The memory service remains usable offline.
 - [x] Durable redb knowledge and bounded RAM scratch cache.
 - [x] Atomic quotas, indexed TTL cleanup, FIFO eviction, revision conditions.
 - [x] Exact recall and bounded prefix metadata pages.
-- [x] Structured remember/recall/browse/forget through core, HTTP, CLI and MCP.
+- [x] Structured `remember`, `recall`, `search`, `browse` and `forget` through core, HTTP, CLI and MCP.
 - [x] Ordered topic/tag/time indexes with atomic record/index updates and cleanup.
+- [x] Transactional BM25 postings with English stemming, bounded scoring and ranked cursors.
 - [x] Bounded keyword filtering, response byte budget and filter-bound cursors.
 - [x] Custom metadata, explicit event time, create-only saves and revision protection.
 - [x] Immutable checkpoint + latest pointer in one immediate transaction.
 - [x] Idempotent retries, bounded restore, visible stale/missing/forbidden references.
 - [x] Old-checkpoint deletion protecting the latest restore point.
-- [x] Scoped credentials, HTTP, CLI setup/doctor, eleven MCP stdio tools.
+- [x] Scoped credentials, HTTP, CLI setup/doctor, twelve MCP stdio tools.
 - [x] Shared knowledge and isolated agents using per-namespace grants.
 - [x] Ready-made swarm init profile and two-agent HTTP isolation/restart demo.
 - [x] Demo with simulated compaction and real server kill/restart.

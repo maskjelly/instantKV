@@ -151,5 +151,70 @@
     ],
     "title": "RememberRequest",
     "type": "object"
+  },
+  "search": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "cursor": {
+        "default": null,
+        "description": "Bound to the query, namespace and index generation; writes invalidate it.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "limit": {
+        "default": 20,
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "max_bytes": {
+        "default": 16384,
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "query": {
+        "default": "",
+        "description": "Natural-language or keyword query; at most 1024 bytes and 64 indexed terms.",
+        "type": "string"
+      },
+      "since_ms": {
+        "default": null,
+        "format": "uint64",
+        "minimum": 0,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "tag": {
+        "default": null,
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "topic": {
+        "default": null,
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "until_ms": {
+        "default": null,
+        "format": "uint64",
+        "minimum": 0,
+        "type": [
+          "integer",
+          "null"
+        ]
+      }
+    },
+    "title": "SearchQuery",
+    "type": "object"
   }
 }

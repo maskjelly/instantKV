@@ -17,6 +17,7 @@ cleanup_batch_entries = 100
 # Query work/output caps, separate from storage quotas and total RAM.
 [memory]
 max_candidates = 1000
+max_search_postings = 20000
 max_scan_bytes = 4194304 # 4 MiB of encoded records per query page
 max_result_bytes = 65536 # 64 KiB including returned metadata and cursor
 

@@ -2,12 +2,17 @@
 
 ## Unreleased
 
+- Add bounded BM25 search with English stemming through Rust, HTTP, CLI and MCP.
+- Commit search postings and corpus statistics with record updates, deletion and expiry.
+- Backfill older structured memories atomically on first open; preserve record revisions.
+- Measure SciFact document recall and rerun existing latency/recovery benchmarks.
+
 - Add `remember`, `recall`, `browse` and `forget` through Rust, HTTP, CLI and MCP.
 - Store content, topics, tags, event time and custom JSON metadata.
 - Maintain ordered topic/tag/time indexes with record changes in one transaction.
 - Limit keyword scan work and response size. Bind cursors to their namespace and filters.
 - Require create-only saves or observed revisions for updates. Retrieval requires get and list grants.
-- Add four MCP tools, generated schemas, an embedded example and an optional Ollama tool loop.
+- Add five MCP tools, generated schemas, an embedded example and an optional Ollama tool loop.
 - Use a smaller default local profile: loopback, private credentials and an 8 MiB redb cache.
 - Build and test Linux ARM64 in native CI. Physical-device measurements remain pending.
 - Record three 10,000-memory Mac runs and exact recovery of all 30,000 memories after abrupt restarts.

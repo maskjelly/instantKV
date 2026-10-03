@@ -93,6 +93,7 @@ impl Engine {
                 txn.open_table(EXPIRY).map_err(storage)?;
                 txn.open_table(crate::memory::INDEX).map_err(storage)?;
             }
+            crate::search::initialize(&txn)?;
             txn.commit().map_err(storage)?;
             Some(database)
         } else {
@@ -282,6 +283,7 @@ impl Engine {
             )?;
             let mut index = txn.open_table(crate::memory::INDEX).map_err(storage)?;
             crate::memory::update_index(&mut index, namespace, key, old.as_ref(), Some(&result))?;
+            crate::search::update(&txn, namespace, key, old.as_ref(), Some(&result))?;
             counters
                 .insert(namespace, encode_usage(&usage).as_slice())
                 .map_err(storage)?;
@@ -340,6 +342,7 @@ impl Engine {
             check_condition(condition, Some(&record))?;
             let mut index = txn.open_table(crate::memory::INDEX).map_err(storage)?;
             crate::memory::update_index(&mut index, namespace, key, Some(&record), None)?;
+            crate::search::update(&txn, namespace, key, Some(&record), None)?;
             let mut usage = load_usage(&counters, namespace)?;
             subtract(&mut usage, key, &record)?;
             records.remove(encoded.as_str()).map_err(storage)?;
@@ -751,6 +754,7 @@ impl Engine {
                             Some(&record),
                             None,
                         )?;
+                        crate::search::update(&txn, namespace, key, Some(&record), None)?;
                         subtract(&mut usage, key, &record)?;
                         counters
                             .insert(namespace, encode_usage(&usage).as_slice())

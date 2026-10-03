@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import ranked from '../../../docs/benchmarks/2026-10-03-ranked/scifact.json';
 import {
   report,
   workloads,
@@ -51,6 +52,93 @@ const max = Math.max(...workloads.map((w) => w.p95));
         </a>
       </p>
     </header>
+    <section class="band">
+      <h2>Document recall: instantKV and Supermemory</h2>
+      <p>
+        BEIR SciFact: 5,183 scientific documents, 300 judged queries, identical
+        text and dataset hashes. One BM25 run; Supermemory results reuse the
+        earlier same-host run with local bge-base-en-v1.5 embeddings, no
+        reranking or query rewriting.
+      </p>
+      <div class="table-scroll">
+        <table>
+          <caption>Tested local configurations / no generation model</caption>
+          <thead>
+            <tr>
+              <th scope="col">Measurement</th>
+              <th scope="col">instantKV BM25</th>
+              <th scope="col">Supermemory local v0.0.8</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              [
+                'Recall@10',
+                ...Object.values(ranked.providers).map(
+                  (p) =>
+                    (100 * p.scifact.metrics.recall_at_10).toFixed(2) + '%',
+                ),
+              ],
+              [
+                'nDCG@10',
+                ...Object.values(ranked.providers).map((p) =>
+                  p.scifact.metrics.ndcg_at_10.toFixed(4),
+                ),
+              ],
+              [
+                'Ranked query p95',
+                ...Object.values(ranked.providers).map(
+                  (p) => p.scifact.query_latency_ms.p95.toFixed(3) + ' ms',
+                ),
+              ],
+              [
+                'Save completion p95',
+                ...Object.values(ranked.providers).map(
+                  (p) => p.save_latency_ms.p95.toFixed(3) + ' ms',
+                ),
+              ],
+              [
+                'Largest sampled RSS',
+                ...Object.values(ranked.providers).map(
+                  (p) => mib(p.largest_sampled_rss_bytes) + ' MiB',
+                ),
+              ],
+              [
+                'Native binary',
+                ...Object.values(ranked.providers).map(
+                  (p) => mib(p.binary_bytes) + ' MiB',
+                ),
+              ],
+            ].map((row) => (
+              <tr>
+                <th scope="row">{row[0]}</th>
+                <td>{row[1]}</td>
+                <td>{row[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        English lexical retrieval, not semantic similarity. Sparse indexing
+        raised instantKV document-save p95 from 6.76 to 12.44 ms; the SciFact
+        database used 81 MiB. All evaluated queries completed within the default
+        work limits. Sampled RSS is not peak RAM.
+      </p>
+      <p>
+        This dataset does not establish general superiority, personal-memory
+        quality or phone performance. The separate workload below checks
+        existing filters and recovery with ranked indexing enabled.
+      </p>
+      <p class="u-cluster">
+        <a class="text-link" href="/benchmark-data/search/scifact.json">
+          Rankings, samples and hashes ↗
+        </a>
+        <a class="text-link" href="/benchmark-data/search/README.md">
+          Method and reproduction ↗
+        </a>
+      </p>
+    </section>
     <div class="instruments" style="--cols:4">
       <div>
         <span class="data-label">Exact restart recovery</span>

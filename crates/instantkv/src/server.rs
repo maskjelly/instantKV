@@ -13,6 +13,7 @@ use instantkv_core::{
     config::{Config, Operation, ValueKind},
     memory::{MemoryHit, MemoryPage, MemoryQuery, RememberRequest},
     model::{CheckpointRequest, Condition},
+    search::{SearchPage, SearchQuery},
 };
 use serde::Deserialize;
 use serde_json::json;
@@ -113,6 +114,7 @@ pub fn router(app: App) -> Router {
         .route("/metrics", get(metrics))
         .route("/v1/namespaces/{ns}/records", get(list))
         .route("/v1/namespaces/{ns}/memories", get(recall).post(remember))
+        .route("/v1/namespaces/{ns}/search", post(search))
         .route(
             "/v1/namespaces/{ns}/memories/{*key}",
             get(memory_read).delete(forget),
@@ -176,6 +178,7 @@ async fn gate(State(app): State<App>, mut request: axum::extract::Request, next:
             .map(|path| path.as_str())
             .unwrap_or("");
         let operation = match parts.method {
+            axum::http::Method::POST if route == "/v1/namespaces/{ns}/search" => Operation::List,
             axum::http::Method::PUT | axum::http::Method::POST => Operation::Put,
             axum::http::Method::DELETE => Operation::Delete,
             _ if route == "/v1/namespaces/{ns}/stats" => Operation::Stats,
@@ -374,6 +377,20 @@ async fn remember(
             engine.remember(&ns, &key, request.memory, request.ttl_seconds, condition)
         })
         .await?,
+    ))
+}
+
+async fn search(
+    State(app): State<App>,
+    Extension(permit): Extension<Permit>,
+    Path(ns): Path<String>,
+    headers: HeaderMap,
+    Json(query): Json<SearchQuery>,
+) -> Result<Json<SearchPage>, ApiError> {
+    app.authorize(&headers, Some(&ns), Operation::List)?;
+    app.authorize(&headers, Some(&ns), Operation::Get)?;
+    Ok(Json(
+        blocking(&app, permit, move |engine| engine.search(&ns, query)).await?,
     ))
 }
 

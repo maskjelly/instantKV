@@ -48,7 +48,7 @@ judgment about fit, not a result from testing those products.
 | [Letta](https://docs.letta.com/agent-sdk)                                  | A stateful agent SDK with [persistent memory](https://docs.letta.com/agent-sdk/memory), git-backed files and background memory updates                                              | You want the agent runtime and memory system together                                     |
 | [Upstash Redis](https://upstash.com/redis)                                 | Managed Redis over HTTP or TCP, durable storage and multi-region replication                                                                                                        | You want someone else to operate the database, or your application needs Redis features   |
 | [Valkey](https://valkey.io/topics/transactions/)                           | A general-purpose key/value server with transactions, [persistence](https://valkey.io/topics/persistence/) and [clustering](https://valkey.io/topics/cluster-tutorial/)             | You need its broader database features and want to build the agent handoff logic yourself |
-| instantKV                                                                  | Exact records, durable checkpoints, shared/private permissions, HTTP/CLI/MCP in one local-first Rust process                                                                        | You know what the agent should save and want a direct way to store it and resume work     |
+| instantKV                                                                  | BM25 document ranking, exact records, durable checkpoints, shared/private permissions, HTTP/CLI/MCP in one local-first Rust process                                                                        | You know what the agent should save and want a direct way to store it and resume work     |
 
 Several alternatives support self-hosting. Mem0 can use local models, depending on its configuration.
 instantKV combines direct record access with checkpoint tools; it does not replace your agent runtime.
@@ -56,7 +56,7 @@ instantKV combines direct record access with checkpoint tools; it does not repla
 ## The evidence so far
 
 The source MVP's [structured-memory benchmark](performance.md) used three fresh 10,000-memory databases on an M4 Pro.
-Topic query p95 was **0.130–0.132 ms**. The largest sampled server RSS was **19.6 MiB**.
+Topic query p95 was **0.131–0.139 ms**. The largest sampled server RSS was **20.89 MiB**.
 All **30,000** memories were verified after abrupt restarts.
 These warm local-HTTP results exclude the model and phones.
 
@@ -70,3 +70,8 @@ Semantic search, automatic runtime hooks and replicas remain [planned](roadmap.m
 
 [Try the browser demo](https://instantkv.com/demo/) or [run your own node](quickstart.md).
 Agent knowledge and task checkpoints are separate from a model's inference KV cache.
+
+A separate [SciFact comparison](benchmarks/2026-10-03-ranked/README.md) measured
+instantKV BM25 against Supermemory local: 81.43% versus 74.80% recall@10.
+That result applies to the tested corpus and configurations. It does not rank
+the other products above or measure real-agent memory quality.

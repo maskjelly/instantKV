@@ -1,6 +1,7 @@
 use anyhow::{Context, Result, bail};
 use instantkv_core::memory::{MemoryHit, MemoryPage, MemoryQuery, RememberRequest};
 use instantkv_core::model::{CheckpointReceipt, CheckpointRequest, Page, Restore, Usage};
+use instantkv_core::search::{SearchPage, SearchQuery};
 use reqwest::{Client as HttpClient, Url};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -189,6 +190,22 @@ impl Client {
         .json()
         .await
         .context("invalid memory response")
+    }
+
+    pub async fn search(&self, namespace: &str, query: &SearchQuery) -> Result<SearchPage> {
+        Self::checked(
+            self.request(
+                reqwest::Method::POST,
+                &["v1", "namespaces", namespace, "search"],
+            )?
+            .json(query)
+            .send()
+            .await?,
+        )
+        .await?
+        .json()
+        .await
+        .context("invalid ranked search page")
     }
 
     pub async fn recall(&self, namespace: &str, query: &MemoryQuery) -> Result<MemoryPage> {

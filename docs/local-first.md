@@ -99,7 +99,7 @@ Each run saves 10,000 structured memories and verifies every field after an abru
 It measures saves, filtered queries, browse, exact reads and revision-checked deletion.
 
 [Current figures and device targets](performance.md) ·
-[Raw samples, hardware and binary hash](benchmarks/2026-10-03-memory/mac-arm64.json).
+[Raw samples, hardware and binary hash](benchmarks/2026-10-03-ranked/mac-arm64.json).
 The results exclude the model, phones and battery use. RSS samples do not measure peak RAM.
 
 ```sh

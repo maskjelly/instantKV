@@ -58,6 +58,76 @@ fn config() -> Config {
 }
 
 #[tokio::test]
+async fn ranked_search_requires_both_grants_and_preserves_exact_memory_routes() {
+    use instantkv_core::{
+        config::Operation,
+        memory::{MemoryInput, RememberRequest},
+        search::SearchQuery,
+    };
+    let server = start(config()).await;
+    server
+        .client
+        .remember(
+            "knowledge",
+            &RememberRequest {
+                key: Some("search".into()),
+                memory: MemoryInput {
+                    content: "Antibodies bind immune cells".into(),
+                    ..Default::default()
+                },
+                ttl_seconds: None,
+                if_revision: None,
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        server
+            .client
+            .memory_get("knowledge", "search")
+            .await
+            .unwrap()
+            .key,
+        "search"
+    );
+    let reader = Client::new(&server.base, Some(READER_TOKEN.into())).unwrap();
+    let q = SearchQuery {
+        query: "How does an antibody bind?".into(),
+        ..Default::default()
+    };
+    let page = reader.search("knowledge", &q).await.unwrap();
+    assert_eq!(page.items[0].hit.key, "search");
+    assert!(page.items[0].score > 0.0);
+    assert!(
+        reader
+            .search("scratch", &q)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("403")
+    );
+    for operations in [vec![Operation::List], vec![Operation::Get]] {
+        let mut c = config();
+        c.auth
+            .principals
+            .iter_mut()
+            .find(|p| p.name == "reader")
+            .unwrap()
+            .operations = operations;
+        let restricted = start(c).await;
+        let reader = Client::new(&restricted.base, Some(READER_TOKEN.into())).unwrap();
+        assert!(
+            reader
+                .search("knowledge", &q)
+                .await
+                .unwrap_err()
+                .to_string()
+                .contains("403")
+        );
+    }
+}
+
+#[tokio::test]
 async fn memory_api_creates_filters_updates_and_forgets_with_revision_conditions() {
     use instantkv_core::memory::{MemoryInput, MemoryQuery, RememberRequest};
     let server = start(config()).await;
@@ -693,8 +763,8 @@ async fn mcp_stdio_tools_save_and_restore_through_authenticated_http() {
         json!({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}),
     )
     .await;
-    assert_eq!(tools["tools"].as_array().unwrap().len(), 11);
-    for name in ["remember", "recall", "browse", "forget"] {
+    assert_eq!(tools["tools"].as_array().unwrap().len(), 12);
+    for name in ["remember", "recall", "search", "browse", "forget"] {
         assert!(
             tools["tools"]
                 .as_array()
@@ -728,6 +798,18 @@ async fn mcp_stdio_tools_save_and_restore_through_authenticated_http() {
         "Use Neovim locally"
     );
     let browse = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":10,"method":"tools/call","params":{"name":"browse","arguments":{}}})).await;
+    let ranked = call(&mut input, &mut output, json!({"jsonrpc":"2.0","id":13,"method":"tools/call","params":{"name":"search","arguments":{"query":"Which editor should I use locally?"}}})).await;
+    assert_eq!(ranked["isError"], false);
+    assert_eq!(
+        ranked["structuredContent"]["items"][0]["key"],
+        "preferences/editor"
+    );
+    assert!(
+        ranked["structuredContent"]["items"][0]["score"]
+            .as_f64()
+            .unwrap()
+            > 0.0
+    );
     assert_eq!(
         browse["structuredContent"]["items"]
             .as_array()
@@ -801,6 +883,18 @@ async fn cli_memory_commands_and_generated_schemas_match_the_live_api() {
     )
     .await;
     assert_eq!(recalled["items"][0]["memory"]["content"], "Prefer Rust");
+    let ranked = cli(
+        &server,
+        &[
+            "search",
+            "preferred languages Rust",
+            "--topic",
+            "preferences",
+        ],
+    )
+    .await;
+    assert_eq!(ranked["items"][0]["memory"]["content"], "Prefer Rust");
+    assert!(ranked["items"][0]["score"].as_f64().unwrap() > 0.0);
     assert_eq!(
         cli(&server, &["browse", "--limit", "1"]).await["items"]
             .as_array()

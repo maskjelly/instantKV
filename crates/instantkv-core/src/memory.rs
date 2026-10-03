@@ -114,7 +114,7 @@ struct Cursor {
     position: String,
 }
 
-fn label(value: &str) -> Result<String> {
+pub(crate) fn label(value: &str) -> Result<String> {
     let value = value.trim().to_lowercase();
     if value.is_empty() || value.len() > 64 || value.chars().any(char::is_control) {
         return Err(Error::Invalid(
@@ -226,7 +226,7 @@ pub(crate) fn update_index(
     Ok(())
 }
 
-fn hit(key: &str, record: Record, memory: Memory) -> MemoryHit {
+pub(crate) fn hit(key: &str, record: Record, memory: Memory) -> MemoryHit {
     MemoryHit {
         key: key.into(),
         revision: record.revision,
@@ -237,7 +237,7 @@ fn hit(key: &str, record: Record, memory: Memory) -> MemoryHit {
 }
 
 impl Engine {
-    fn memory_namespace(&self, namespace: &str) -> Result<()> {
+    pub(crate) fn memory_namespace(&self, namespace: &str) -> Result<()> {
         let ns = self.namespace(namespace)?;
         if ns.purpose != Purpose::Records
             || ns.mode != StorageMode::Durable

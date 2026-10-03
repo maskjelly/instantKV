@@ -22,6 +22,8 @@ pub struct MemoryPolicy {
     pub max_candidates: usize,
     pub max_scan_bytes: usize,
     pub max_result_bytes: usize,
+    /// Sparse-index entries scored per ranked search; independent of record reads.
+    pub max_search_postings: usize,
 }
 
 impl Default for MemoryPolicy {
@@ -30,6 +32,7 @@ impl Default for MemoryPolicy {
             max_candidates: 1000,
             max_scan_bytes: 4 * 1024 * 1024,
             max_result_bytes: 65536,
+            max_search_postings: 20000,
         }
     }
 }
@@ -223,10 +226,11 @@ impl Config {
             return Err("storage.cache_size_bytes must be greater than zero".into());
         }
         if !(1..=100_000).contains(&self.memory.max_candidates)
+            || !(1..=1_000_000).contains(&self.memory.max_search_postings)
             || !(65536..=64 * 1024 * 1024).contains(&self.memory.max_scan_bytes)
             || !(1024..=1024 * 1024).contains(&self.memory.max_result_bytes)
         {
-            return Err("memory budgets: max_candidates 1..100000, max_scan_bytes 65536..67108864, max_result_bytes 1024..1048576".into());
+            return Err("memory budgets: max_candidates 1..100000, max_search_postings 1..1000000, max_scan_bytes 65536..67108864, max_result_bytes 1024..1048576".into());
         }
         if self.namespaces.is_empty() {
             return Err("at least one namespace is required".into());

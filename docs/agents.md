@@ -60,6 +60,7 @@ Stdout contains only MCP messages. Diagnostics use stderr.
 | ------------------------ | ------------------------------------------------------------------------- |
 | remember                 | Save structured content, topic, tags, event time and custom metadata      |
 | recall                   | Retrieve by topic/tag/time/keywords with bounded pages                    |
+| search                   | Rank content with BM25; optional topic/tag/time filters; bounded scoring |
 | browse                   | Explore structured memories newest first; follow next_cursor              |
 | forget                   | Delete structured memory and indexes, optionally with revision protection |
 | memory_put               | Save JSON knowledge, with optional expiry or revision checks              |
@@ -74,7 +75,7 @@ The adapter preserves JSON values. It returns non-JSON bytes with explicit base6
 Binary data is not silently converted to text.
 The adapter uses the official [Rust MCP SDK](https://github.com/modelcontextprotocol/rust-sdk).
 
-The four new memory tools belong to the unreleased source MVP.
+The five new memory tools belong to the unreleased source MVP.
 The seven original KV and checkpoint tools remain compatible.
 The [memory guide](memory-mvp.md) explains query behavior, limits and the Ollama example.
 
@@ -82,6 +83,7 @@ The [memory guide](memory-mvp.md) explains query behavior, limits and the Ollama
 
 ```text
 Use remember to save facts, preferences and decisions with topics, tags and source metadata.
+Use search to rank relevant content with BM25 and English stemming. Check truncated; writes invalidate ranked cursors.
 Use recall to find memories by topic, time or literal keywords.
 Keep filters unchanged when using next_cursor. Continue across empty pages until next_cursor is null.
 Before compaction, call memory_checkpoint with the goal, summary, constraints, decisions, open_tasks and next_action.

@@ -2,7 +2,7 @@
 
 The current benchmark measures the memory API: save, recall, browse, exact read and forget.
 The [performance guide](performance.md) gives measured results and separate device targets.
-[Raw report and all latency samples](benchmarks/2026-10-03-memory/mac-arm64.json).
+[Raw report and all latency samples](benchmarks/2026-10-03-ranked/mac-arm64.json).
 
 ## Retrieval and recovery
 
@@ -63,3 +63,9 @@ Neither measures engine-only time or model quality.
 
 Historical raw KV data stays in the repository under dated directories.
 It is not used for current product metrics.
+
+## Ranked document recall
+
+[BEIR SciFact comparison](benchmarks/2026-10-03-ranked/README.md): BM25 document
+ranking, full queries, raw relevance metrics and measured indexing costs.
+The browser recordings remain demonstrations of literal filters, not ranked-search evidence.
