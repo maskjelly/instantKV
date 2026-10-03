@@ -56,9 +56,9 @@ const max = Math.max(...workloads.map((w) => w.p95));
       <h2>Document recall: instantKV and Supermemory</h2>
       <p>
         BEIR SciFact: 5,183 scientific documents, 300 judged queries, identical
-        text and dataset hashes. One BM25 run; Supermemory results reuse the
-        earlier same-host run with local bge-base-en-v1.5 embeddings, no
-        reranking or query rewriting.
+        text and dataset hashes. Fresh databases in sequential same-host runs.
+        Supermemory uses local bge-base-en-v1.5 embeddings, no reranking or
+        query rewriting.
       </p>
       <div class="table-scroll">
         <table>
@@ -121,7 +121,7 @@ const max = Math.max(...workloads.map((w) => w.p95));
       </div>
       <p>
         English lexical retrieval, not semantic similarity. Sparse indexing
-        raised instantKV document-save p95 from 6.76 to 12.44 ms; the SciFact
+        raised instantKV document-save p95 from 6.76 to 11.82 ms; the SciFact
         database used 81 MiB. All evaluated queries completed within the default
         work limits. Sampled RSS is not peak RAM.
       </p>

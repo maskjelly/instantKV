@@ -5,7 +5,7 @@ The MVP is unreleased. Keep user-facing explanations concise.
 
 ## What to evaluate
 
-- `remember`, `recall`, `browse`, `forget`: content + topic/tags + event time + custom JSON metadata.
+- `remember`, `recall`, `search`, `browse`, `forget`: content + topic/tags + event time + custom JSON metadata.
 - Ordered time/topic/tag indexes; literal filtering plus bounded BM25 `search` with English stemming, not semantic search.
 - All memory writes/deletes/expiry cleanup keep record/index changes in one redb transaction.
 - Core can run in-process; HTTP/CLI/MCP add transports and scoped permissions.
@@ -20,6 +20,7 @@ model is required by the memory service.
 ## Code map
 
 - `crates/instantkv-core/src/memory.rs`: shape, indexes, query bounds and cursor contract.
+- `crates/instantkv-core/src/search.rs`: transactional BM25 postings, corpus statistics, scoring budgets and ranked cursors.
 - `crates/instantkv-core/src/store.rs`: record/index transactions, quota and expiry maintenance.
 - `crates/instantkv/src/{server,client,mcp,main}.rs`: authenticated API, typed tools and CLI.
 - `examples/memory.schema.json`: generated HTTP schemas.

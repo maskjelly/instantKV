@@ -100,6 +100,14 @@ function prepareAssets() {
     ),
   );
   const p95 = memoryReport.runs.map((run) => run.queries.topic.latency_ms.p95);
+  const rankedReport = JSON.parse(
+    readFileSync(
+      resolve(root, 'docs/benchmarks/2026-10-03-ranked/scifact.json'),
+      'utf8',
+    ),
+  );
+  const ranked = rankedReport.providers.instantkv;
+  const supermemory = rankedReport.providers.supermemory;
   const topicRange = `${Math.min(...p95).toFixed(3)}–${Math.max(...p95).toFixed(3)}`;
   const sampledRam = (
     Math.max(...memoryReport.runs.map((run) => run.largest_sampled_rss_bytes)) /
@@ -112,7 +120,7 @@ function prepareAssets() {
     '# instantKV',
     'instantKV stores local-agent memory in one Rust process. The source MVP is unreleased. Earlier 0.1.2 archives do not include the new memory tools.',
     'Use remember, recall, search, browse and forget through Rust, HTTP, CLI or MCP. Search ranks content with BM25 and English stemming; recall uses ordered topic/tag/time indexes and literal AND filters. Check truncated; managed writes invalidate ranked cursors. Custom JSON metadata and configurable limits support app-specific use. Retrieval requires both get and list grants.',
-    'One local BEIR SciFact run: instantKV BM25 recall@10 81.43%, versus Supermemory local v0.0.8 74.80% with bge-base embeddings and no reranker in an earlier same-host run. Ranked query p95 1.29 ms, sampled RSS 22.66 MiB, binary 8.28 MiB. Document save p95 rose from 6.76 to 12.44 ms. This is a dataset-specific document retrieval result, not agent quality or phone performance. Raw rankings: https://instantkv.com/benchmark-data/search/scifact.json',
+    `Local BEIR SciFact: instantKV BM25 recall@10 ${(100 * ranked.scifact.metrics.recall_at_10).toFixed(2)}%, versus Supermemory local v0.0.8 ${(100 * supermemory.scifact.metrics.recall_at_10).toFixed(2)}% with bge-base embeddings and no reranker. Sequential same-host runs with fresh databases. Ranked query p95 ${ranked.scifact.query_latency_ms.p95.toFixed(2)} ms, sampled RSS ${(ranked.largest_sampled_rss_bytes / 1024 ** 2).toFixed(2)} MiB, binary ${(ranked.binary_bytes / 1024 ** 2).toFixed(2)} MiB. Document save p95 ${ranked.save_latency_ms.p95.toFixed(2)} ms. This is a dataset-specific document retrieval result, not agent quality or phone performance. Raw rankings: https://instantkv.com/benchmark-data/search/scifact.json`,
     'The service needs no cloud API or embedding model. The runtime selects what to save and adds retrieved facts to model context.',
     `Three warm synthetic Mac runs stored 10,000 memories each. Topic query p95 was ${topicRange} ms. The largest sampled server RSS was ${sampledRam} MiB. All ${recovered} memories were recovered after abrupt restarts. These results exclude inference, energy use and phones.`,
     'Linux x86_64, Linux ARM64 and macOS ARM64 passed source MVP CI. ARM-board performance targets remain unverified. Native Swift/Kotlin bindings and real-model quality evaluation are planned. The browser demo uses the same structured-memory API for live saves, filtered queries, browse and revision-checked deletion. Recorded mode serves saved responses from three fresh memory runs; it makes no new storage calls.',

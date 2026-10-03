@@ -9,10 +9,10 @@ Targets are engineering goals for a defined workload.
 
 BM25 search reached **81.43% Recall@10** on BEIR SciFact, versus **74.80%** for
 Supermemory local v0.0.8 with local bge-base embeddings and no reranker.
-Ranked query p95: **1.292 ms**; sampled RSS: **22.66 MiB**; binary: **8.28 MiB**.
-One run, 300 judged queries, 5,183 documents. Supermemory results reuse an earlier
-same-host run. This is a corpus-specific document-retrieval comparison.
-Sparse indexing increases write work: document-save p95 was **12.438 ms**,
+Ranked query p95: **1.309 ms**; sampled RSS: **22.72 MiB**; binary: **8.28 MiB**.
+One ranked run, 300 judged queries, 5,183 documents. Both systems used fresh
+databases in sequential same-host runs. This is a corpus-specific document-retrieval comparison.
+Sparse indexing increases write work: document-save p95 was **11.815 ms**,
 versus **6.759 ms** in the old literal baseline. The physical SciFact database used
 **81.00 MiB**. No semantic, phone or agent-quality claim is implied.
 [Method, costs, raw rankings and reproduction](benchmarks/2026-10-03-ranked/README.md).
@@ -36,15 +36,15 @@ versus **6.759 ms** in the old literal baseline. The physical SciFact database u
 | Measurement                                   | Observed across three runs          |
 | --------------------------------------------- | ----------------------------------- |
 | Native binary                                 | 8.28 MiB |
-| Idle server RSS                               | 6.44–6.45 MiB |
-| Largest sampled server RSS                    | 20.89 MiB |
-| Topic query p95                               | 0.131–0.139 ms |
-| Tag query p95                                 | 0.131–0.134 ms |
-| Time-range query p95                          | 0.132–0.133 ms |
-| Topic + tag + keywords p95                    | 0.132–0.135 ms |
-| Browse p95                                    | 0.338–0.426 ms |
-| Keyword first-page p95                        | 1.242–1.312 ms |
-| Immediate durable save p95                    | 6.235–6.531 ms |
+| Idle server RSS                               | 6.34–6.36 MiB |
+| Largest sampled server RSS                    | 20.91 MiB |
+| Topic query p95                               | 0.130–0.137 ms |
+| Tag query p95                                 | 0.132–0.135 ms |
+| Time-range query p95                          | 0.128–0.136 ms |
+| Topic + tag + keywords p95                    | 0.130–0.137 ms |
+| Browse p95                                    | 0.334–0.362 ms |
+| Keyword first-page p95                        | 1.248–1.325 ms |
+| Immediate durable save p95                    | 6.051–6.382 ms |
 | Physical database after workload              | 24.10 MiB per run                    |
 | Exact memories recovered after abrupt restart | 10,000/10,000 per run; 30,000 total |
 
@@ -73,8 +73,8 @@ It verifies every saved field and removes the temporary databases.
 It does not change your running node or retain credentials.
 Source compilation can download dependencies. The script does not download a model.
 
-Exact-key read p95: **0.102–0.111 ms**.
-Revision-checked forget p95: **6.240–7.011 ms**.
+Exact-key read p95: **0.105–0.112 ms**.
+Revision-checked forget p95: **6.270–7.054 ms**.
 After recovery, 300 memories per run were deleted. A full browse verified exactly
 9,700 remaining memories per run and no deleted index results.
 

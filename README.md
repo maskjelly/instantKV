@@ -72,8 +72,8 @@ Records and indexes change in one redb transaction, including updates, deletion 
 
 **Document recall:** 81.43% Recall@10 on BEIR SciFact, versus 74.80% for
 Supermemory local v0.0.8 with bge-base embeddings and no reranker.
-Ranked query p95: 1.29 ms. One Mac run, 5,183 documents, 300 judged queries.
-Supermemory numbers reuse the earlier same-host run. This is a scoped retrieval
+Ranked query p95: 1.31 ms. One Mac run, 5,183 documents, 300 judged queries.
+Both systems used fresh databases in sequential same-host runs. This is a scoped retrieval
 result, not an agent-quality or phone benchmark.
 [Full comparison, costs and raw data](docs/benchmarks/2026-10-03-ranked/README.md).
 
@@ -83,10 +83,10 @@ Apple M4 Pro, 24 GiB memory, macOS 27.0. Three fresh databases, 10,000 memories 
 | Measurement                          | Result across three runs  |
 | ------------------------------------ | ------------------------- |
 | Native binary                        | 8.28 MiB |
-| Idle server RSS                      | 6.44–6.45 MiB |
-| Largest sampled server RSS           | 20.89 MiB |
-| Topic query p95                      | 0.131–0.139 ms |
-| Durable save p95                     | 6.235–6.531 ms |
+| Idle server RSS                      | 6.34–6.36 MiB |
+| Largest sampled server RSS           | 20.91 MiB |
+| Topic query p95                      | 0.130–0.137 ms |
+| Durable save p95                     | 6.051–6.382 ms |
 | Exact recovery after abrupt restarts | 30,000 of 30,000 memories |
 
 p95 is the time within which 95% of measured operations complete.
@@ -141,7 +141,7 @@ Context clearing is simulated; real model-quality evaluation is pending.
 | Portable memory    | Add export, import and schema migration tools                                               |
 | Retrieval quality  | Evaluate more corpora, real-agent tasks and optional local embeddings                       |
 
-Linux x86_64, Linux ARM64 and macOS ARM64 passed [source MVP CI](https://github.com/maskjelly/instantKV/actions/runs/37060413210).
+Linux x86_64, Linux ARM64 and macOS ARM64 passed [source MVP CI](https://github.com/maskjelly/instantKV/actions/runs/37138251395).
 Physical ARM-board measurements and native phone support remain pending.
 
 Initial ARM-board goals: indexed recall p95 ≤5 ms, durable save p95 ≤20 ms,

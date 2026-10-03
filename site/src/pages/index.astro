@@ -135,7 +135,11 @@ instantkv serve`;
           <dt>{recallPercent}% document recall@10</dt>
           <dd>
             BEIR SciFact: 5,183 documents, 300 judged queries. Supermemory local
-            scored 74.80% with bge-base embeddings and no reranker in an earlier
+            scored{' '}
+            {(
+              100 * ranked.providers.supermemory.scifact.metrics.recall_at_10
+            ).toFixed(2)}
+            % with bge-base embeddings and no reranker in a separate fresh
             same-host run.
           </dd>
         </div>

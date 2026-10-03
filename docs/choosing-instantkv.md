@@ -56,7 +56,7 @@ instantKV combines direct record access with checkpoint tools; it does not repla
 ## The evidence so far
 
 The source MVP's [structured-memory benchmark](performance.md) used three fresh 10,000-memory databases on an M4 Pro.
-Topic query p95 was **0.131–0.139 ms**. The largest sampled server RSS was **20.89 MiB**.
+Topic query p95 was **0.130–0.137 ms**. The largest sampled server RSS was **20.91 MiB**.
 All **30,000** memories were verified after abrupt restarts.
 These warm local-HTTP results exclude the model and phones.
 
