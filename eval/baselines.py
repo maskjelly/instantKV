@@ -62,6 +62,7 @@ class SupermemoryBackend(Backend):
     def __init__(self,provider,directory,config):
         self.path=Path(directory);self.path.mkdir(parents=True,exist_ok=True);self.config=config
         self.saved=0;self.input_bytes=0;self.write_samples=[];self.rss_samples=[];self.process=None;self.connection=None
+        self.scope='eval'
         binary=Path(config['supermemory_binary'])
         if sha(binary)!=config['supermemory_binary_sha256']:raise ValueError('Pinned Supermemory binary SHA mismatch')
         with socket.socket() as s:s.bind(('127.0.0.1',0));self.port=s.getsockname()[1]
@@ -97,14 +98,14 @@ class SupermemoryBackend(Backend):
         for part,text in enumerate(chunks(doc['content'])):
             metadata={'source_id':doc['id'],'part':part}
             if doc.get('image'):metadata['image']=doc['image']
-            status,value,elapsed=self.request('POST','/v4/memories',{'containerTag':'eval','memories':[{'content':text,'metadata':metadata}]})
+            status,value,elapsed=self.request('POST','/v4/memories',{'containerTag':self.scope,'memories':[{'content':text,'metadata':metadata}]})
             if not 200<=status<300 or len(value['memories'])!=1:raise RuntimeError('Supermemory ingestion failed; no dropped documents')
             if value['memories'][0]['memory']!=text:raise RuntimeError('Supermemory returned changed content')
             self.saved+=1;self.input_bytes+=len(text.encode());self.write_samples.append(elapsed)
             if self.saved%500==0:self.sample_rss()
     def search(self,text,limit=20):
         started=time.perf_counter()
-        status,value,_=self.request('POST','/v4/search',{'containerTag':'eval','q':text,'threshold':0,'limit':40,'rerank':False,'rewriteQuery':False})
+        status,value,_=self.request('POST','/v4/search',{'containerTag':self.scope,'q':text,'threshold':0,'limit':40,'rerank':False,'rewriteQuery':False})
         hits=[]
         if status==200:
             for hit in value['results']:
@@ -121,6 +122,11 @@ class SupermemoryBackend(Backend):
     def close(self):
         super().close()
         if getattr(self,'log',None):self.log.close()
+
+    def new_scope(self,scope):
+        self.scope=scope
+        self.saved=0;self.input_bytes=0;self.write_samples=[];self.rss_samples=[]
+        self.sample_rss()
 
 
 def make_backend(provider,*args):

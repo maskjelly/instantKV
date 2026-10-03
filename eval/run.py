@@ -16,6 +16,7 @@ import subprocess
 import tempfile
 import time
 import traceback
+from contextlib import nullcontext
 
 from api import EvaluationAPI
 from budget import BudgetExceeded
@@ -115,12 +116,18 @@ def run(args):
     if report['runtime_dirty']:raise ValueError('Cannot run final evaluation with dirty runtime')
     write(destination/'report.json',report)
     contexts=[];resource_rows=[];retrieval_rows=[]
+    shared_backend=None;shared_directory=None
     try:
+        if args.provider=='supermemory-local' and config.get('reuse_supermemory_server',False):
+            shared_directory=tempfile.TemporaryDirectory(prefix='instantkv-official-supermemory-')
+            shared_backend=make_backend(args.provider,shared_directory.name,config)
         with (destination/'retrieval.jsonl').open('w') as raw, (destination/'resources.jsonl').open('w') as resources:
             for repetition in range(config['retrieval_repetitions']):
                 for ci,case in enumerate(cases(args.suite,args.data_root)):
                     with tempfile.TemporaryDirectory(prefix='instantkv-official-case-') as tmp:
-                        with make_backend(args.provider,tmp,config) as backend:
+                        if shared_backend:shared_backend.new_scope(f'rep{repetition}-{ci}')
+                        manager=nullcontext(shared_backend) if shared_backend else make_backend(args.provider,tmp,config)
+                        with manager as backend:
                             rolling=hashlib.sha256();documents=0
                             for doc in case['documents']():
                                 rolling.update(json.dumps(doc,sort_keys=True,ensure_ascii=False).encode());documents+=1
@@ -140,9 +147,13 @@ def run(args):
                                         'context_truncated':cut,'retrieval_ms':value['latency_ms'],'retrieval_failure':value['failure']})
                                 report['completed_retrieval_questions']+=1
                             resource=backend.resources()|{'case_id':case['id'],'repetition':repetition+1,'source_documents':documents,'normalized_documents_sha256':rolling.hexdigest()}
+                            if shared_backend:resource['reuse_scope_note']='One fresh server/database per full suite; separate fresh containerTag per corpus. RSS/disk are cumulative across scopes. Startup measured once, not per scope.'
                             resources.write(json.dumps(resource,ensure_ascii=False)+'\n');resources.flush();resource_rows.append(resource)
                     write(destination/'report.json',report)
                     print(args.suite,'retrieval',repetition+1,'case',ci+1,'/',len(catalog),'questions',report['completed_retrieval_questions'],flush=True)
+        if shared_backend:
+            shared_backend.close();shared_backend=None
+            shared_directory.cleanup();shared_directory=None
         if len(contexts)!=count or len(retrieval_rows)!=count*config['retrieval_repetitions']:raise ValueError('Full suite coverage mismatch')
         with (destination/'contexts.jsonl').open('w') as f:
             for row in contexts:f.write(json.dumps(row,ensure_ascii=False)+'\n')
@@ -194,6 +205,9 @@ def run(args):
     except BaseException as error:
         report.update(complete=False,phase='failed',failure_type=type(error).__name__,failure=str(error),budget=api.budget.summary())
         write(destination/'report.json',report);raise
+    finally:
+        if shared_backend:shared_backend.close()
+        if shared_directory:shared_directory.cleanup()
 
 
 def main():

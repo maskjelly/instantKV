@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "campaign": "parallel-quality-first-2026-10-04",
+  "runtime_commit": "fafa202e165f9c467e8de344403437e704f9a24a",
+  "binary_sha256": "24e79fdbc28c351f356b9325add50cbbdc9a989fc20825d224be5e1fa104b045",
+  "reader_model": "gpt-6-luna",
+  "judge_model": "gpt-6-luna",
+  "reasoning_effort": "medium",
+  "service_tier": "default",
+  "api": "responses",
+  "max_output_tokens": 4096,
+  "context_limit_tokens": 16384,
+  "top_k": 10,
+  "total_api_cap_usd": 250,
+  "prices_per_million_tokens": {
+    "input": 0.1,
+    "cached_input": 0.01,
+    "cache_write": 0.125,
+    "output": 0.5,
+    "long_context_input": 0.2,
+    "long_context_output": 0.75
+  },
+  "api_concurrency": 8,
+  "retrieval_repetitions": 1,
+  "qa_repetitions": 1,
+  "qa_repetition_policy": "One full QA run first; additional full repetitions only within remaining cap. Never call a single repetition repeated evidence.",
+  "instantkv": {
+    "cache_size_bytes": 8388608,
+    "max_search_postings": 20000,
+    "max_candidates": 1000,
+    "max_scan_bytes": 4194304,
+    "max_result_bytes": 65536,
+    "expand": false,
+    "durability": "immediate per memory commit"
+  },
+  "scope": "Full official datasets; exact official rubric where available, GPT-6 Luna reader/judge variant. Not official leaderboard model parity.",
+  "tuning": "Frozen engine; no final-test tuning",
+  "baselines": [
+    "instantkv",
+    "sqlite-fts5",
+    "supermemory-local"
+  ],
+  "additional_baselines": {
+    "mem0": "pending adapter and matched model config",
+    "zep": "must use an accessible self-hosted implementation; hosted results cannot count as same hardware",
+    "tantivy": "pending adapter",
+    "dense-vector": "Supermemory local bge path is an initial dense baseline; independent model version remains planned"
+  },
+  "scalability_counts": [
+    10000,
+    100000,
+    1000000,
+    10000000,
+    11000000
+  ],
+  "datasets": {
+    "longmemeval-s": {
+      "source": "xiaowu0162/longmemeval-cleaned",
+      "revision": "98d7416c24c778c2fee6e6f3006e7a073259d48f",
+      "questions": 500,
+      "prior_exposed_pilot": 12
+    },
+    "longmemeval-v2-small": {
+      "source": "xiaowu0162/longmemeval-v2",
+      "revision": "f152293e235517d504809563c833d7190b8c713b",
+      "harness_commit": "2cc8c540bdb87fe6761629b585e727e1c4704520",
+      "questions": 451
+    },
+    "longmemeval-v2-medium": {
+      "source": "xiaowu0162/longmemeval-v2",
+      "revision": "f152293e235517d504809563c833d7190b8c713b",
+      "harness_commit": "2cc8c540bdb87fe6761629b585e727e1c4704520",
+      "questions": 451
+    },
+    "locomo": {
+      "source": "snap-research/locomo",
+      "revision": "3eb6f2c585f5e1699204e3c3bdf7adc5c28cb376",
+      "prior_exposure": "all previously published test questions",
+      "questions": 1986
+    },
+    "ama-bench": {
+      "source": "AMA-bench/AMA-bench",
+      "revision": "a5777378066f53229a94557a7b192435cd027909",
+      "harness_commit": "ddfd319e0be33424288c13806f1eafc63e625b59",
+      "questions": 2496
+    },
+    "beam": {
+      "source": "Mohammadta/BEAM",
+      "revision": "3205395e897e7318c7b094ef4e6047b9b82dbb03",
+      "harness_commit": "b2da22eac88bb0874c64665f13457eb99835774a",
+      "questions": 1800
+    },
+    "beam-10m": {
+      "source": "Mohammadta/BEAM-10M",
+      "revision": "9b2096193fe74e2837e4713e483351e19817773c",
+      "questions": 200
+    }
+  },
+  "failure_policy": "All official questions count. API errors remain failures. Budget stop preserves incomplete run; incomplete run has no full-suite score.",
+  "user_model_selection": "GPT6 LUNA",
+  "supermemory_binary": "/private/tmp/instantkv-ranked-retrieval/supermemory-server-darwin-arm64",
+  "supermemory_binary_sha256": "12b7817a105ed0a9e70f96c461fb6f8dded5d70eaeb6034e774778c257bed78a",
+  "measurement_mode": "Parallel full-suite quality evaluation; shared-load latency/RSS are descriptive, not isolated performance comparisons.",
+  "reuse_supermemory_server": true,
+  "reuse_scope_note": "One fresh Supermemory server per suite with isolated fresh containerTag per corpus; cumulative resource figures, not isolated per-corpus RSS."
+}

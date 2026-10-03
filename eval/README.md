@@ -56,3 +56,26 @@ errors stay in the score denominator. A budget stop leaves the report incomplete
 
 Mem0, Zep, Tantivy, an independent dense baseline and record scalability runs
 are still pending. Do not treat BEAM's 10M tokens as 10M stored memories.
+
+Check progress and completed scores with `python3 eval/status.py`.
+For a live page, run `python3 eval/status.py --serve 8769` and open
+`http://127.0.0.1:8769`. It refreshes every ten seconds and reads the current
+shared spending ledger. Run reports and raw outputs remain in the results folder.
+The displayed ETA covers the current retrieval job only. QA runs after retrieval;
+the full queue can take days, especially V2 Medium's 447 separate corpora.
+
+## Faster quality evaluation
+
+`parallel-quality.json` keeps the full questions, source histories, frozen engine,
+reader model, judge model and context budget. It uses one retrieval pass and runs
+several suites/providers in parallel. Its latency and RAM measurements are under
+shared load; they do not support isolated speed or memory-efficiency comparisons.
+
+The parallel profile reuses one fresh Supermemory process per suite, with a fresh
+container tag for each corpus. This avoids loading the embedding model hundreds
+of times. Corpora stay isolated for queries. RSS and disk are cumulative across
+scopes and must be reported that way. It does not change instantKV's engine.
+
+Priorities: full LongMemEval-S, LoCoMo, AMA-Bench and V2 Small. V2 Medium and
+BEAM's largest histories are deferred, not shortened or relabelled as full runs.
+No score estimate or marketing claim replaces an observed complete result.
