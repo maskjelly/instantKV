@@ -32,7 +32,9 @@ case-insensitively. Use the same filters with each cursor, including empty pages
 
 `search QUERY` ranks content with BM25 and English stemming. It accepts the same
 label/time/page options; supply query text as a positional argument, without `--query`.
-Check `truncated`. Managed writes invalidate ranked cursors.
+Use `--expand` for the optional small English synonym list. Repeat
+`--expansion-term WORD` for app-defined related words. Both are bounded to eight
+added terms. Check `query_reduced` and `truncated`. Managed writes invalidate ranked cursors.
 
 ## Connection and credentials
 

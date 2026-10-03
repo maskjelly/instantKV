@@ -1,4 +1,4 @@
-import report from '../../../docs/benchmarks/2026-10-03-ranked/mac-arm64.json';
+import report from '../../../docs/benchmarks/2026-10-04-search/mac-arm64.json';
 export { report };
 const median = (values: number[]) =>
   [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];

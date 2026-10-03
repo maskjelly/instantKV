@@ -44,6 +44,11 @@ Memory routes belong to the unreleased source MVP.
 `POST /memories` uses a nested `memory` object. MCP accepts those fields directly.
 [Memory guide](memory-mvp.md#http-and-mcp) · [Schemas](../examples/memory.schema.json).
 
+Ranked requests also accept `expand` (default false) and `expansion_terms`
+(default empty). Responses report `query_reduced`, `selected_terms`, `index_reads`,
+`scored_candidates`, `expansion_terms` and `truncated`. See the memory guide for
+limits and the ranked cursor upgrade rule.
+
 The original KV and checkpoint routes remain compatible. Time filters use inclusive Unix milliseconds.
 Continue with the same cursor filters, including after empty pages.
 

@@ -131,3 +131,11 @@ The server rejects removal of a persisted namespace or changes to its mode or pu
 Such changes need migration support.
 Lower quotas reject writes while usage remains over the limit, including updates that still exceed it.
 Explicit deletion can free logical quota. TTL policy changes affect new writes only.
+
+## Ranked search work
+
+`memory.max_search_postings` bounds iterator reads, including seeks and exhausted
+lists. The response reports `index_reads` and decoded `postings_scanned` separately.
+Candidate, scanned-record-byte and response caps still apply. Raise limits explicitly
+for larger workloads, then measure RAM and latency. Long queries accept 16 KiB but
+use at most 64 original indexed terms. Query reduction does not disable work caps.

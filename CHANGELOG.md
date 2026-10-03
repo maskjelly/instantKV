@@ -6,6 +6,9 @@
 - Publish raw rankings, rejected/truncated queries, independent scoring and short benchmark notes.
 
 - Add bounded BM25 search with English stemming through Rust, HTTP, CLI and MCP.
+- Accept ranked queries up to 16 KiB. Select at most 64 original indexed terms and report query reduction.
+- Add bounded WAND pruning and optional low-weight related terms. Expansion stays off by default.
+- Use compact query fingerprints in ranked cursors. Old ranked cursors require a new search after upgrade; database tables are unchanged.
 - Commit search postings and corpus statistics with record updates, deletion and expiry.
 - Backfill older structured memories atomically on first open; preserve record revisions.
 - Measure SciFact document recall and rerun existing latency/recovery benchmarks.

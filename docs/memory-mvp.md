@@ -115,20 +115,33 @@ document length. Query words use OR matching. More relevant records come first;
 equal scores use ascending key order. Custom metadata is returned but is not searched.
 Scores compare results within one query. They are not confidence scores.
 
-This is lexical retrieval. It does not infer synonyms or provide embedding similarity.
-English stemming is fixed; other languages need separate evaluation.
+This is lexical retrieval. English stemming is fixed. Other languages need evaluation.
 
-Queries accept 1–1,024 UTF-8 bytes and at most 64 unique indexed terms.
-The default posting budget is 20,000 per request, configurable with
-`memory.max_search_postings`. Candidate, scan-byte and response limits also apply.
-Always check `truncated`: a work limit can produce partial scores and no complete
-top-k guarantee. Raise the posting budget or narrow the corpus when needed.
+Queries accept 1–16,384 UTF-8 bytes. Search uses at most 64 original indexed terms.
+Long questions select terms from the whole input by corpus rarity and square-root
+query frequency. `query_reduced` reports this selection. Scores then describe the
+selected terms, not all words in the question.
+
+The default index-read budget is 20,000 per request, set with
+`memory.max_search_postings`. Short searches score all postings. Larger searches use
+WAND score bounds to skip documents. `index_reads` counts iterator reads, including
+seeks and exhausted lists. `scored_candidates` counts documents scored. Record,
+scan-byte and response limits also apply. Check `truncated`: a work limit removes
+the complete top-k guarantee. Scores of returned candidates use all selected terms.
+
+Expansion is optional and off by default. Set `expand: true` for a small English
+synonym list, or supply up to eight single words in `expansion_terms`. Search adds
+at most eight indexed related terms at one-quarter weight. This is not embedding
+similarity or argument stance detection. Check `expansion_terms` in the response.
+
 Topic/tag/time filters run after scoring. They can require further pages.
 
 Continue with `next_cursor` and unchanged filters. Ranked pages rescore the query.
 A managed memory write, delete or expiry cleanup invalidates the namespace's ranked
 cursor; start a new search after such a change. Unchanged data permits continuation
-after restart. Expired records are hidden; corpus statistics include them until cleanup.
+after restart with the same runtime contract. This update invalidates old ranked
+cursors; restart the search after upgrade. The database format is unchanged.
+Expired records are hidden; corpus statistics include them until cleanup.
 
 ## Literal retrieval and pagination
 

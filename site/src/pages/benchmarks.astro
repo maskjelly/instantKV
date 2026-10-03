@@ -13,19 +13,20 @@ interface SuiteReport {
       largest_sampled_rss_bytes: number;
       contract_rejections: number;
       truncated_queries: number;
+      reduced_queries: number;
     }
   >;
 }
 const suite = Object.entries(
   import.meta.glob<SuiteReport>(
-    '../../../docs/benchmarks/2026-10-03-suite/{nfcorpus,arguana,locomo,longmemeval}.json',
+    '../../../docs/benchmarks/2026-10-04-search/default/{nfcorpus,arguana,locomo,longmemeval}.json',
     { eager: true, import: 'default' },
   ),
 );
 if (suite.length !== 4 || suite.some(([, r]) => !r.complete))
   throw new Error('Retrieval suite must be complete before publication');
 const locomo = suite.find(([path]) => path.endsWith('/locomo.json'))?.[1];
-import ranked from '../../../docs/benchmarks/2026-10-03-ranked/scifact.json';
+import ranked from '../../../docs/benchmarks/2026-10-04-search/scifact.json';
 import {
   report,
   workloads,
@@ -81,8 +82,8 @@ const max = Math.max(...workloads.map((w) => w.p95));
       <h2>More retrieval workloads</h2>
       <p>
         Frozen default settings. Original queries. Rejections count as misses.
-        Supermemory local uses bge embeddings without extraction, reranking or
-        query rewriting.
+        Supermemory local is the recorded 3 October control, with bge embeddings
+        and no extraction, reranking or query rewriting. It was not rerun here.
       </p>
       <div class="table-scroll">
         <table>
@@ -116,7 +117,12 @@ const max = Math.max(...workloads.map((w) => w.p95));
                   %
                 </td>
                 <td>
-                  <a href={'/benchmark-data/suite/' + path.split('/').at(-1)}>
+                  <a
+                    href={
+                      '/benchmark-data/search-v2/default/' +
+                      path.split('/').at(-1)
+                    }
+                  >
                     JSON ↗
                   </a>
                 </td>
@@ -147,7 +153,7 @@ const max = Math.max(...workloads.map((w) => w.p95));
               <th scope="col">instantKV accepted p95</th>
               <th scope="col">Supermemory p95</th>
               <th scope="col">Sampled RSS: instantKV / Supermemory</th>
-              <th scope="col">instantKV rejected / truncated</th>
+              <th scope="col">instantKV rejected / truncated / reduced</th>
             </tr>
           </thead>
           <tbody>
@@ -172,13 +178,22 @@ const max = Math.max(...workloads.map((w) => w.p95));
                 </td>
                 <td>
                   {r.providers.instantkv.contract_rejections} /{' '}
-                  {r.providers.instantkv.truncated_queries}
+                  {r.providers.instantkv.truncated_queries} /{' '}
+                  {r.providers.instantkv.reduced_queries}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <p>
+        Long questions select up to 64 original indexed terms. Reduced questions
+        have not failed, but the ranking represents a smaller query. Truncated
+        searches can miss the complete top-k. Expansion stays off by default.
+        <a href="/docs/memory-benchmark-notes/">
+          Before/after and expansion results →
+        </a>
+      </p>
       {locomo && (
         <div class="table-scroll">
           <table>

@@ -1,0 +1,65 @@
+{
+  "runtime": "fafa202e165f9c467e8de344403437e704f9a24a",
+  "results": {
+    "arguana": {
+      "recall_at_10": 0.7695590327169275,
+      "historical_supermemory_recall_at_10": 0.5640113798008535,
+      "rejected": 0,
+      "truncated": 688,
+      "reduced": 1149,
+      "p95_ms": 46.826083,
+      "sampled_rss_bytes": 25985024
+    },
+    "nfcorpus": {
+      "recall_at_10": 0.1530855013375488,
+      "historical_supermemory_recall_at_10": 0.17082794584258496,
+      "rejected": 0,
+      "truncated": 0,
+      "reduced": 0,
+      "p95_ms": 0.929334,
+      "sampled_rss_bytes": 24035328
+    },
+    "locomo": {
+      "recall_at_10": 0.5764775401031633,
+      "historical_supermemory_recall_at_10": 0.582771496879541,
+      "rejected": 0,
+      "truncated": 0,
+      "reduced": 0,
+      "p95_ms": 0.491375,
+      "sampled_rss_bytes": 22413312
+    },
+    "longmemeval": {
+      "recall_at_10": 0.9166666666666666,
+      "historical_supermemory_recall_at_10": 0.6527777777777778,
+      "rejected": 0,
+      "truncated": 0,
+      "reduced": 0,
+      "p95_ms": 2.993666,
+      "sampled_rss_bytes": 25001984
+    }
+  },
+  "arguana_expansion": {
+    "metrics": {
+      "recall_at_5": 0.596728307254623,
+      "ndcg_at_5": 0.41928176973956927,
+      "mrr_at_5": 0.3607633949739213,
+      "any_evidence_at_5": 0.596728307254623,
+      "all_evidence_at_5": 0.596728307254623,
+      "recall_at_10": 0.7702702702702703,
+      "ndcg_at_10": 0.47511921213973685,
+      "mrr_at_10": 0.38365113233534287,
+      "any_evidence_at_10": 0.7702702702702703,
+      "all_evidence_at_10": 0.7702702702702703,
+      "recall_at_20": 0.8712660028449503,
+      "ndcg_at_20": 0.50081791456341,
+      "mrr_at_20": 0.39079047164838265,
+      "any_evidence_at_20": 0.8712660028449503,
+      "all_evidence_at_20": 0.8712660028449503
+    },
+    "contract_rejections": 0,
+    "truncated_queries": 701,
+    "reduced_queries": 1149,
+    "largest_sampled_rss_bytes": 26214400
+  },
+  "scope": "Fresh instantKV runs; frozen historical Supermemory controls. Evidence retrieval only; fixed 12-question LongMemEval pilot."
+}

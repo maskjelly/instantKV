@@ -171,6 +171,52 @@ for (const name of suiteNames) {
   const { createHash } = await import('node:crypto');
   assert.equal(createHash('sha256').update(raw).digest('hex'), receipt.sha256);
 }
+const v2Receipt = JSON.parse(
+  readFileSync(
+    resolve(root, 'benchmark-data/search-v2/default/verification.json'),
+    'utf8',
+  ),
+);
+for (const name of suiteNames) {
+  const raw = readFileSync(
+    resolve(root, `benchmark-data/search-v2/default/${name}.json`),
+  );
+  const report = JSON.parse(raw.toString('utf8'));
+  assert(report.complete && !report.runtime_dirty);
+  assert.equal(
+    report.dataset_sha256,
+    suiteInputs.datasets[name].normalized_sha256,
+  );
+  assert.equal(report.providers.instantkv.contract_rejections, 0);
+  assert.equal(report.providers.instantkv.queries.length, report.test_queries);
+  assert.equal(report.providers.instantkv.errors, 0);
+  assert(
+    report.providers.supermemory.historical_control,
+    'Reference is explicitly historical',
+  );
+  const receipt = v2Receipt.reports.find((r) => r.report === `${name}.json`);
+  assert(receipt?.source_inputs_verified);
+  const { createHash } = await import('node:crypto');
+  assert.equal(createHash('sha256').update(raw).digest('hex'), receipt.sha256);
+  for (const query of report.providers.instantkv.queries) {
+    assert(query.work.selected_terms <= 64 && query.work.expansion_terms <= 8);
+  }
+}
+const expandedRaw = readFileSync(
+  resolve(root, 'benchmark-data/search-v2/expansion/arguana.json'),
+);
+const expandedReceipt = JSON.parse(
+  readFileSync(
+    resolve(root, 'benchmark-data/search-v2/expansion/verification.json'),
+    'utf8',
+  ),
+);
+const { createHash } = await import('node:crypto');
+assert.equal(
+  createHash('sha256').update(expandedRaw).digest('hex'),
+  expandedReceipt.reports[0].sha256,
+);
+assert(expandedReceipt.reports[0].source_inputs_verified);
 const article = readFileSync(
   resolve(root, 'blog/lightweight-memory-benchmarks/index.html'),
   'utf8',

@@ -41,6 +41,10 @@ function repositoryLinks() {
           node.url = '/assets/' + source.slice('docs/assets/'.length);
         else if (source.startsWith('docs/benchmarks/2026-10-03-memory/'))
           node.url = '/benchmark-data/previous/' + source.split('/').at(-1);
+        else if (source.startsWith('docs/benchmarks/2026-10-04-search/'))
+          node.url =
+            '/benchmark-data/search-v2/' +
+            source.slice('docs/benchmarks/2026-10-04-search/'.length);
         else if (source.startsWith('docs/benchmarks/2026-10-03-suite/'))
           node.url = '/benchmark-data/suite/' + source.split('/').at(-1);
         else if (source.startsWith('docs/benchmarks/2026-10-03-ranked/'))
@@ -88,6 +92,18 @@ function prepareAssets() {
     resolve(target, 'benchmark-data/suite'),
     { recursive: true },
   );
+  cpSync(
+    resolve(root, 'docs/benchmarks/2026-10-04-search'),
+    resolve(target, 'benchmark-data/search-v2'),
+    { recursive: true },
+  );
+  for (const kind of ['memory', 'search']) {
+    for (const name of ['mac-arm64.json', 'scifact.json', 'README.md'])
+      cpSync(
+        resolve(root, 'docs/benchmarks/2026-10-04-search', name),
+        resolve(target, 'benchmark-data', kind, name),
+      );
+  }
   // This directory is generated; remove stale build artifacts before copying sources.
   rmSync(resolve(target, 'examples'), { recursive: true, force: true });
   cpSync(resolve(root, 'examples'), resolve(target, 'examples'), {
@@ -102,14 +118,14 @@ function prepareAssets() {
   );
   const memoryReport = JSON.parse(
     readFileSync(
-      resolve(root, 'docs/benchmarks/2026-10-03-ranked/mac-arm64.json'),
+      resolve(root, 'docs/benchmarks/2026-10-04-search/mac-arm64.json'),
       'utf8',
     ),
   );
   const p95 = memoryReport.runs.map((run) => run.queries.topic.latency_ms.p95);
   const rankedReport = JSON.parse(
     readFileSync(
-      resolve(root, 'docs/benchmarks/2026-10-03-ranked/scifact.json'),
+      resolve(root, 'docs/benchmarks/2026-10-04-search/scifact.json'),
       'utf8',
     ),
   );
@@ -127,8 +143,8 @@ function prepareAssets() {
     '# instantKV',
     'instantKV stores local-agent memory in one Rust process. The source MVP is unreleased. Earlier 0.1.2 archives do not include the new memory tools.',
     'Use remember, recall, search, browse and forget through Rust, HTTP, CLI or MCP. Search ranks content with BM25 and English stemming; recall uses ordered topic/tag/time indexes and literal AND filters. Check truncated; managed writes invalidate ranked cursors. Custom JSON metadata and configurable limits support app-specific use. Retrieval requires both get and list grants.',
-    `Local BEIR SciFact: instantKV BM25 recall@10 ${(100 * ranked.scifact.metrics.recall_at_10).toFixed(2)}%, versus Supermemory local v0.0.8 ${(100 * supermemory.scifact.metrics.recall_at_10).toFixed(2)}% with bge-base embeddings and no reranker. Sequential same-host runs with fresh databases. Ranked query p95 ${ranked.scifact.query_latency_ms.p95.toFixed(2)} ms, sampled RSS ${(ranked.largest_sampled_rss_bytes / 1024 ** 2).toFixed(2)} MiB, binary ${(ranked.binary_bytes / 1024 ** 2).toFixed(2)} MiB. Document save p95 ${ranked.save_latency_ms.p95.toFixed(2)} ms. This is a dataset-specific document retrieval result, not agent quality or phone performance. Raw rankings: https://instantkv.com/benchmark-data/search/scifact.json`,
-    'Further local retrieval tests: NFCorpus Recall@10 instantKV 15.31% vs Supermemory 17.08%; ArguAna 12.73% vs 56.40% (1,149 instantKV query-contract rejections; all 257 accepted searches truncated); LoCoMo evidence turns 57.65% vs 58.28%. LoCoMo single-hop favors instantKV; multi-hop and temporal favor Supermemory. A fixed twelve-question LongMemEval-S session pilot scored 91.67% vs 65.28%; it is not a full benchmark result. The unchanged instantKV binary is 8.28 MiB; largest sampled RSS across the new suite was 23.75 MiB. Read both wins and losses: https://instantkv.com/blog/lightweight-memory-benchmarks/ . These are retrieval measurements, not official QA scores or a hosted Supermemory comparison.',
+    `Local BEIR SciFact: instantKV BM25 recall@10 ${(100 * ranked.scifact.metrics.recall_at_10).toFixed(2)}%, versus Supermemory local v0.0.8 ${(100 * supermemory.scifact.metrics.recall_at_10).toFixed(2)}% with bge-base embeddings and no reranker. Fresh instantKV database; Supermemory is the recorded 3 October same-host control, not rerun here. Ranked query p95 ${ranked.scifact.query_latency_ms.p95.toFixed(2)} ms, sampled RSS ${(ranked.largest_sampled_rss_bytes / 1024 ** 2).toFixed(2)} MiB, binary ${(ranked.binary_bytes / 1024 ** 2).toFixed(2)} MiB. Document save p95 ${ranked.save_latency_ms.p95.toFixed(2)} ms. This is a dataset-specific document retrieval result, not agent quality or phone performance. Raw rankings: https://instantkv.com/benchmark-data/search/scifact.json`,
+    'Current bounded search accepts 16 KiB questions, selects at most 64 original indexed terms and reports query_reduced separately from truncated. WAND skips low-score postings within a 20,000 index-read budget. Optional English or app expansion adds up to eight low-weight related terms, off by default. ArguAna improved from 12.73% to 76.96% Recall@10 against the recorded Supermemory 56.40% control. Zero query rejections; 688 of 1,406 searches still hit work limits. Read all results and losses: https://instantkv.com/blog/lightweight-memory-benchmarks/ . These are evidence retrieval measurements, not answer quality or hosted Supermemory scores.',
     'The service needs no cloud API or embedding model. The runtime selects what to save and adds retrieved facts to model context.',
     `Three warm synthetic Mac runs stored 10,000 memories each. Topic query p95 was ${topicRange} ms. The largest sampled server RSS was ${sampledRam} MiB. All ${recovered} memories were recovered after abrupt restarts. These results exclude inference, energy use and phones.`,
     'Linux x86_64, Linux ARM64 and macOS ARM64 passed source MVP CI. ARM-board performance targets remain unverified. Native Swift/Kotlin bindings and real-model quality evaluation are planned. The browser demo uses the same structured-memory API for live saves, filtered queries, browse and revision-checked deletion. Recorded mode serves saved responses from three fresh memory runs; it makes no new storage calls.',

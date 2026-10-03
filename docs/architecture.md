@@ -75,6 +75,10 @@ Time, topic and tag indexes change in the same transaction as records, quotas an
 Deletion, replacement and expiry cleanup remove old index entries.
 Recall reads indexes and values in one snapshot, with candidate, scan-byte and response limits.
 Literal recall filters content. Ranked search uses sparse BM25 postings and English stemming in the same redb transaction. Neither requires a vector index or model.
+Ranked search accepts 16 KiB input, selects up to 64 original indexed terms,
+and uses exhaustive sparse scoring or bounded WAND pruning. Optional expansion
+adds at most eight related terms at low weight. Query reduction and work limits
+are visible in responses. Ranked cursor fingerprints bind the query and expansion settings.
 [Memory shape and cursor contract](memory-mvp.md).
 
 Checkpoint namespace reserved records:

@@ -2,11 +2,11 @@
 
 The current benchmark measures the memory API: save, recall, browse, exact read and forget.
 The [performance guide](performance.md) gives measured results and separate device targets.
-[Raw report and all latency samples](benchmarks/2026-10-03-ranked/mac-arm64.json).
+[Raw report and all latency samples](benchmarks/2026-10-04-search/mac-arm64.json).
 
 ## More retrieval workloads
 
-The [local retrieval suite](benchmarks/2026-10-03-suite/README.md) tests NFCorpus,
+The [local retrieval suite](benchmarks/2026-10-04-search/README.md) tests NFCorpus,
 ArguAna, LoCoMo evidence turns and a fixed LongMemEval-S session pilot.
 It keeps default query budgets and counts rejected questions as misses.
 The [short article](memory-benchmark-notes.md) explains the measured tradeoffs.
@@ -74,6 +74,6 @@ It is not used for current product metrics.
 
 ## Ranked document recall
 
-[BEIR SciFact comparison](benchmarks/2026-10-03-ranked/README.md): BM25 document
+[BEIR SciFact comparison](benchmarks/2026-10-04-search/README.md): BM25 document
 ranking, full queries, raw relevance metrics and measured indexing costs.
 The browser recordings remain demonstrations of literal filters, not ranked-search evidence.

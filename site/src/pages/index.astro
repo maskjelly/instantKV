@@ -1,8 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
 import { repository } from '../lib/docs';
-import footprint from '../../../docs/benchmarks/2026-10-03-ranked/mac-arm64.json';
-import ranked from '../../../docs/benchmarks/2026-10-03-ranked/scifact.json';
+import footprint from '../../../docs/benchmarks/2026-10-04-search/mac-arm64.json';
+import ranked from '../../../docs/benchmarks/2026-10-04-search/scifact.json';
+import arguana from '../../../docs/benchmarks/2026-10-04-search/default/arguana.json';
 const recallPercent = (
   100 * ranked.providers.instantkv.scifact.metrics.recall_at_10
 ).toFixed(2);
@@ -127,13 +128,27 @@ instantkv serve`;
         </h2>
         <p>
           Rank content without an embedding model or cloud API. English
-          stemming, configurable work limits and atomic storage.
+          stemming, bounded WAND search, optional related terms and atomic
+          storage.
         </p>
         <a class="text-link" href="/benchmarks/">
           Retrieval results and tradeoffs ↗
         </a>
       </div>
       <dl class="memory-features">
+        <div>
+          <dt>
+            {(100 * arguana.providers.instantkv.metrics.recall_at_10).toFixed(
+              2,
+            )}
+            % counterargument recall@10
+          </dt>
+          <dd>
+            Full BEIR ArguAna: 8,674 documents, 1,406 questions. Zero
+            rejections; 688 searches hit work limits and 1,149 used reduced
+            queries. Recorded Supermemory local control: 56.40%.
+          </dd>
+        </div>
         <div>
           <dt>{recallPercent}% document recall@10</dt>
           <dd>
@@ -142,8 +157,8 @@ instantkv serve`;
             {(
               100 * ranked.providers.supermemory.scifact.metrics.recall_at_10
             ).toFixed(2)}
-            % with bge-base embeddings and no reranker in a separate fresh
-            same-host run.
+            % with bge-base embeddings and no reranker in the recorded 3 October
+            same-host control. It was not rerun here.
           </dd>
         </div>
         <div>

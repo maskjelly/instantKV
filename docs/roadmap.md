@@ -38,6 +38,8 @@ The memory service remains usable offline.
 - [x] Structured `remember`, `recall`, `search`, `browse` and `forget` through core, HTTP, CLI and MCP.
 - [x] Ordered topic/tag/time indexes with atomic record/index updates and cleanup.
 - [x] Transactional BM25 postings with English stemming, bounded scoring and ranked cursors.
+- [x] Accept 16 KiB questions, select up to 64 indexed terms and report reduction.
+- [x] WAND pruning with bounded index reads; optional low-weight English and app-defined expansion.
 - [x] Bounded keyword filtering, response byte budget and filter-bound cursors.
 - [x] Custom metadata, explicit event time, create-only saves and revision protection.
 - [x] Immutable checkpoint + latest pointer in one immediate transaction.
@@ -63,16 +65,17 @@ Deployment and measured results are recorded in [operations](operations.md),
 The [evaluation notes](memory-benchmark-notes.md) report both wins and losses.
 The suite uses fixed settings; it does not tune the engine to test labels.
 
-| Proposed work | Acceptance evidence |
+| Work | Status and acceptance evidence |
 | --- | --- |
-| Long-query adapter | Bounded query windows and rank fusion; rejected-query count falls on held-out queries without hiding work limits |
-| Bounded BM25 scoring | Compare pruned scoring against exhaustive rankings on held-out queries; measure scan counts, latency and peak allocation |
+| Long questions | Implemented: 16 KiB input and up to 64 selected indexed terms; query reduction stays visible. Evaluate rank fusion as separate future work |
+| Bounded BM25 scoring | WAND pruning and exhaustive synthetic correctness check implemented; broader held-out and peak-allocation evaluation remains planned |
 | Source context | Optional adjacent turns and parent-session links; evidence coverage improves within an explicit output byte cap |
 | Changed facts | App-defined correction links and source/event dates; tests retrieve the current fact and its source history |
 | Optional semantic adapter | Held-out paraphrase gains; report model/index size, RAM, latency and energy; default service stays model-free |
 | Full memory evaluation | Full LongMemEval and real-agent answers; separate evidence recall, answer accuracy, abstention and tool failures |
 
-These changes are planned. Their costs must be measured before they become defaults.
+Rows marked implemented are in the source MVP. Other changes remain planned.
+The default service stays model-free; optional expansion remains off.
 Phone performance remains unverified.
 
 ## Next release gates

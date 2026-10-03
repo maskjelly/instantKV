@@ -83,7 +83,9 @@ The [memory guide](memory-mvp.md) explains query behavior, limits and the Ollama
 
 ```text
 Use remember to save facts, preferences and decisions with topics, tags and source metadata.
-Use search to rank relevant content with BM25 and English stemming. Check truncated; writes invalidate ranked cursors.
+Use search to rank relevant content with BM25 and English stemming. Check `query_reduced` and `truncated`; writes invalidate ranked cursors.
+Questions accept up to 16 KiB. Expansion is optional: use `expand` or up to eight
+app-defined `expansion_terms`. Keep app expansion separate from stored evidence.
 Use recall to find memories by topic, time or literal keywords.
 Keep filters unchanged when using next_cursor. Continue across empty pages until next_cursor is null.
 Before compaction, call memory_checkpoint with the goal, summary, constraints, decisions, open_tasks and next_action.

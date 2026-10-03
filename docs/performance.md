@@ -5,25 +5,22 @@ Latency includes the local HTTP client and server. RAM samples cover only the Ru
 No model inference runs.
 Targets are engineering goals for a defined workload.
 
-## Ranked document recall
+## Current ranked retrieval
 
-BM25 search reached **81.43% Recall@10** on BEIR SciFact, versus **74.80%** for
-Supermemory local v0.0.8 with local bge-base embeddings and no reranker.
-Ranked query p95: **1.309 ms**; sampled RSS: **22.72 MiB**; binary: **8.28 MiB**.
-One ranked run, 300 judged queries, 5,183 documents. Both systems used fresh
-databases in sequential same-host runs. This is a corpus-specific document-retrieval comparison.
-Sparse indexing increases write work: document-save p95 was **11.815 ms**,
-versus **6.759 ms** in the old literal baseline. The physical SciFact database used
-**81.00 MiB**. No semantic, phone or agent-quality claim is implied.
-[Method, costs, raw rankings and reproduction](benchmarks/2026-10-03-ranked/README.md).
+| Workload | Queries | instantKV Recall@10 | Recorded Supermemory local |
+| --- | ---: | ---: | ---: |
+| BEIR SciFact | 300 | 81.43% | 74.80% |
+| BEIR nfcorpus | 323 | 15.31% | 17.08% |
+| BEIR arguana | 1,406 | 76.96% | 56.40% |
+| LoCoMo evidence retrieval | 1,533 | 57.65% | 58.28% |
+| LongMemEval-S session retrieval sample | 12 | 91.67% | 65.28% |
 
-## More retrieval workloads
-
-The [retrieval suite](benchmarks/2026-10-03-suite/README.md) adds NFCorpus, ArguAna,
-LoCoMo evidence turns and a fixed twelve-question LongMemEval-S session pilot.
-The [engineering notes](memory-benchmark-notes.md) show quality, limits and next steps.
-These are evidence retrieval measurements, not official QA scores.
-The same binary and default limits remain in use.
+Fresh instantKV runs; recorded 3 October Supermemory local controls, not rerun.
+ArguAna rejected zero questions; 688 hit work limits and
+1149 used reduced queries. Expansion Recall@10: 77.03%.
+Expansion stays off. Reduced rankings describe selected terms; truncated rankings
+have no complete top-k guarantee. LongMemEval is a twelve-question pilot.
+[Method and raw rankings](benchmarks/2026-10-04-search/README.md) · [Engineering notes](memory-benchmark-notes.md).
 
 ## Structured memory measured on a Mac
 
@@ -41,22 +38,16 @@ The same binary and default limits remain in use.
 | Queries          | 20 warmup queries, then 300 measured queries per workload |
 | Read page        | 10 memories; 16 KiB response budget                       |
 
-| Measurement                                   | Observed across three runs          |
-| --------------------------------------------- | ----------------------------------- |
-| Native binary                                 | 8.28 MiB |
-| Idle server RSS                               | 6.34–6.36 MiB |
-| Largest sampled server RSS                    | 20.91 MiB |
-| Topic query p95                               | 0.130–0.137 ms |
-| Tag query p95                                 | 0.132–0.135 ms |
-| Time-range query p95                          | 0.128–0.136 ms |
-| Topic + tag + keywords p95                    | 0.130–0.137 ms |
-| Browse p95                                    | 0.334–0.362 ms |
-| Keyword first-page p95                        | 1.248–1.325 ms |
-| Immediate durable save p95                    | 6.051–6.382 ms |
-| Physical database after workload              | 24.10 MiB per run                    |
-| Exact memories recovered after abrupt restart | 10,000/10,000 per run; 30,000 total |
+| Measurement | Result across three runs |
+| --- | --- |
+| Native binary | 8.31 MiB |
+| Idle server RSS | 6.34–6.36 MiB |
+| Largest sampled server RSS | 20.88 MiB |
+| Topic query p95 | 0.152–0.173 ms |
+| Durable save p95 | 6.665–6.923 ms |
+| Exact recovery after abrupt restarts | 30,000 of 30,000 memories |
 
-[Raw report, latency samples, hardware and binary hash](benchmarks/2026-10-03-ranked/mac-arm64.json).
+[Raw report, latency samples, hardware and binary hash](benchmarks/2026-10-04-search/mac-arm64.json).
 p95 is the time within which 95% of measured operations complete.
 RSS means resident set size: process memory reported by the operating system.
 The samples do not measure peak RSS.
@@ -81,8 +72,8 @@ It verifies every saved field and removes the temporary databases.
 It does not change your running node or retain credentials.
 Source compilation can download dependencies. The script does not download a model.
 
-Exact-key read p95: **0.105–0.112 ms**.
-Revision-checked forget p95: **6.270–7.054 ms**.
+Exact-key read p95: **0.108–0.118 ms**.
+Revision-checked forget p95: **6.844–7.741 ms**.
 After recovery, 300 memories per run were deleted. A full browse verified exactly
 9,700 remaining memories per run and no deleted index results.
 

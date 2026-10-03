@@ -1,0 +1,17 @@
+{
+  "report": "scifact.json",
+  "sha256": "85c078b3f7bb269ce5e968524cc409ca3626ff03901630b9f10caa0563f081da",
+  "scorer": "pytrec-eval-terrier 0.5.10",
+  "providers": {
+    "instantkv": {
+      "queries": 300,
+      "source_inputs_verified": true,
+      "all_query_metrics_verified": true
+    },
+    "supermemory": {
+      "queries": 300,
+      "source_inputs_verified": true,
+      "all_query_metrics_verified": true
+    }
+  }
+}

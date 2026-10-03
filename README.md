@@ -63,45 +63,53 @@ the running memory service needs no account, model API or embedding service.
 | Integration         | HTTP, CLI, twelve MCP tools or an embedded Rust core                    |
 
 `search` ranks content with English stemming and OR terms. `recall --query` applies literal AND filters.
-Check `truncated` on ranked results. Embedding search and automatic extraction remain planned.
+Ranked queries accept up to 16 KiB. Long questions select up to 64 indexed terms.
+Check `query_reduced` and `truncated`. WAND skips low-scoring postings within fixed work limits.
+Use `search QUERY --expand` for optional light English expansion, or
+`--expansion-term WORD` for related terms from your app. Expansion stays off by default.
+Embedding search and automatic extraction remain planned.
 Records and indexes change in one redb transaction, including updates, deletion and expiry cleanup.
 
 [API and limits](docs/memory-mvp.md) · [HTTP](docs/http.md) · [CLI](docs/cli.md)
 
 ## Measured performance
 
-**Document recall:** 81.43% Recall@10 on BEIR SciFact, versus 74.80% for
-Supermemory local v0.0.8 with bge-base embeddings and no reranker.
-Ranked query p95: 1.31 ms. One Mac run, 5,183 documents, 300 judged queries.
-Both systems used fresh databases in sequential same-host runs. This is a scoped retrieval
-result, not an agent-quality or phone benchmark.
-[Full comparison, costs and raw data](docs/benchmarks/2026-10-03-ranked/README.md).
+**Current source measurements:** full ArguAna Recall@10 rose from 12.73% to
+76.96%, versus the recorded Supermemory local 56.40% control.
+All 1,406 questions were accepted. Work limits truncated 688 searches;
+1149 used reduced queries. Expansion remains optional and off.
 
-[More retrieval tests and short engineering notes](docs/memory-benchmark-notes.md):
-NFCorpus, ArguAna, LoCoMo evidence turns and a fixed LongMemEval-S pilot.
-Read the losses and resource limits before applying the SciFact result elsewhere.
+| Workload | Queries | instantKV Recall@10 | Recorded Supermemory local |
+| --- | ---: | ---: | ---: |
+| BEIR SciFact | 300 | 81.43% | 74.80% |
+| BEIR nfcorpus | 323 | 15.31% | 17.08% |
+| BEIR arguana | 1,406 | 76.96% | 56.40% |
+| LoCoMo evidence retrieval | 1,533 | 57.65% | 58.28% |
+| LongMemEval-S session retrieval sample | 12 | 91.67% | 65.28% |
 
-Apple M4 Pro, 24 GiB memory, macOS 27.0. Three fresh databases, 10,000 memories per run,
-512-byte content plus metadata. Warm, sequential loopback HTTP; concurrency one.
+Fresh instantKV runs on Apple M4 Pro, 24 GiB, macOS 27.0. Supermemory local v0.0.8
+results are frozen 3 October controls; they were not rerun here. Direct evidence
+retrieval only, without extraction, answer generation or a reranker.
+LongMemEval is a fixed twelve-question pilot. These are not phone or answer-quality scores.
+[Current method and raw data](docs/benchmarks/2026-10-04-search/README.md) ·
+[Short engineering notes](docs/memory-benchmark-notes.md).
 
-| Measurement                          | Result across three runs  |
-| ------------------------------------ | ------------------------- |
-| Native binary                        | 8.28 MiB |
-| Idle server RSS                      | 6.34–6.36 MiB |
-| Largest sampled server RSS           | 20.91 MiB |
-| Topic query p95                      | 0.130–0.137 ms |
-| Durable save p95                     | 6.051–6.382 ms |
+Three fresh databases, 10,000 memories per run, 512-byte content plus metadata.
+Warm sequential loopback HTTP; concurrency one. Immediate durable commits.
+
+| Measurement | Result across three runs |
+| --- | --- |
+| Native binary | 8.31 MiB |
+| Idle server RSS | 6.34–6.36 MiB |
+| Largest sampled server RSS | 20.88 MiB |
+| Topic query p95 | 0.152–0.173 ms |
+| Durable save p95 | 6.665–6.923 ms |
 | Exact recovery after abrupt restarts | 30,000 of 30,000 memories |
 
-p95 is the time within which 95% of measured operations complete.
-RSS is the process memory reported by the operating system. Samples do not measure peak RAM.
-RAM samples cover the Rust server. Latencies include the local HTTP client and server.
-The results exclude model inference, phone performance and battery use.
-The browser demo uses the same memory API. Live mode saves, filters, browses and deletes real memories.
-Recorded mode shows verified responses from three fresh 10,000-memory runs.
-
-[Full workload and reproduction](docs/performance.md) ·
-[Raw report](docs/benchmarks/2026-10-03-ranked/mac-arm64.json) · [Benchmark methodology](docs/benchmarks.md)
+RSS samples do not measure peak RAM. Timings include the HTTP client and server.
+The browser demo uses the same memory API. Recorded mode retains labelled earlier
+memory responses; it does not measure current search performance.
+[Recovery samples](docs/benchmarks/2026-10-04-search/mac-arm64.json) · [Methodology](docs/benchmarks.md).
 
 ## Small by default
 
