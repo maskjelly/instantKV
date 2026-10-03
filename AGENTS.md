@@ -3,6 +3,18 @@
 This checkout adds structured memory to the existing Rust KV/checkpoint engine.
 The MVP is unreleased. Keep user-facing explanations concise.
 
+## Benchmark campaign
+
+**Optimize the architecture, not the benchmark. Any improvement must plausibly generalize to unseen memories and queries.**
+
+Prioritize quality. Keep instantKV local-first, lightweight, cheap to run and fast
+beside a model. Follow [the evaluation policy](docs/evaluation-policy.md).
+The current task is a finite full-suite benchmark campaign, not an autonomous
+recursive improvement goal. Do not tune the engine while evaluating final suites.
+API reader/judge calls are authorized for evaluation only. Keep credentials outside
+the repo; record token usage and enforce the configured spending cap. The memory
+service must not gain cloud dependencies or automatic model calls.
+
 ## What to evaluate
 
 - `remember`, `recall`, `search`, `browse`, `forget`: content + topic/tags + event time + custom JSON metadata.
