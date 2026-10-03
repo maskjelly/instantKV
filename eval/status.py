@@ -18,7 +18,7 @@ def snapshot(root):
         path=Path(job['output'])/'report.json'
         try:report=json.loads(path.read_text())
         except (OSError,json.JSONDecodeError):report={}
-        expected=report.get('expected_questions',0)
+        expected=report.get('expected_questions',job.get('expected_questions',0))
         job=dict(job)
         if report.get('complete'):job['status']='complete'
         elif report.get('phase')=='failed':job['status']='failed'
@@ -45,7 +45,7 @@ def snapshot(root):
             budget={'cap_usd':cap,'accounted_upper_usd':spent,'remaining_usd':cap-spent}
         finally:db.close()
     return {'updated_at':datetime.now(timezone.utc).isoformat(),'complete':campaign.get('complete',False),
-        'planned_jobs':21,'completed_jobs':sum(j['status'] in ('complete','previously_complete') for j in jobs),
+        'planned_jobs':campaign.get('expected_total_jobs',21),'completed_jobs':sum(j['status'] in ('complete','previously_complete') for j in jobs),
         'failed_jobs':sum(j['status']=='failed' for j in jobs),'jobs':jobs,'budget':budget,
         'stop_reason':campaign.get('stop_reason')}
 
@@ -80,9 +80,9 @@ def page(data):
         '<h1>instantKV evaluation</h1>'
         f"<p><strong>{data['completed_jobs']} / {data['planned_jobs']} jobs complete · {data['failed_jobs']} failed</strong><br>"
         f"API accounted upper cost: ${b.get('accounted_upper_usd',0):.4f} / ${b.get('cap_usd',250):.2f}</p>"
-        '<p>GPT-6 Luna answers and judges. Three retrieval repetitions, one QA pass per provider. Partial runs have no full-suite score.</p>'
+        '<p>GPT-6 Luna answers and judges. One QA pass per provider. The parallel profile uses one retrieval pass; the initial instantKV run retains three. Parallel timings are under shared load. Partial runs have no full-suite score.</p>'
         '<div class="table"><table><thead><tr>'+''.join('<th>'+v+'</th>' for v in ['Suite','Provider','Phase','Retrieval','QA','QA score','Recall@10','Query p95','Estimate'])+'</tr></thead><tbody>'+''.join(rows)+'</tbody></table></div>'
-        '<p>Queued: LongMemEval-S, LoCoMo, AMA-Bench, V2 Small, BEAM, V2 Medium and BEAM 10M, each with instantKV, SQLite FTS5 and local Supermemory.</p>'
+        '<p>Priority queue: full LongMemEval-S, LoCoMo, AMA-Bench and V2 Small, each with instantKV, SQLite FTS5 and local Supermemory. V2 Medium and BEAM large histories are deferred.</p>'
         '<p>Comparison limits: GPT-6 Luna protocol variant; SQLite latency is in process; Supermemory is its local embedding path, not its full hosted pipeline. A dash means a metric is pending or unavailable.</p>'
         '<p>The full queue can take days. V2 Medium has 447 separate corpora. Estimates depend on corpus size and provider speed.</p>'
         '<small>Refreshes every 10 seconds. Updated '+html.escape(data['updated_at'])+'</small></body></html>')
