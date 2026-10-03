@@ -2,6 +2,7 @@
 import json
 import sqlite3
 import uuid
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -16,10 +17,20 @@ class Budget:
         self.cap = cap
         with self.connect() as db:
             db.execute('CREATE TABLE IF NOT EXISTS calls (id TEXT PRIMARY KEY, status TEXT, reserved REAL, charged REAL, model TEXT, role TEXT, usage TEXT)')
+            db.execute('CREATE TABLE IF NOT EXISTS policy (id INTEGER PRIMARY KEY CHECK(id=1), cap REAL NOT NULL)')
+            db.execute('INSERT OR IGNORE INTO policy VALUES (1,?)',(cap,))
+            if db.execute('SELECT cap FROM policy WHERE id=1').fetchone()[0] != cap:
+                raise ValueError('Shared ledger cap cannot change between runs')
         self.path.chmod(0o600)
 
+    @contextmanager
     def connect(self):
-        return sqlite3.connect(self.path, timeout=60, isolation_level='IMMEDIATE')
+        db=sqlite3.connect(self.path, timeout=60, isolation_level='IMMEDIATE')
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
 
     def reserve(self, model, role, max_output=4096):
         if model != 'gpt-6-luna':
