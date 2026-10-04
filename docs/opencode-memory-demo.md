@@ -14,13 +14,23 @@ The launcher starts a local memory server and opens OpenCode in a separate folde
 It uses project settings. It does not change your global OpenCode settings.
 The server stops when you close OpenCode. The database stays on disk.
 
-## Show a save and a recall
+## Show natural memory
 
-1. Ask: `Remember that I prefer short answers and build Rust systems.`
+1. Say: `I'm building a small Rust CLI called PebbleTrail. I prefer TOML for its configuration. What should I build first?`
 2. Watch OpenCode call `instantKV_remember`. Expand the tool entry to see the record.
 3. Close OpenCode. Run the launcher again to start a new session and server.
-4. Ask: `What do you know about my work and how I like answers?`
+4. Ask: `What is my side project called, and which config format do I prefer?`
 5. Watch `instantKV_recall` return the saved facts. The answer cites their keys.
+
+You do not need to say "remember this". The agent saves useful preferences,
+project facts and decisions as they arise. It checks existing records first,
+skips duplicates and uses revision checks to update corrected facts.
+For example: `I switched PebbleTrail to JSON config.`
+
+It skips passing questions, guesses and secrets. Say `Do not remember this`
+to keep a message out of persistent memory, or ask it to forget a saved fact.
+These are model instructions, not a hard storage filter. Memory decisions can
+vary by model; the visible tool calls show what it actually saved.
 
 The agent has permission to use memory tools. It cannot read files or run shell
 commands. Its prompt contains no personal facts. Memory is reference data; the
@@ -61,7 +71,10 @@ python3 scripts/opencode-memory-demo.py --run "What do you know about me?"
 python3 scripts/opencode-memory-demo.py --run "What do you know about me?" --json > trace.jsonl
 ```
 
-This shows explicit persistence across sessions and server restarts.
+This shows model-selected saves and persistence across sessions and server restarts.
+The agent decides when to call a tool. instantKV does not run a second model or
+extract facts in the background. The launcher applies these rules when you start
+it; an already open session must be restarted to use the new rules.
 It does not show automatic compaction hooks or phone integration.
 The server log is `.instantkv/server.log` inside the demo folder.
 For connection errors, check the log and your OpenCode provider login.
