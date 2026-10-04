@@ -1,0 +1,421 @@
+---
+import {
+  runtimeRows,
+  nativeRuntime,
+  memoryEvidence,
+  irEvidence,
+  providers,
+  percent,
+  mib,
+  highestObserved,
+} from '../lib/evidence';
+const descriptions: Record<string, string> = {
+  'LongMemEval-S': 'Find the source conversation session behind a question.',
+  LoCoMo: 'Find the source turns across ten long conversation histories.',
+  SciFact: 'Find scientific documents that support a claim.',
+  ArguAna: 'Find a relevant counterargument to a long argument.',
+  NFCorpus: 'Find medical documents for natural-language questions.',
+};
+const suites = [...memoryEvidence, ...irEvidence].map((suite) => ({
+  ...suite,
+  id: suite.name.toLowerCase(),
+  description: descriptions[suite.name],
+  native: nativeRuntime.find((row) => row.suite === suite.name)!,
+  rows: providers.map(
+    (provider) =>
+      runtimeRows.find(
+        (row) => row.suite === suite.name && row.provider === provider,
+      ) ?? null,
+  ),
+}));
+const formatted = (n: number | null, unit: string) =>
+  n === null ? 'Not recorded' : `${n.toFixed(2)} ${unit}`;
+---
+
+<section id="overview" class="bench-section" aria-labelledby="overview-title">
+  <div class="bench-heading">
+    <h2 id="overview-title">
+      <span id="memory">instantKV at a glance</span>
+    </h2>
+    <p>Five complete retrieval sets. Select a benchmark to compare engines.</p>
+  </div>
+  <table class="bench-overview">
+    <caption class="visually-hidden">
+      instantKV retrieval quality, sampled RAM, query p95 and work limits for
+      each completed benchmark
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Benchmark</th>
+        <th scope="col">
+          Recall@10 <span>Higher is better</span>
+        </th>
+        <th scope="col">
+          Sampled RAM <span>Lower is better</span>
+        </th>
+        <th scope="col">
+          Query p95 <span>Lower is better</span>
+        </th>
+        <th scope="col">Query limits</th>
+      </tr>
+    </thead>
+    <tbody>
+      {suites.map((suite) => (
+        <tr>
+          <th scope="row">
+            <a href={`#compare-${suite.id}`} data-bench-select={suite.id}>
+              {suite.name}
+              <span aria-hidden="true">↗</span>
+            </a>
+            <small>
+              {suite.count.toLocaleString('en-US')} scored ·{' '}
+              {suite.scope.toLowerCase()}
+            </small>
+          </th>
+          <td data-label="Recall@10" class="bench-score">
+            {percent(suite.native.recall)}
+            <small>%</small>
+          </td>
+          <td data-label="Sampled RAM">
+            {mib(suite.native.rss)}
+            <small>MiB</small>
+          </td>
+          <td data-label="Query p95">
+            {suite.native.latency.p95.toFixed(2)}
+            <small>ms</small>
+          </td>
+          <td
+            data-label="Query limits"
+            class:list={{ 'bench-limited': suite.native.truncated > 0 }}
+          >
+            {suite.native.truncated
+              ? `${suite.native.truncated} truncated`
+              : 'No limits hit'}
+            <small>
+              {suite.native.failures} failures
+              {suite.native.reduced
+                ? ` · ${suite.native.reduced.toLocaleString('en-US')} reduced`
+                : ''}
+            </small>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  <p class="bench-note">
+    Recall@10 is the share of labelled source evidence found in the first ten
+    results. Query time excludes model inference. RAM is sampled process RSS.
+  </p>
+</section>
+
+<section
+  id="compare"
+  class="bench-section"
+  aria-labelledby="compare-title"
+  data-benchmark-explorer
+>
+  <div class="bench-heading">
+    <h2 id="compare-title">
+      <span id="ir">Compare engines</span>
+    </h2>
+    <p>One benchmark at a time. The same source data and questions.</p>
+  </div>
+  <nav class="bench-suite-nav" aria-label="Choose a benchmark">
+    {suites.map((suite, index) => (
+      <a
+        href={`#compare-${suite.id}`}
+        data-bench-select={suite.id}
+        aria-current={index === 0 ? 'true' : undefined}
+      >
+        {suite.name}
+      </a>
+    ))}
+  </nav>
+  {suites.map((suite) => (
+    <article
+      id={`compare-${suite.id}`}
+      class="bench-comparison"
+      data-bench-panel={suite.id}
+    >
+      <div class="bench-comparison-heading">
+        <div>
+          <h3>{suite.name}</h3>
+          <p>{suite.description}</p>
+        </div>
+        <label class="bench-chart-select">
+          Chart metric
+          <select
+            data-bench-metric
+            aria-label={`Chart metric for ${suite.name}`}
+          >
+            <option value="recall">Recall@10</option>
+            <option value="ndcg">Ranking quality (nDCG@10)</option>
+            <option value="rss">Sampled RAM</option>
+            <option value="latency">Query p95</option>
+          </select>
+        </label>
+      </div>
+      <div class="bench-chart" data-bench-chart>
+        <p
+          class="bench-chart-explainer"
+          data-bench-explainer
+          aria-live="polite"
+        >
+          Source evidence found in the first ten results. Higher is better.
+        </p>
+        {suite.rows.map((row, index) => (
+          <div
+            class:list={{
+              'bench-bar-row': true,
+              'bench-bar-native': index === 0,
+              'bench-bar-missing': !row,
+            }}
+            data-chart-row
+            data-recall={row?.recall}
+            data-ndcg={row?.ndcg}
+            data-rss={row ? row.rss / 1024 ** 2 : undefined}
+            data-latency={row?.latency.p95}
+          >
+            <span>{providers[index]}</span>
+            <div class="bench-bar-track" aria-hidden="true">
+              <span
+                data-bench-bar
+                style={row ? `width:${row.recall * 100}%` : undefined}
+              ></span>
+            </div>
+            <strong data-bench-value>
+              {row ? percent(row.recall) + '%' : 'No complete run'}
+            </strong>
+          </div>
+        ))}
+        <div class="bench-chart-axis" aria-hidden="true">
+          <span>0</span>
+          <span data-bench-axis>100%</span>
+        </div>
+      </div>
+      <div
+        class="bench-comparison-scroll"
+        role="region"
+        aria-label={`${suite.name} engine comparison`}
+        tabindex="0"
+      >
+        <table class="bench-comparison-table">
+          <caption class="visually-hidden">
+            {suite.name}: all published providers with recall, sampled RAM, p95
+            response time and failures
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Engine</th>
+              <th scope="col">Recall@10</th>
+              <th scope="col">Sampled RAM</th>
+              <th scope="col">Query p95</th>
+              <th scope="col">Failed / truncated</th>
+            </tr>
+          </thead>
+          <tbody>
+            {suite.rows.map((row, index) => (
+              <tr class:list={{ 'bench-native-row': index === 0 }}>
+                <th scope="row">
+                  {providers[index]}
+                  <small>
+                    {row
+                      ? index === 0
+                        ? 'Rust server · BM25'
+                        : index === 1
+                          ? 'In-process · lexical'
+                          : 'Local v0.0.8 · embeddings'
+                      : suite.name === 'LongMemEval-S'
+                        ? 'Incomplete'
+                        : 'Not run'}
+                  </small>
+                </th>
+                <td data-label="Recall@10">
+                  {row ? percent(row.recall) + '%' : '—'}
+                  {row && highestObserved(row, 'recall') && (
+                    <small class="bench-highest">Highest observed</small>
+                  )}
+                </td>
+                <td data-label="Sampled RAM">
+                  {row ? mib(row.rss) + ' MiB' : '—'}
+                </td>
+                <td data-label="Query p95">
+                  {row ? row.latency.p95.toFixed(2) + ' ms' : '—'}
+                </td>
+                <td data-label="Failed / truncated">
+                  {row ? `${row.failures} / ${row.truncated}` : '—'}
+                  {row && row.reduced > 0 && (
+                    <small>{row.reduced.toLocaleString('en-US')} reduced</small>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="bench-comparison-limit">
+        Different process scopes and transports. These resource figures do not
+        establish matched speed or RAM ratios. Highest observed scores are not
+        significance claims.
+      </p>
+      <details class="bench-details">
+        <summary>All metrics, scope and raw data</summary>
+        <p class="bench-note">
+          {suite.limits}{' '}
+          {suite.docs &&
+            `${suite.docs.toLocaleString('en-US')} source documents.`}
+        </p>
+        {suite.rows
+          .filter((row) => row !== null)
+          .map((row) => (
+            <section
+              class="bench-engine-detail"
+              aria-label={`${suite.name} ${row.provider} recorded metrics`}
+            >
+              <h4>{row.provider}</h4>
+              <dl class="bench-detail-grid">
+                <div>
+                  <dt>Ranking · nDCG@10</dt>
+                  <dd>{percent(row.ndcg)}%</dd>
+                </div>
+                <div>
+                  <dt>Query p50 / p95 / p99</dt>
+                  <dd>
+                    {row.latency.p50.toFixed(2)} / {row.latency.p95.toFixed(2)}{' '}
+                    / {row.latency.p99.toFixed(2)} ms
+                  </dd>
+                </div>
+                <div>
+                  <dt>Write p95</dt>
+                  <dd>{formatted(row.writeP95, 'ms')}</dd>
+                  <small>{row.writeUnit}</small>
+                </div>
+                <div>
+                  <dt>Startup p95</dt>
+                  <dd>{formatted(row.startupP95, 'ms')}</dd>
+                </div>
+                <div>
+                  <dt>Database size</dt>
+                  <dd>
+                    {row.disk === null
+                      ? 'Not recorded'
+                      : mib(row.disk) + ' MiB'}
+                  </dd>
+                  <small>{row.diskScope}</small>
+                </div>
+                <div>
+                  <dt>Write throughput</dt>
+                  <dd>{formatted(row.writeThroughput, 'records/s')}</dd>
+                </div>
+                <div>
+                  <dt>Binary size</dt>
+                  <dd>
+                    {row.binary === null
+                      ? 'Not recorded'
+                      : mib(row.binary) + ' MiB'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Query samples / passes</dt>
+                  <dd>
+                    {row.samples.toLocaleString('en-US')} / {row.repetitions}
+                  </dd>
+                </div>
+              </dl>
+              <p class="bench-note">
+                RAM scope: {row.rssScope}. {row.context}.
+              </p>
+              <a class="bench-source-link" href={row.raw}>
+                Raw results for {row.provider} ↗
+              </a>
+            </section>
+          ))}
+        <p class="bench-note">
+          Write guarantees differ. Write throughput excludes query work. CPU
+          utilization, energy, separate index bytes and concurrent query
+          throughput were not recorded.
+        </p>
+      </details>
+    </article>
+  ))}
+</section>
+
+<script>
+  const explorer = document.querySelector<HTMLElement>(
+    '[data-benchmark-explorer]',
+  );
+  if (explorer) {
+    const panels = Array.from(
+      explorer.querySelectorAll<HTMLElement>('[data-bench-panel]'),
+    );
+    const links = document.querySelectorAll<HTMLAnchorElement>(
+      '[data-bench-select]',
+    );
+    const selectSuite = (id: string) => {
+      const selected = panels.find((panel) => panel.dataset.benchPanel === id);
+      if (!selected) return;
+      panels.forEach((panel) => {
+        panel.hidden = panel !== selected;
+      });
+      explorer.querySelectorAll('[data-bench-select]').forEach((link) => {
+        if ((link as HTMLElement).dataset.benchSelect === id)
+          link.setAttribute('aria-current', 'true');
+        else link.removeAttribute('aria-current');
+      });
+    };
+    const selectHash = () => {
+      const id = location.hash.replace('#compare-', '');
+      if (panels.some((panel) => panel.dataset.benchPanel === id))
+        selectSuite(id);
+    };
+    selectSuite(panels[0].dataset.benchPanel!);
+    selectHash();
+    window.addEventListener('hashchange', selectHash);
+    links.forEach((link) =>
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        selectSuite(link.dataset.benchSelect!);
+        history.replaceState(null, '', link.getAttribute('href'));
+        if (!explorer.contains(link))
+          explorer.scrollIntoView({ block: 'start' });
+      }),
+    );
+    panels.forEach((panel) => {
+      const select = panel.querySelector<HTMLSelectElement>(
+        '[data-bench-metric]',
+      )!;
+      select.addEventListener('change', () => {
+        const metric = select.value;
+        const rows = Array.from(
+          panel.querySelectorAll<HTMLElement>('[data-chart-row]'),
+        );
+        const quality = metric === 'recall' || metric === 'ndcg';
+        const values = rows
+          .map((row) => Number(row.dataset[metric]))
+          .filter((value) => Number.isFinite(value));
+        const maximum = quality ? 1 : Math.max(...values, 1);
+        rows.forEach((row) => {
+          const raw = row.dataset[metric];
+          if (raw === undefined) return;
+          const value = Number(raw);
+          row.querySelector<HTMLElement>('[data-bench-bar]')!.style.width =
+            `${(value / maximum) * 100}%`;
+          row.querySelector('[data-bench-value]')!.textContent = quality
+            ? `${(value * 100).toFixed(2)}%`
+            : `${value.toFixed(2)} ${metric === 'rss' ? 'MiB' : 'ms'}`;
+        });
+        panel.querySelector('[data-bench-axis]')!.textContent = quality
+          ? '100%'
+          : `${maximum.toFixed(2)} ${metric === 'rss' ? 'MiB' : 'ms'}`;
+        panel.querySelector('[data-bench-explainer]')!.textContent = {
+          recall:
+            'Source evidence found in the first ten results. Higher is better.',
+          ndcg: 'Ranking quality: more credit for relevant evidence near the top. Higher is better.',
+          rss: 'Largest sampled process RSS. Lower is better. Process scopes differ; see the notes below.',
+          latency:
+            'Retrieval response time at the 95th percentile. Lower is better. Model inference is excluded.',
+        }[metric as 'recall' | 'ndcg' | 'rss' | 'latency']!;
+      });
+    });
+  }
+</script>

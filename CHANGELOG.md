@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Simplify the benchmark page: five-row overview, selectable engine comparisons, metric charts and expandable raw data. Keep recall, RAM and query speed visible on mobile.
+
 - Add `mcp-local`: MCP stdio and an authenticated local server in one Rust process, with persistent storage and shutdown on disconnect.
 - Add an OpenCode installer with config backups and automatic memory rules for normal conversations.
 - Test native MCP startup, clean stdout, private credentials, restart recovery and revision updates.

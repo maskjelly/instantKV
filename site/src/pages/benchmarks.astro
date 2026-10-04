@@ -1,318 +1,224 @@
 ---
 import Base from '../layouts/Base.astro';
-import EvidenceChart from '../components/EvidenceChart.astro';
-import EvalMetrics from '../components/EvalMetrics.astro';
+import BenchmarkExplorer from '../components/BenchmarkExplorer.astro';
 import QualityEval from '../components/QualityEval.astro';
-import { memoryEvidence, irEvidence, full, mib } from '../lib/evidence';
-import {
-  report,
-  workloads,
-  range,
-  largestRss,
-  recovered,
-} from '../lib/benchmarks';
+import { full, mib } from '../lib/evidence';
+import { report, workloads, range, recovered } from '../lib/benchmarks';
+import '../styles/benchmarks.css';
+const save = workloads.find((workload) => workload.id === 'save')!;
+const topic = workloads.find((workload) => workload.id === 'topic')!;
 ---
 
 <Base
   title="Benchmarks"
-  description="Full retrieval and native QA results with RAM, query response time, write latency, startup and storage. Highlighted metrics, raw samples and comparison limits."
+  description="Compare instantKV retrieval quality, RAM and query speed. Five full datasets, clear engine comparisons, answer accuracy, all resource metrics and raw results."
 >
-  <main id="main" class="shell evidence-page" data-pagefind-body>
-    <header class="editorial-title">
-      <p class="eyebrow">Evidence / 04 October 2026 / Engine fafa202</p>
-      <h1>
-        Small engine.
-        <br />
-        Open evidence.
-      </h1>
+  <main id="main" class="shell benchmark-page" data-pagefind-body>
+    <header class="bench-header">
+      <p class="bench-kicker">Measured results · 04 October 2026</p>
+      <h1>Benchmarks</h1>
       <p>
-        Full retrieval runs. Clear baselines. Raw rankings you can check.
-        Retrieval scores and model answer accuracy are reported separately.
+        Recall quality, memory use and query speed. Every published run, in one
+        place.
       </p>
+      <div class="bench-hostline">
+        <span>Apple M4 Pro</span>
+        <span>24 GiB RAM</span>
+        <span>macOS 27 · ARM64</span>
+        <a href="#method">Run conditions ↗</a>
+      </div>
     </header>
-    <nav class="page-jump" aria-label="Benchmark sections">
-      <a href="#overview">All results</a>
-      <a href="#memory">Memory suites</a>
-      <a href="#ir">Document retrieval</a>
-      <a href="#footprint">Footprint</a>
-      <a href="#method">Method & limits</a>
+    <nav class="bench-page-nav" aria-label="Benchmark sections">
+      <a href="#overview">Overview</a>
+      <a href="#compare">Compare engines</a>
+      <a href="#answers">Answer quality</a>
+      <a href="#footprint">Storage & speed</a>
+      <a href="#method">Method & data</a>
     </nav>
-    <section id="overview" class="editorial-section">
-      <div class="section-heading">
-        <p class="eyebrow">At a glance / quality + resource use</p>
-        <h2>Quality, RAM and speed. Together.</h2>
+    <BenchmarkExplorer />
+    <section id="answers" class="bench-section" aria-labelledby="answers-title">
+      <div class="bench-heading">
+        <h2 id="answers-title">Answer quality</h2>
         <p>
-          See what each retrieval score costs to run. Full question sets,
-          measured RAM, response percentiles and visible failures. Higher
-          quality is better; lower resource use is better.
+          A separate test: can a model answer correctly from the retrieved
+          memory?
         </p>
       </div>
-      <EvalMetrics />
       <QualityEval />
-      <div class="evaluation-queue">
-        <h3>Other full evaluations</h3>
-        <p>
-          LongMemEval-V2 Small / Medium · AMA-Bench · BEAM · 100K / 1M / 10M+
-          record tests: incomplete. Mem0, Zep and independent dense-vector
-          controls: not complete. No measured CPU, RAM, latency or quality score
-          is assigned to an unfinished run.
-        </p>
-      </div>
     </section>
-    <section id="memory" class="editorial-section">
-      <div class="section-heading">
-        <p class="eyebrow">01 / Full memory datasets</p>
-        <h2>
-          Strong session recall.
-          <br />A turn-level gap to close.
-        </h2>
+    <section
+      id="footprint"
+      class="bench-section"
+      aria-labelledby="footprint-title"
+    >
+      <div class="bench-heading">
+        <h2 id="footprint-title">Storage & speed</h2>
         <p>
-          SQLite has slightly higher observed LongMemEval-S recall. Local
-          Supermemory has slightly higher LoCoMo recall. instantKV leads LoCoMo
-          nDCG@10 in this run. These small differences do not establish a
-          statistically significant win.
+          Separate structured-memory test. Three databases with 10,000 records
+          each.
         </p>
       </div>
-      <EvidenceChart
-        rows={memoryEvidence}
-        id="memory-evidence"
-        title="Recall and ranking quality"
-      />
-      <div class="feature-columns">
+      <dl class="bench-footprint">
         <div>
-          <h3>500 / 500 questions</h3>
-          <p>
-            LongMemEval-S uses session-level source labels. A correct source
-            session can contain many turns; this is not exact-turn or QA
-            accuracy.
-          </p>
+          <dt>Recorded Rust binary</dt>
+          <dd>
+            {mib(report.binary_bytes)} <small>MiB</small>
+          </dd>
         </div>
         <div>
-          <h3>10 / 10 histories</h3>
-          <p>
-            LoCoMo queries all 1,986 questions. Recall uses 1,533 positive-label
-            questions. 446 adversarial questions and seven unresolved references
-            lack scored positive labels.
-          </p>
+          <dt>Durable save · p95</dt>
+          <dd>
+            {save.p95.toFixed(2)} <small>ms</small>
+          </dd>
         </div>
         <div>
-          <h3>0 failures, 0 truncations</h3>
-          <p>
-            All five complete retrieval files. Rankings were independently
-            checked with pytrec_eval against official source labels.
-          </p>
+          <dt>Topic recall · p95</dt>
+          <dd>
+            {topic.p95.toFixed(3)} <small>ms</small>
+          </dd>
         </div>
-      </div>
-      <div class="raw-links">
-        <a href="/benchmark-data/full-retrieval/summary.json">Summary JSON ↗</a>
-        <a href="/benchmark-data/full-retrieval/verification.json">
-          Verification receipts ↗
-        </a>
-        <a href="/docs/full-retrieval/">Full run notes ↗</a>
-      </div>
-    </section>
-    <section id="ir" class="editorial-section">
-      <div class="section-heading">
-        <p class="eyebrow">02 / Secondary BEIR tests</p>
-        <h2>
-          Useful lexical retrieval.
-          <br />
-          Room beyond keywords.
-        </h2>
-        <p>
-          Full SciFact, ArguAna and NFCorpus question sets. instantKV uses
-          bounded BM25 with English stemming. The local Supermemory control uses
-          bge-base embeddings without a reranker.
-        </p>
-      </div>
-      <EvidenceChart
-        rows={irEvidence}
-        id="ir-evidence"
-        title="Full document retrieval sets"
-      />
-      <p class="evidence-caveat">
-        Current native runs against recorded same-host controls. ArguAna: zero
-        rejected queries; 688 truncated and 1,149 reduced. NFCorpus remains a
-        loss. These results do not represent hosted Supermemory.
+        <div>
+          <dt>Recovered after restart</dt>
+          <dd>
+            {recovered.toLocaleString('en-US')} <small>/ 30,000</small>
+          </dd>
+        </div>
+      </dl>
+      <p class="bench-note">
+        512-byte content plus metadata. Warm loopback HTTP, one request at a
+        time, immediate durable commits. No embedding model or cloud API is
+        required by the memory engine.
       </p>
-    </section>
-    <section id="footprint" class="editorial-section">
-      <div class="section-heading">
-        <p class="eyebrow">03 / Native process measurements</p>
-        <h2>Keep the memory layer small.</h2>
-        <p>
-          Measured on an Apple M4 Pro, 24 GiB RAM, macOS 27.0 ARM64. No
-          embedding model in the instantKV process. Sampled RSS does not
-          establish peak memory.
-        </p>
-      </div>
-      <div class="measurement-grid">
-        <div>
-          <span>Native binary</span>
-          <strong>{mib(report.binary_bytes)} MiB</strong>
-          <p>Measured source build.</p>
-        </div>
-        <div>
-          <span>LongMemEval-S server RSS</span>
-          <strong>
-            {mib(
-              full.suites['longmemeval-s'].instantkv.largest_sampled_rss_bytes,
-            )}{' '}
-            MiB
-          </strong>
-          <p>Largest sampled Rust process RSS.</p>
-        </div>
-        <div>
-          <span>LoCoMo server RSS</span>
-          <strong>
-            {mib(full.suites.locomo.instantkv.largest_sampled_rss_bytes)} MiB
-          </strong>
-          <p>Largest sampled Rust process RSS.</p>
-        </div>
-      </div>
-      <h3 class="subsection-title">Separate structured-memory workload</h3>
-      <p>
-        Three fresh databases. 10,000 records each, 512-byte content plus
-        metadata. Warm loopback HTTP, one request at a time. Immediate durable
-        commits.
-      </p>
-      <div
-        class="latency-chart"
-        aria-label="Median run p95 latency in milliseconds, linear zero to eight millisecond scale"
-      >
-        <div class="chart-heading">
-          <h3>p95 by operation</h3>
-          <span class="eyebrow">Lower is better / ms</span>
-        </div>
-        {workloads
-          .filter((w) =>
-            ['save', 'topic', 'tag', 'time', 'exact', 'forget'].includes(w.id),
-          )
-          .map((w) => (
-            <div class="latency-row">
-              <span>{w.name}</span>
-              <div class="latency-track">
-                <span style={`width:${(w.p95 / 8) * 100}%`}></span>
-              </div>
-              <strong>{w.p95.toFixed(3)}</strong>
-            </div>
-          ))}
-        <div class="latency-axis" aria-hidden="true">
-          <span>0 ms</span>
-          <span>4 ms</span>
-          <span>8 ms</span>
-        </div>
-      </div>
-      <div
-        class="table-scroll"
-        role="region"
-        aria-label="All structured memory latency measurements"
-        tabindex="0"
-      >
-        <table class="evidence-table">
-          <caption>Milliseconds; median of three run percentiles</caption>
-          <thead>
-            <tr>
-              <th scope="col">Operation</th>
-              <th scope="col">p50</th>
-              <th scope="col">p95</th>
-              <th scope="col">p99</th>
-              <th scope="col">p95 range</th>
-            </tr>
-          </thead>
-          <tbody>
-            {workloads.map((w) => (
+      <details class="bench-details">
+        <summary>All operation timings and recovery notes</summary>
+        <div
+          class="bench-comparison-scroll"
+          role="region"
+          aria-label="Structured-memory operation latency"
+          tabindex="0"
+        >
+          <table class="bench-comparison-table">
+            <caption>Milliseconds · median of three run percentiles</caption>
+            <thead>
               <tr>
-                <th scope="row">
-                  {w.name}
-                  <small>{w.detail}</small>
-                </th>
-                <td>{w.p50.toFixed(3)}</td>
-                <td>{w.p95.toFixed(3)}</td>
-                <td>{w.p99.toFixed(3)}</td>
-                <td>{w.p95Range}</td>
+                <th scope="col">Operation</th>
+                <th scope="col">p50</th>
+                <th scope="col">p95</th>
+                <th scope="col">p99</th>
+                <th scope="col">p95 range</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p class="chart-note">
-        Idle RSS{' '}
-        {range(
-          report.runs.map((r) => r.idle_rss_bytes / 1024 ** 2),
-          2,
-        )}{' '}
-        MiB. Largest sampled RSS {mib(largestRss)} MiB in this separate
-        workload. {recovered.toLocaleString('en-US')} / 30,000 records recovered
-        after abrupt process restarts. No device power-loss test.{' '}
-        <a href="/benchmark-data/memory/mac-arm64.json">
+            </thead>
+            <tbody>
+              {workloads.map((workload) => (
+                <tr>
+                  <th scope="row">
+                    {workload.name}
+                    <small>{workload.detail}</small>
+                  </th>
+                  <td>{workload.p50.toFixed(3)}</td>
+                  <td>{workload.p95.toFixed(3)}</td>
+                  <td>{workload.p99.toFixed(3)}</td>
+                  <td>{workload.p95Range}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="bench-note">
+          Idle RSS{' '}
+          {range(
+            report.runs.map((run) => run.idle_rss_bytes / 1024 ** 2),
+            2,
+          )}{' '}
+          MiB. All 30,000 records recovered after abrupt process restarts. This
+          was not a device power-loss test.
+        </p>
+        <a
+          class="bench-source-link"
+          href="/benchmark-data/memory/mac-arm64.json"
+        >
           Raw structured-memory runs ↗
         </a>
-      </p>
+      </details>
     </section>
-    <section id="method" class="editorial-section">
-      <div class="section-heading">
-        <p class="eyebrow">04 / How to read the evidence</p>
-        <h2>Measure the actual boundary.</h2>
+    <section id="method" class="bench-section" aria-labelledby="method-title">
+      <div class="bench-heading">
+        <h2 id="method-title">Method & limits</h2>
+        <p>What was measured, what differs, and what is still pending.</p>
       </div>
-      <div class="method-grid">
+      <dl class="bench-method">
         <div>
-          <h3>Same source data</h3>
-          <p>
-            Providers receive the same source documents, lossless chunks and
-            questions. SQLite uses the same 64 KiB page and 64-page response
-            bound as instantKV. The engine is frozen at{' '}
-            {full.runtime_commit.slice(0, 7)}.
-          </p>
+          <dt>Hardware & build</dt>
+          <dd>
+            Apple M4 Pro, 24 GiB RAM, macOS 27.0 ARM64. Retrieval engine frozen
+            at <code>{full.runtime_commit.slice(0, 7)}</code>. No engine tuning
+            during the full runs.
+          </dd>
         </div>
         <div>
-          <h3>Different process scopes</h3>
-          <p>
-            SQLite is in-process and includes the Python runner in RSS. Local
-            Supermemory retains corpus scopes in one server per suite. Rust RSS
-            is the native server. These figures do not support a RAM efficiency
-            ratio.
-          </p>
+          <dt>Quality scores</dt>
+          <dd>
+            LongMemEval-S scores source sessions; LoCoMo scores source turns.
+            BEIR scores source documents. Recall is not answer accuracy. Small
+            score gaps do not establish a significant win.
+          </dd>
         </div>
         <div>
-          <h3>Shared hardware load</h3>
-          <p>
-            Memory suites ran in parallel. Their timings cannot establish
-            isolated speed ratios. The structured-memory latency chart is a
-            separate sequential workload; it excludes inference.
-          </p>
+          <dt>RAM boundaries</dt>
+          <dd>
+            instantKV: Rust server only. SQLite: Python runner and in-process
+            adapter. Supermemory: server and descendants, including embeddings;
+            memory-suite corpus scopes accumulate. Sampled RSS is not peak RAM.
+          </dd>
         </div>
         <div>
-          <h3>Local control, limited pipeline</h3>
-          <p>
-            Supermemory local v0.0.8 uses direct embedding retrieval. Model
-            extraction, query rewriting and reranking are disabled. Its full
-            hosted system is not measured.
-          </p>
+          <dt>Response speed</dt>
+          <dd>
+            Memory suites ran under shared host load. BEIR controls are recorded
+            same-host runs. Timings do not support isolated speed ratios. CPU
+            utilization, CPU time and energy were not recorded.
+          </dd>
         </div>
         <div>
-          <h3>Frozen evaluations</h3>
-          <p>
-            These test questions have been exposed. No engine tuning occurred
-            during the full runs. Use separate development data for further
-            changes. Untouched checkpoint evaluations remain part of the plan.
-          </p>
+          <dt>Supermemory control</dt>
+          <dd>
+            Local v0.0.8, direct embedding retrieval. Model extraction, query
+            rewriting and reranking are disabled. The hosted Supermemory product
+            is not measured.
+          </dd>
         </div>
         <div>
-          <h3>Still to measure</h3>
-          <p>
-            Competitor end-to-end QA, LongMemEval-V2, AMA-Bench, BEAM, Mem0,
-            Zep, dense-vector controls and 100K–10M+ record tests remain
-            incomplete. Phone latency, battery and native bindings remain
-            planned.
-          </p>
+          <dt>Reproduction</dt>
+          <dd>
+            Same source data, lossless chunks and questions. SQLite and
+            instantKV use matching response pagination bounds. Published
+            full-memory rankings were checked with pytrec_eval.{' '}
+            <a href="/docs/full-retrieval/">Read the full run notes ↗</a>
+          </dd>
         </div>
-      </div>
-      <div class="raw-links">
-        <a href="/docs/benchmarks/">Reproduction guide →</a>
-        <a href="/docs/evaluation-policy/">Evaluation policy →</a>
-        <a href="/docs/performance/">Performance details →</a>
-        <a href="/blog/lightweight-memory-benchmarks/">Engineering notes →</a>
+      </dl>
+      <details class="bench-details">
+        <summary>Pending benchmarks and device tests</summary>
+        <p class="bench-note">
+          LongMemEval-V2 Small / Medium, AMA-Bench, BEAM and 100K / 1M / 10M+
+          record tests are incomplete. Mem0, Zep and independent dense-vector
+          controls are not complete. Competitor end-to-end QA, phone latency,
+          battery and native bindings remain pending. No score or resource
+          estimate is assigned to an unfinished run.
+        </p>
+      </details>
+      <div class="bench-downloads">
+        <a href="/benchmark-data/full-retrieval/summary.json">
+          Retrieval summary ↗
+        </a>
+        <a href="/benchmark-data/full-retrieval/runtime-metrics.json">
+          Resource samples ↗
+        </a>
+        <a href="/benchmark-data/full-retrieval/verification.json">
+          Verification ↗
+        </a>
+        <a href="/docs/benchmarks/">Reproduction guide ↗</a>
+        <a href="/docs/evaluation-policy/">Evaluation policy ↗</a>
       </div>
     </section>
   </main>
