@@ -48,7 +48,7 @@ Setup creates private credentials and stores data in `.instantkv/data`.
 The server listens on `127.0.0.1:8080`. Installation can download dependencies;
 the running memory service needs no account, model API or embedding service.
 
-[Docker setup](docs/quickstart.md#docker-is-optional) · [Connect through MCP](docs/agents.md)
+[Docker setup](docs/quickstart.md#docker-is-optional) · [Connect through MCP](docs/agents.md) · [Try OpenCode memory](docs/opencode-memory-demo.md)
 
 ## What you get
 

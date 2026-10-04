@@ -8,6 +8,12 @@ For multiple workers, use the [swarm guide](cloud-agents.md).
 
 Pass the namespace in every swarm tool call. The single-agent defaults are `knowledge` and `checkpoints`.
 
+## OpenCode
+
+For a local save → restart → recall showcase, use the
+[OpenCode launcher](https://github.com/maskjelly/instantKV/blob/main/docs/opencode-memory-demo.md). It starts the server and MCP adapter
+for you and shows each memory tool call.
+
 ## MCP stdio
 
 For clients using a `mcpServers` configuration:
