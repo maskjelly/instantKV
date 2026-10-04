@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add `mcp-local`: MCP stdio and an authenticated local server in one Rust process, with persistent storage and shutdown on disconnect.
+- Add an OpenCode installer with config backups and automatic memory rules for normal conversations.
+- Test native MCP startup, clean stdout, private credentials, restart recovery and revision updates.
+
 - Show measured RAM, query p50/p95/p99, failure counts, writes, startup, storage and throughput beside retrieval scores.
 - Highlight native runtime figures and the highest observed quality result for each provider.
 - Publish the full native LongMemEval-S GPT-6 Luna QA model variant: 426/500 correct, zero API failures, raw answers and a 95% clustered-bootstrap interval.

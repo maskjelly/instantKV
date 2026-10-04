@@ -174,6 +174,12 @@ enum Command {
     },
     /// Expose memory tools over MCP stdio; all operations use the authenticated HTTP API.
     Mcp,
+    /// Run MCP stdio with its own local memory server. No separate serve command.
+    McpLocal {
+        /// Persistent config, credentials and database directory; independent of client cwd.
+        #[arg(long)]
+        dir: PathBuf,
+    },
     /// Print authoritative JSON schemas for editors and agent integrations.
     Schema {
         #[arg(long, default_value = "checkpoint", value_parser = ["checkpoint", "memory"])]
@@ -248,6 +254,34 @@ async fn main() -> std::process::ExitCode {
 async fn run(cli: Cli) -> Result<()> {
     match cli.command {
         Command::Init { dir, profile } => init(&dir, profile),
+        Command::McpLocal { dir } => {
+            let config_path = dir.join("instantkv.toml");
+            let secrets_path = dir.join(".instantkv/credentials.env");
+            if !config_path.exists() && !secrets_path.exists() {
+                initialize(&dir, Profile::Local, true)?;
+            }
+            let dir = fs::canonicalize(&dir)?;
+            let mut config = load_config(&config_path)?;
+            if config.storage.data_dir.is_relative() {
+                config.storage.data_dir = dir.join(&config.storage.data_dir);
+            }
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
+            config.server.bind = listener.local_addr()?;
+            config.validate().map_err(anyhow::Error::msg)?;
+            let secrets = read_secrets(&secrets_path)?;
+            let token = std::env::var("INSTANTKV_APP_TOKEN")
+                .ok()
+                .or_else(|| secrets.get("INSTANTKV_APP_TOKEN").cloned())
+                .context(
+                    "local MCP requires INSTANTKV_APP_TOKEN in its credentials file or environment",
+                )?;
+            let client = Client::new(&format!("http://{}", config.server.bind), Some(token))?;
+            // Both transports share one process. EOF closes the local server too.
+            tokio::select! {
+                result = server::serve_with_listener(config, &secrets_path, listener) => result,
+                result = instantkv::mcp::serve(client) => result,
+            }
+        }
         Command::CheckConfig { config } => {
             let parsed = load_config(&config)?;
             println!(
@@ -527,6 +561,10 @@ fn print_json(value: &impl serde::Serialize) -> Result<()> {
 }
 
 fn init(dir: &Path, profile: Profile) -> Result<()> {
+    initialize(dir, profile, false)
+}
+
+fn initialize(dir: &Path, profile: Profile, quiet: bool) -> Result<()> {
     let config_path = dir.join("instantkv.toml");
     let private = dir.join(".instantkv");
     let secrets_path = private.join("credentials.env");
@@ -575,8 +613,10 @@ fn init(dir: &Path, profile: Profile) -> Result<()> {
         .create_new(true)
         .open(&config_path)?
         .write_all(template.as_bytes())?;
-    println!("Created {}", config_path.display());
-    println!("Private credentials: {}", secrets_path.display());
-    println!("Next: cd {} && instantkv serve", dir.display());
+    if !quiet {
+        println!("Created {}", config_path.display());
+        println!("Private credentials: {}", secrets_path.display());
+        println!("Next: cd {} && instantkv serve", dir.display());
+    }
     Ok(())
 }

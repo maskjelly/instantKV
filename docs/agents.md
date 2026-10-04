@@ -1,8 +1,10 @@
 # Connect an agent
 
 The Model Context Protocol (MCP) lets an agent call instantKV tools.
-Start the HTTP server with `instantkv serve`, then configure the adapter below.
-The adapter connects to that server; it does not start one.
+Use `instantkv mcp-local --dir /absolute/path/memory` for a self-contained
+local MCP server. OpenCode starts it for you with the setup below.
+For a shared HTTP server, start `instantkv serve` and use `instantkv mcp`.
+That adapter connects to an existing server; it does not start one.
 Its credential controls namespace and operation access.
 For multiple workers, use the [swarm guide](cloud-agents.md).
 
@@ -11,7 +13,7 @@ Pass the namespace in every swarm tool call. The single-agent defaults are `know
 ## OpenCode
 
 For a local save → restart → recall showcase, use the
-[OpenCode launcher](https://github.com/maskjelly/instantKV/blob/main/docs/opencode-memory-demo.md). It starts the server and MCP adapter
+[OpenCode installer](https://github.com/maskjelly/instantKV/blob/main/docs/opencode-memory-demo.md). It starts the server and MCP adapter
 for you and shows each memory tool call.
 
 ## MCP stdio

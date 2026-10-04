@@ -122,3 +122,15 @@ Use a checkpoint namespace in a disposable instance for the last two.
 Requests, concurrency and values must fit the configured limits.
 Timing excludes setup. Ordinary keys are removed afterward; checkpoint records remain.
 [Methodology and suite](benchmarks.md).
+
+## Self-contained local MCP
+
+```sh
+instantkv mcp-local --dir /absolute/path/memory
+```
+
+Run this through an MCP client. It creates the local profile on first use, starts
+an authenticated loopback server, and exposes MCP stdio from the same process.
+Memory persists in the specified directory. Stdout contains only MCP messages.
+The existing `instantkv mcp` command still connects to a separately started server.
+See [OpenCode setup](https://github.com/maskjelly/instantKV/blob/main/docs/opencode-memory-demo.md).

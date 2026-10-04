@@ -540,12 +540,21 @@ async fn metrics(State(app): State<App>, headers: HeaderMap) -> Result<Response,
 }
 
 pub async fn serve(config: Config, secrets_path: &FilePath) -> anyhow::Result<()> {
+    let listener = tokio::net::TcpListener::bind(config.server.bind).await?;
+    serve_with_listener(config, secrets_path, listener).await
+}
+
+/// Serve on a pre-bound listener, including an OS-selected local port for MCP.
+pub async fn serve_with_listener(
+    config: Config,
+    secrets_path: &FilePath,
+    listener: tokio::net::TcpListener,
+) -> anyhow::Result<()> {
     let secrets = read_secrets(secrets_path)?;
     let auth = Auth::load(&config, &secrets)?;
-    let bind = config.server.bind;
+    let bind = listener.local_addr()?;
     let engine = Arc::new(tokio::task::spawn_blocking(move || Engine::open(config)).await??);
     let app = App::new(engine.clone(), auth);
-    let listener = tokio::net::TcpListener::bind(bind).await?;
     let worker_app = app.clone();
     let cleanup = tokio::spawn(async move {
         let mut interval = tokio::time::interval(Duration::from_secs(
