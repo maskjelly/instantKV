@@ -55,11 +55,33 @@
 .bench-page-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 28px;
+  gap: 8px;
   font-size: 13px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   padding: 17px 0;
+}
+.bench-page-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 500;
+}
+.benchmark-page .bench-page-nav a:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+}
+.bench-page-nav a:focus-visible {
+  outline: 2px solid var(--bench-accent);
+  outline-offset: 3px;
 }
 .benchmark-page a:hover {
   text-decoration: underline;
@@ -547,7 +569,7 @@
     font-size: 15px;
   }
   .bench-page-nav {
-    gap: 12px 18px;
+    gap: 8px;
     font-size: 12px;
   }
   .bench-section {
