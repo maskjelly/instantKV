@@ -15,18 +15,22 @@ The engine remains frozen during the [finite evaluation campaign](evaluation-pol
 | Verification | One `scripts/check.sh` entry point used by contributors and CI | Core/site modes, schemas and tests pass |
 | Hygiene enforcement | Source layout, accidental private/generated files and Markdown checks | Regression cases reject invalid fixtures |
 | Review workflow | Focused issue/PR templates with completion criteria | Checks, compatibility and scope are recorded |
+| Service website | Installation first; shared themes; task-based docs; report-backed evidence | Built-page checks and browser layout/interaction checks pass |
+| Private adoption evidence | Local SQLite download snapshots outside Git | Counting and privacy regressions pass; source installs stay unknown |
 
 [Validation record](validation/2026-10-06.md) records local checks and their limits.
 Published benchmark JSON/JSONL stays byte-for-byte unchanged. Published site routes retain their existing slugs.
 Personal correspondence stays outside the source repository.
+Cleanup was committed and pushed as `58702e1`; its Linux x86_64, Linux ARM64,
+macOS, container and website CI jobs passed. The service-site implementation was
+pushed as `ab6e502`. [Website audit and acceptance contract](website.md).
 
 ## Next repository work
 
-1. **Review and commit this cleanup as one change.** Include the local validation record; wait for Linux/macOS CI before calling it cross-platform verified.
-2. **Apply these rules to future changes.** Put one problem and observable completion criteria in each issue. Update the canonical guide, not a second prompt ledger.
-3. **Prepare the memory-MVP release.** Choose a new version and use one tested commit for binaries, schemas, checksums and release notes.
-4. **Verify packaged installation.** On each advertised platform, install → init → remember → search → checkpoint → restart → restore.
-5. **Publish matching assets, then update the installer default.** Earlier binaries lack the new memory APIs; do not relabel them.
+1. **Apply these rules to future changes.** Put one problem and observable completion criteria in each issue. Update the canonical guide, not a second prompt ledger.
+2. **Prepare the memory-MVP release.** Choose a new version and use one tested commit for binaries, schemas, checksums and release notes.
+3. **Verify packaged installation.** On each advertised platform, install → init → remember → search → checkpoint → restart → restore.
+4. **Publish matching assets, then update the installer default.** Earlier binaries lack the new memory APIs; do not relabel them.
 
 The repository rules do not configure branch protection or publish a release.
 Device work, retrieval changes and remaining model-quality evaluation keep their separate acceptance gates in the roadmap and evaluation policy.
