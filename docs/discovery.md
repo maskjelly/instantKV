@@ -58,6 +58,25 @@ with a configuration rule using disable_rum. The source CSP blocks its external
 beacon. These settings need zone configuration access; Workers deployment access
 alone is insufficient. See [Cloudflare configuration settings](https://developers.cloudflare.com/rules/configuration-rules/settings/).
 
+An owner can fix both settings without sharing a token:
+
+1. Open instantkv.com in Cloudflare, then Rules → Create rule → Configuration Rule.
+2. Name it "Public documentation reads".
+3. Use the expression below.
+4. Set Browser Integrity Check to Off and Disable Real User Monitoring to On.
+5. Deploy, then repeat the public HTTP checks.
+
+```text
+http.host eq "instantkv.com" and http.request.method in {"GET" "HEAD"}
+```
+
+This domain serves public static content and a retired-demo response, not the
+installed memory API. The exception applies only to reads on this hostname.
+Other protections and methods retain their existing settings.
+For API management, create a custom token with Zone → Config Rules → Edit,
+restricted to instantkv.com. The API calls this permission Config Settings Write.
+Keep it outside the checkout. Do not send tokens in chat.
+
 Use an authenticated owner account to verify `instantkv.com` in Google Search
 Console and Bing Webmaster Tools. Submit `/sitemap-index.xml`. Inspect the home,
 quick-start and MCP pages. Record selected canonical URLs and indexing failures.

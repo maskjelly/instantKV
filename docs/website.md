@@ -77,6 +77,12 @@ empty results, chart selection, horizontal tables and existing anchors.
 The static verifier cannot prove visual quality or external-link availability.
 Run the full repository verifier after shared script or dependency changes.
 
+The site pins Miniflare's Sharp dependency to 0.35.5 through an npm override.
+Wrangler 4.145.0 otherwise installs Sharp 0.35.4, affected by
+[the upstream librsvg advisory](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
+Keep the override until the pinned upstream dependency includes a patched version.
+Check a clean npm install, audit, site build and local Worker before removing it.
+
 ## Publish
 
 ```sh
