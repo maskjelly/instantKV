@@ -1,7 +1,7 @@
 .service-hero {
   display: grid;
-  grid-template-columns: 1fr 1.05fr;
-  gap: 64px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 56px;
   align-items: center;
   padding: 72px 0 64px;
 }
@@ -23,45 +23,66 @@
   margin-top: 28px;
   font-size: 14px;
 }
-.install-panel {
+.local-install {
   min-width: 0;
-  background: var(--surface);
-  border: 1px solid var(--line-2);
-  border-radius: 8px;
-  padding: 26px;
+  padding-left: 36px;
+  border-left: 1px solid var(--line);
 }
-.install-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+.local-install-heading h2 {
+  font-size: 28px;
+  font-weight: 550;
+  letter-spacing: -0.04em;
+  margin-bottom: 8px;
 }
-.install-heading h2 {
-  font-size: 19px;
+.local-install-heading p {
+  font-size: 13px;
 }
-.install-heading span {
+.install-step {
+  margin-top: 24px;
+}
+.install-step h3 {
+  font-size: 13px;
+  font-weight: 550;
+  letter-spacing: 0;
+}
+.local-install pre {
+  margin: 8px 0 0;
+  padding: 18px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  font-size: 13px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: visible;
+}
+.local-install .copy-code {
+  top: -27px;
+  right: 0;
+  min-height: 36px;
+  padding: 7px 8px;
+  border: 0;
+  background: transparent;
   color: var(--ink-2);
-  font: 12px var(--font-mono);
 }
-.install-panel pre {
-  background: var(--paper) !important;
+.local-install .copy-code:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+.local-install-footer {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.local-install-footer a {
+  font-size: 14px;
+}
+.local-install-footer p {
+  margin-top: 12px;
   font-size: 12px;
-  margin: 20px -10px;
-  padding-inline: 14px;
-}
-.install-panel p {
-  font-size: 13px;
   line-height: 1.65;
-}
-.install-panel > a {
-  display: inline-block;
-  font-size: 13px;
-  color: var(--link);
-  margin-top: 18px;
-  text-underline-offset: 4px;
-}
-.install-panel > a:hover {
-  text-decoration: underline;
+  max-width: 52ch;
 }
 .service-facts {
   display: grid;
@@ -244,8 +265,8 @@
   .service-hero {
     gap: 32px;
   }
-  .install-panel {
-    padding: 22px;
+  .local-install {
+    padding-left: 24px;
   }
 }
 @media (max-width: 760px) {
@@ -255,10 +276,18 @@
     gap: 32px;
   }
   .service-intro h1 {
-    font-size: clamp(40px, 8vw, 58px);
+    font-size: clamp(32px, 7.8vw, 58px);
   }
   .service-deck {
     font-size: 17px;
+  }
+  .local-install {
+    padding: 28px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .local-install-heading h2 {
+    font-size: 26px;
   }
   .service-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
