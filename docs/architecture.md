@@ -1,7 +1,7 @@
 # Architecture and storage schema
 
 Status: single-node implementation with an unreleased memory MVP. Updated: 2026-10-03.
-[Verification history](checkpoints.md) records completed checks. Future work appears below.
+[Verification history](history/checkpoints.md) records completed checks. Future work appears below.
 
 Clients connect through HTTP, CLI or MCP. Permissions and limits apply before storage access.
 Durable records use redb; scratch uses RAM. Rust apps can also embed the core directly.
@@ -141,7 +141,7 @@ One process must own each data file.
 1. Connect a real runtime's compaction hooks and evaluate task continuation.
 2. Add session retirement, online backup and deeper fault tests.
 3. Measure writer contention, expiry delay and memory growth before adding storage concurrency features.
-4. Implement the [distributed proposal](distributed-memory.md) in stages.
+4. Implement the [distributed proposal](proposals/distributed-memory.md) in stages.
    Start with export/import, immutable baselines and private overlays. Add reviewed publication before synchronization.
 5. Evaluate BM25 ranking with more corpora and real tasks before adding local embeddings.
 

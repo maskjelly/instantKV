@@ -19,8 +19,8 @@ The original diagrams use graphite surfaces, silver text, square geometry and fi
 
 The metal identity replaced an earlier desktop theme.
 The current website uses a minimal white design.
-The README uses the current social preview and a retained lifecycle diagram.
-The live-demo diagram shows its browser interface and storage path.
+The retained social preview and lifecycle diagram remain available as assets.
+The live-demo diagram documents the retired browser prototype.
 
 The current [split-K mark](blueprint-mark.svg) is black.
 The [social preview](blueprint-social.svg) uses white surfaces, black type and neutral accents.

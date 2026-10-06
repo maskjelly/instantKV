@@ -16,8 +16,12 @@ import { once } from "node:events";
 
 const binary = resolve(process.env.INSTANTKV_BIN || "target/release/instantkv");
 const output = resolve(
-  process.argv[2] || "docs/demo-results/2026-10-03-memory",
+  process.argv[2] || (() => { throw new Error("Provide a new output directory outside the repository."); })(),
 );
+if (output === resolve(".") || output.startsWith(resolve(".") + "/")) {
+  throw new Error("Recordings must be written outside the repository.");
+}
+mkdirSync(output);
 const state = mkdtempSync(`${tmpdir()}/instantkv-record-`);
 const token = randomBytes(32).toString("hex");
 const gatewayToken = randomBytes(32).toString("hex");
@@ -28,7 +32,7 @@ const config = readFileSync(
   .replace("0.0.0.0:8080", "127.0.0.1:18089")
   .replace("/state/data", `${state}/data`);
 writeFileSync(`${state}/instantkv.toml`, config, { mode: 0o600 });
-mkdirSync(output, { recursive: true });
+
 const hardware =
   platform() === "darwin"
     ? {

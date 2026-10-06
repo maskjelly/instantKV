@@ -1,14 +1,14 @@
 # Historical raw KV benchmarks
 
-Archived workload notes. Use [current memory benchmarks](benchmarks.md) for the current product.
+Archived workload notes. Use [current memory benchmarks](../benchmarks.md) for the current product.
 The raw reports below remain unchanged.
 
 
-The [structured-memory results](performance.md) cover three 10,000-memory runs, indexed retrieval, RSS samples and exact restart recovery.
+The [structured-memory results](../performance.md) cover three 10,000-memory runs, indexed retrieval, RSS samples and exact restart recovery.
 The raw KV and cache results below use different APIs and workloads.
 Their throughput does not measure structured-memory queries.
 
-The [earlier local-profile test](local-first.md#measured-mac-footprint) records raw KV binary size, sampled RSS and restart recovery.
+The [earlier local-profile test](../local-first.md#measured-mac-footprint) records raw KV binary size, sampled RSS and restart recovery.
 
 ## Mac demo: 330,000 writes, zero errors
 
@@ -25,7 +25,7 @@ These tests created unique records through local HTTP, without public-network la
 They differ from the hot-key tests below.
 Replay runs at 2× animation speed and caches four saved responses per mode.
 Measured latency and throughput remain unchanged.
-[Conditions and all six reports](demo-results/2026-10-02-mac/README.md).
+[Conditions and all six reports](../demo-results/2026-10-02-mac/README.md).
 
 ## Rove HTTP workloads — 2026-10-01
 
@@ -74,7 +74,7 @@ The table includes p99 latency as well as median latency.
 The post-run Docker memory snapshot was 10.3 MiB. The database file was 3,379,200 bytes.
 These observations do not measure peak RSS or long-term database growth.
 
-[All 15 reports](benchmarks/2026-10-01-rove/) and [environment metadata](benchmarks/2026-10-01-rove/environment.json) are committed.
+[All 15 reports](../benchmarks/2026-10-01-rove) and [environment metadata](../benchmarks/2026-10-01-rove/environment.json) are committed.
 Reports include request counts, durations, throughput, latency, transport and durability.
 Metadata includes binary/image hashes. Source files matched the recorded commit before the tests.
 

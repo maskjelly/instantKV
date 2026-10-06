@@ -1,7 +1,7 @@
 # HTTP reference
 
 This guide describes the Rust node's `/v1` API.
-The website's temporary [demo API](live-demo.md) is separate.
+The public website serves documentation; its retired demo API returns HTTP 410.
 For remote access, use TLS at a reverse proxy or an SSH tunnel.
 
 ## Authentication and keys

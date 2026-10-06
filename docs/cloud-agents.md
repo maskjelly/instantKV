@@ -5,7 +5,7 @@ A namespace is a storage section with its own permissions.
 Workers can read `shared` and write only their own knowledge and checkpoints.
 Agents and storage can run on the same machine; configured remote workers can use the scoped API.
 All storage uses one node.
-[Replicas and automatic review](distributed-memory.md) remain planned.
+[Replicas and automatic review](proposals/distributed-memory.md) remain planned.
 
 ## Start a swarm instance
 

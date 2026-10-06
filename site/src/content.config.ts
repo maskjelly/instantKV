@@ -7,6 +7,8 @@ const guides = defineCollection({
     base: '..',
     pattern: [
       'docs/*.md',
+      'docs/history/*.md',
+      'docs/proposals/*.md',
       'docs/benchmarks/2026-10-04-full-retrieval/README.md',
       'CONTRIBUTING.md',
       'SECURITY.md',

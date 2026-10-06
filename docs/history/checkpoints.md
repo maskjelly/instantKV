@@ -1,12 +1,8 @@
-# Verified build checkpoints
+# Verification history
 
-Current public site: static documentation and verified retrieval evidence.
-The demo deployments below are historical. Public demos and their proxy have been
-retired. Use the [quick start](quickstart.md) for local storage operations.
-
-
-The entries below record historical checks. Earlier themes and deployment states are not current product claims.
-The latest source MVP and deployment are recorded in checkpoint 20.
+These entries record checks at specific revisions. They do not establish current source, release or deployment status.
+Public browser demos described below are retired.
+Use the [quick start](../quickstart.md) for local operation and [validation records](../validation/) for this cleanup.
 
 ## 1 — Foundation
 
@@ -135,7 +131,7 @@ saved/restored its capsule, and received 403 for shared writes and sibling acces
 A 2,000-request Alpha GET smoke run completed with zero errors; the earlier
 three-run benchmark reports retain their own measured commit and conditions.
 
-[The request audit](request-audit.md) checks every prompt and distinguishes
+[The request audit](request-audit-2026-10-03.md) checks every prompt and distinguishes
 implemented sharing from future replication/consolidation/quality metrics.
 
 ## 11 — Monolith visual identity
@@ -253,7 +249,7 @@ guidance distinguishes the prebuilt binary from a Rust source build. The README
 and onboarding explain keys, namespaces and checkpoints before using them.
 
 An independent read-only review found four phrases worth tightening; those were
-revised. [Why instantKV](choosing-instantkv.md) compares the service with Mem0,
+revised. [Why instantKV](../choosing-instantkv.md) compares the service with Mem0,
 Graphiti, Letta, Upstash and Valkey using official documentation checked on
 2026-10-01. It explains when each fits and keeps performance claims tied to the
 recorded workloads. No competitor speed or cost ranking is claimed.
@@ -364,7 +360,7 @@ Native phone integration and real-model quality evaluation remain planned.
 Three fresh 10,000-memory runs used an Apple M4 Pro with 24 GiB memory.
 Topic query p95 was 0.134–0.190 ms; largest sampled server RSS was 19.5 MiB.
 All 30,000 saved memories matched their complete receipts after abrupt restarts.
-[Workload and raw evidence](performance.md).
+[Workload and raw evidence](../performance.md).
 
 Local checks passed: 42 Rust tests, three Python contract tests and nine website/demo tests.
 Formatting, Clippy, schemas, embedded recovery and the 32-page site build passed.
@@ -394,7 +390,7 @@ The recorder identifies the runtime revision, binary hash and exact source-file 
 The refreshed benchmark measures saves, six query paths, exact reads and forget.
 It verified all 30,000 memories after abrupt restarts, then verified 900 deletions
 and exactly 9,700 remaining memories per run through complete index browsing.
-[Raw results](benchmarks/2026-10-03-memory/mac-arm64.json).
+[Raw results](../benchmarks/2026-10-03-memory/mac-arm64.json).
 
 CLI and embedded demos exercise the current memory lifecycle.
 The swarm demo uses structured shared/private memory and scoped credentials.

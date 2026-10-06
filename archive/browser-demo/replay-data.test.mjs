@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { buildReplay, validateRecording } from "./replay-data.mjs";
 const directory = new URL(
-  "../docs/demo-results/2026-10-03-memory/",
+  "../../docs/demo-results/2026-10-03-memory/",
   import.meta.url,
 ).pathname;
 const raw = (i) =>

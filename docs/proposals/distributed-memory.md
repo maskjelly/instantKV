@@ -2,7 +2,7 @@
 
 Status: proposal, not implemented. Updated: 2026-10-03.
 Audience: builders and operators. Owners: instantKV maintainers.
-This design extends the working [single-server swarm](cloud-agents.md) to independent worker nodes.
+This design extends the working [single-server swarm](../cloud-agents.md) to independent worker nodes.
 
 ## Objective
 
@@ -15,7 +15,7 @@ Two agents start from snapshot 3. One investigates a build failure; the other up
 The first publishes a verified fix. The second receives it before the first run ends.
 Private notes remain private, and snapshot 3 remains unchanged.
 
-![Proposed snapshot branches and continuous shared updates](assets/memory-branches.svg)
+![Proposed snapshot branches and continuous shared updates](../assets/memory-branches.svg)
 
 Current code provides durable records, namespace grants, conditional writes and atomic checkpoints.
 Snapshots, replication, change feeds, completion jobs and automatic summaries remain proposed.

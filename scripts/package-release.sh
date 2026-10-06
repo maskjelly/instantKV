@@ -14,5 +14,6 @@ cp "$binary" "$release_dir/instantkv"
 cp LICENSE README.md "$release_dir/"
 printf 'Version: %s\nCommit: %s\nPlatform: %s\n' "$("$binary" --version | cut -d ' ' -f 2)" "${GITHUB_SHA:-local}" "$platform" > "$release_dir/BUILD.txt"
 archive="instantkv-$platform.tar.gz"
-tar -czf "dist/$archive" -C "$release_dir" instantkv LICENSE README.md BUILD.txt
+# macOS copyfile metadata must not become release archive members.
+COPYFILE_DISABLE=1 tar -czf "dist/$archive" -C "$release_dir" instantkv LICENSE README.md BUILD.txt
 (cd dist && shasum -a 256 "$archive" > "$archive.sha256")

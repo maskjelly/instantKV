@@ -79,4 +79,4 @@ The restore test loads a known checkpoint in a temporary volume.
 The priorities are physical ARM-device tests, native phone integration and real-model evaluation.
 Optional future work includes replicas, reviewed shared findings and semantic search.
 Online snapshots, final-session retirement and knowledge-quality metrics are also planned.
-[Roadmap](roadmap.md) · [Distributed proposal](distributed-memory.md).
+[Roadmap](roadmap.md) · [Distributed proposal](proposals/distributed-memory.md).

@@ -37,7 +37,16 @@ binary path is machine-specific; change that path without changing its recorded
 SHA. Results include raw retrieval, model responses, token use, failures, source
 hashes, effective settings and an append-only ledger.
 
-Validate the harness with `python -m unittest discover -s eval -p 'test_*.py'`.
+For offline harness checks, use a separate environment:
+
+```sh
+python3 -m venv /tmp/instantkv-eval-tests
+/tmp/instantkv-eval-tests/bin/python -m pip install -r eval/requirements-offline.txt
+/tmp/instantkv-eval-tests/bin/python -m unittest discover -s eval -p 'test_*.py'
+```
+
+These tests need token accounting, but no credentials, model API SDK or dataset downloads.
+The full campaign still uses `requirements.txt`.
 The corpus adapters passed synthetic storage and retrieval checks. The Luna
 reader and the official LongMemEval judge passed a synthetic end-to-end check.
 These checks are not benchmark results.

@@ -17,30 +17,14 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Install Rust tools
         run: rustup toolchain install 1.98 --profile minimal --component rustfmt --component clippy
-      - run: cargo +1.98 fmt --all -- --check
-      - run: cargo +1.98 clippy --workspace --all-targets --locked -- -D warnings
-      - run: cargo +1.98 test --workspace --locked
-      - run: python3 scripts/test-local-llm.py
-      - run: cargo +1.98 build --workspace --release --locked
-      - run: ./target/release/instantkv demo
-      - run: ./target/release/instantkv demo --swarm
-      - run: ./target/release/instantkv check-config --config config/swarm.toml
-      - run: ./target/release/instantkv check-config --config config/instantkv.example.toml
-      - run: ./target/release/instantkv check-config --config config/local-cache.toml
-      - run: ./target/release/instantkv check-config --config config/local.toml
-      - name: Verify default local setup
+      - name: Set up offline evaluation tests
         run: |
-          mkdir /tmp/instantkv-local
-          ./target/release/instantkv init --dir /tmp/instantkv-local
-          cd /tmp/instantkv-local
-          "$GITHUB_WORKSPACE/target/release/instantkv" doctor --offline
-      - name: Verify generated schema and scripts
-        run: |
-          ./target/release/instantkv schema > /tmp/checkpoint.schema.json
-          diff -u examples/checkpoint.schema.json /tmp/checkpoint.schema.json
-          ./target/release/instantkv schema --kind memory > /tmp/memory.schema.json
-          diff -u examples/memory.schema.json /tmp/memory.schema.json
-          bash -n scripts/*.sh
+          python3 -m venv "$RUNNER_TEMP/instantkv-eval-tests"
+          "$RUNNER_TEMP/instantkv-eval-tests/bin/python" -m pip install -r eval/requirements-offline.txt
+      - name: Verify repository and core
+        env:
+          RUSTUP_TOOLCHAIN: '1.98'
+        run: INSTANTKV_TEST_PYTHON="$RUNNER_TEMP/instantkv-eval-tests/bin/python" ./scripts/check.sh --core
       - name: Build portable Linux binary
         if: runner.os == 'Linux'
         run: |
@@ -59,7 +43,9 @@ jobs:
       - name: Verify indexed memory recovery
         run: python3 scripts/memory-bench.py --records 100 --runs 1 --queries 10 --output dist/memory-smoke-${{ runner.arch }}.json
       - name: Package verified binary
-        run: bash scripts/package-release.sh
+        run: |
+          bash scripts/package-release.sh
+          python3 scripts/test-package-release.py dist/*.tar.gz
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: instantkv-${{ runner.os }}-${{ runner.arch }}
@@ -98,3 +84,13 @@ jobs:
           ./scripts/kv.sh restore --namespace alpha_checkpoints --agent alpha --session run-1
           ./scripts/backup.sh /tmp/instantkv-swarm-backup
           ./scripts/restore-drill.sh /tmp/instantkv-swarm-backup alpha-first-handoff alpha_checkpoints
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - name: Verify retained historical tools
+        run: node --test archive/browser-demo/gateway.test.mjs archive/browser-demo/replay-data.test.mjs

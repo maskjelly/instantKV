@@ -20,10 +20,15 @@ __pycache__/
 /site/.wrangler/
 /site/.dev.vars
 /site/.dev.vars.*
-/demo/.tunnel-token
+/archive/browser-demo/.tunnel-token
 /site/public/assets/
 /site/public/benchmark-data/
 /site/public/recordings/
 /site/public/examples/
 /site/public/llms.txt
 /site/public/llms-full.txt
+
+# Local Python environments and test caches
+.venv/
+venv/
+.pytest_cache/

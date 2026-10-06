@@ -1,20 +1,20 @@
 export const repository = 'https://github.com/maskjelly/instantKV';
 export const docs = [
   {
-    slug: 'evaluation-policy',
-    title: 'Evaluation policy',
+    slug: 'quickstart',
+    title: 'Quick start',
     group: 'Start here',
-    source: 'docs/evaluation-policy.md',
+    source: 'docs/quickstart.md',
     description:
-      'Frozen tests, reproducible results and honest comparison limits.',
+      'Install instantKV, store your first memory and restore a checkpoint.',
   },
   {
-    slug: 'full-retrieval',
-    title: 'Full retrieval report',
+    slug: 'agents',
+    title: 'Connect through MCP',
     group: 'Start here',
-    source: 'docs/benchmarks/2026-10-04-full-retrieval/README.md',
+    source: 'docs/agents.md',
     description:
-      'All 500 LongMemEval-S questions and all ten LoCoMo histories.',
+      'Five memory tools, seven KV/checkpoint tools and checkpoint instructions.',
   },
   {
     slug: 'memory-mvp',
@@ -25,51 +25,11 @@ export const docs = [
       'Remember, recall, search, browse and forget. Find memories by topic, tag, time or keywords. Try the local-model example.',
   },
   {
-    slug: 'performance',
-    title: 'Performance & device targets',
-    group: 'Start here',
-    source: 'docs/performance.md',
-    description:
-      'Full retrieval results, Mac measurements and planned phone tests.',
-  },
-  {
-    slug: 'memory-benchmark-notes',
-    title: 'Memory benchmark notes',
-    group: 'Start here',
-    source: 'docs/memory-benchmark-notes.md',
-    description:
-      'Full memory suites, retrieval wins, remaining gaps and raw evidence.',
-  },
-  {
-    slug: 'local-first',
-    title: 'Local memory & ARM',
-    group: 'Start here',
-    source: 'docs/local-first.md',
-    description:
-      'Offline operation, smaller budgets, embedded Rust and device support limits.',
-  },
-  {
-    slug: 'choosing-instantkv',
-    title: 'Why instantKV',
-    group: 'Start here',
-    source: 'docs/choosing-instantkv.md',
-    description:
-      'Who it helps, what makes it useful and when another memory tool fits better.',
-  },
-  {
-    slug: 'quickstart',
-    title: 'Quick start',
-    group: 'Start here',
-    source: 'docs/quickstart.md',
-    description:
-      'Install instantKV, store your first memory and restore a checkpoint.',
-  },
-  {
-    slug: 'features',
-    title: 'Features',
-    group: 'Start here',
-    source: 'docs/features.md',
-    description: 'Available features, the source MVP and planned work.',
+    slug: 'agent-memory',
+    title: 'Memory & compaction',
+    group: 'Use the service',
+    source: 'docs/agent-memory.md',
+    description: 'What to save before compaction and how to load it afterward.',
   },
   {
     slug: 'cloud-agents',
@@ -78,14 +38,6 @@ export const docs = [
     source: 'docs/cloud-agents.md',
     description:
       'Give workers shared project facts and separate private notes.',
-  },
-  {
-    slug: 'agents',
-    title: 'Connect through MCP',
-    group: 'Use the service',
-    source: 'docs/agents.md',
-    description:
-      'Five memory tools, seven KV/checkpoint tools and checkpoint instructions.',
   },
   {
     slug: 'cli',
@@ -104,13 +56,6 @@ export const docs = [
       'Authenticated routes, conditional writes, TTL, errors and examples.',
   },
   {
-    slug: 'agent-memory',
-    title: 'Memory & compaction',
-    group: 'Use the service',
-    source: 'docs/agent-memory.md',
-    description: 'What to save before compaction and how to load it afterward.',
-  },
-  {
     slug: 'configuration',
     title: 'Configuration',
     group: 'Run a node',
@@ -126,12 +71,52 @@ export const docs = [
       'Health, remote access, offline backup, restore drills and upgrades.',
   },
   {
+    slug: 'local-first',
+    title: 'Local memory & ARM',
+    group: 'Run a node',
+    source: 'docs/local-first.md',
+    description:
+      'Offline operation, smaller budgets, embedded Rust and device support limits.',
+  },
+  {
+    slug: 'performance',
+    title: 'Performance & device targets',
+    group: 'Evidence',
+    source: 'docs/performance.md',
+    description:
+      'Full retrieval results, Mac measurements and planned phone tests.',
+  },
+  {
+    slug: 'full-retrieval',
+    title: 'Full retrieval report',
+    group: 'Evidence',
+    source: 'docs/benchmarks/2026-10-04-full-retrieval/README.md',
+    description:
+      'All 500 LongMemEval-S questions and all ten LoCoMo histories.',
+  },
+  {
     slug: 'benchmarks',
     title: 'Benchmark methodology',
-    group: 'Run a node',
+    group: 'Evidence',
     source: 'docs/benchmarks.md',
     description:
       'Recorded workloads, hardware, load conditions and reproduction commands.',
+  },
+  {
+    slug: 'evaluation-policy',
+    title: 'Evaluation policy',
+    group: 'Evidence',
+    source: 'docs/evaluation-policy.md',
+    description:
+      'Frozen tests, reproducible results and honest comparison limits.',
+  },
+  {
+    slug: 'memory-benchmark-notes',
+    title: 'Memory benchmark notes',
+    group: 'Evidence',
+    source: 'docs/memory-benchmark-notes.md',
+    description:
+      'Full memory suites, retrieval wins, remaining gaps and raw evidence.',
   },
   {
     slug: 'architecture',
@@ -140,6 +125,14 @@ export const docs = [
     source: 'docs/architecture.md',
     description:
       'Rust, the bounded engine, redb transactions and storage schema.',
+  },
+  {
+    slug: 'repository',
+    title: 'Repository maintenance',
+    group: 'Build with us',
+    source: 'docs/repository.md',
+    description:
+      'File ownership, canonical guides, review rules and verification.',
   },
   {
     slug: 'contributing',
@@ -158,6 +151,13 @@ export const docs = [
       'Report vulnerabilities privately and understand deployment boundaries.',
   },
   {
+    slug: 'website',
+    title: 'Website & deployment',
+    group: 'Build with us',
+    source: 'docs/website.md',
+    description: 'Build, verify and deploy this static Cloudflare site.',
+  },
+  {
     slug: 'inspirations',
     title: 'Engineering references',
     group: 'Build with us',
@@ -165,11 +165,11 @@ export const docs = [
     description: 'Practices adopted from database, low-level and KDE projects.',
   },
   {
-    slug: 'website',
-    title: 'Website & deployment',
-    group: 'Build with us',
-    source: 'docs/website.md',
-    description: 'Build, verify and deploy this static Cloudflare site.',
+    slug: 'project-plan',
+    title: 'Cleanup & release plan',
+    group: 'Project',
+    source: 'docs/project-plan.md',
+    description: 'Ordered work, release gates and validation requirements.',
   },
   {
     slug: 'roadmap',
@@ -180,11 +180,19 @@ export const docs = [
       'Source MVP status, local-model evaluation, phone integration and optional retrieval plans.',
   },
   {
-    slug: 'distributed-memory',
-    title: 'Distributed memory proposal',
+    slug: 'choosing-instantkv',
+    title: 'Why instantKV',
     group: 'Project',
-    source: 'docs/distributed-memory.md',
-    description: 'Proposed snapshot branches, shared updates and peer status.',
+    source: 'docs/choosing-instantkv.md',
+    description:
+      'Who it helps, what makes it useful and when another memory tool fits better.',
+  },
+  {
+    slug: 'features',
+    title: 'Features',
+    group: 'Project',
+    source: 'docs/features.md',
+    description: 'Available features, the source MVP and planned work.',
   },
   {
     slug: 'changelog',
@@ -195,10 +203,17 @@ export const docs = [
   },
   {
     slug: 'checkpoints',
-    title: 'Verified checkpoints',
-    group: 'Project',
-    source: 'docs/checkpoints.md',
+    title: 'Verification history',
+    group: 'History',
+    source: 'docs/history/checkpoints.md',
     description: 'What changed at each stage and how we checked it.',
+  },
+  {
+    slug: 'distributed-memory',
+    title: 'Distributed memory proposal',
+    group: 'Proposals',
+    source: 'docs/proposals/distributed-memory.md',
+    description: 'Proposed snapshot branches, shared updates and peer status.',
   },
 ] as const;
 export const groups = [...new Set(docs.map((doc) => doc.group))];

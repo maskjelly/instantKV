@@ -13,3 +13,14 @@ instantkv.toml
 ._*
 docs
 .github
+
+archive
+outreach
+eval
+site
+.venv
+venv
+node_modules
+__pycache__
+.pytest_cache
+benchmark-results

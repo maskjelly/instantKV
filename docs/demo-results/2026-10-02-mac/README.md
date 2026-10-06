@@ -54,8 +54,8 @@ read. Only four saved responses per mode are included.
 From the repository root, with Node.js 24+ and the release binary:
 
 ```sh
-INSTANTKV_BIN=/absolute/path/to/instantkv node demo/record.mjs /absolute/results
-node --test demo/replay-data.test.mjs
+INSTANTKV_BIN=/absolute/path/to/instantkv node archive/browser-demo/record.mjs /absolute/results
+node --test archive/browser-demo/replay-data.test.mjs
 ```
 
 The recorder is macOS-specific for hardware discovery. Port 18089 must be free.
@@ -63,7 +63,7 @@ It creates private temporary credentials and data, binds both services to
 loopback, stops its own processes and removes its temporary state when finished.
 It aborts on any failed write or read. Failed measurements must not be presented
 as zero-error runs. The replay tests check the committed dataset; new reports
-can be checked with `validateRecording` from `demo/replay-data.mjs`.
+can be checked with `validateRecording` from `archive/browser-demo/replay-data.mjs`.
 
 Raw reports: [cache 1](cache-1.json), [cache 2](cache-2.json),
 [cache 3](cache-3.json), [durable 1](durable-1.json),

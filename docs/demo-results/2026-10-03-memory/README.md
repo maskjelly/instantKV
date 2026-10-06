@@ -33,12 +33,12 @@ The recorded delete receipt describes a deletion that ran during measurement; it
 
 ```sh
 cargo build --release --locked -p instantkv
-node demo/record.mjs /tmp/instantkv-memory-recordings
-node --test demo/replay-data.test.mjs
+node archive/browser-demo/record.mjs /tmp/instantkv-memory-recordings
+node --test archive/browser-demo/replay-data.test.mjs
 ```
 
 The recorder uses private temporary storage and credentials. It removes them after completion.
-The tests validate the committed reports. `validateRecording` in `demo/replay-data.mjs`
+The tests validate the committed reports. `validateRecording` in `archive/browser-demo/replay-data.mjs`
 can validate new reports. Altered timings, missing acknowledgements and changed memory fields fail validation.
 
 [Run 1](memory-1.json) · [Run 2](memory-2.json) · [Run 3](memory-3.json) · [Environment](environment.json).

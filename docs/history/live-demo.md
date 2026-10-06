@@ -1,9 +1,9 @@
-# Live memory demo
+# Retired browser-memory demo
 
-**Historical guide.** The public website demo is retired. Use [quick start](quickstart.md) to run the memory service locally.
+**Retired prototype.** This page preserves the earlier browser workflow and deployment design.
+Use [quick start](../quickstart.md) for current local setup.
 
-
-[Read local setup](quickstart.md). No account or model key is needed.
+[Read local setup](../quickstart.md). No account or model key is needed.
 Live mode calls the current structured-memory API on our Rust service.
 Recorded mode shows saved responses from fresh Mac runs.
 
@@ -54,7 +54,7 @@ Recorded mode (retired) loads the median-throughput
 run from three new 10,000-memory sessions on an Apple M4 Pro with 24 GiB RAM.
 All 30,000 saves were acknowledged; four exact reads per run matched every fixture field.
 Each run saved six query types, browse continuation and a verified deletion.
-[Raw reports and conditions](demo-results/2026-10-03-memory/README.md).
+[Raw reports and conditions](../demo-results/2026-10-03-memory/README.md).
 
 Recorded controls choose queries that actually ran. The page shows original backend timings.
 There is no new storage request or timed browser recall in this mode.
@@ -68,7 +68,7 @@ Recorded deletion receipts remain in the downloaded data. Use live mode to delet
 | Save p50 / p99 | Actual per-memory backend latencies; 16 concurrent saves |
 
 Writes use batches of at most 512 memories. Only complete successful batches advance the count.
-The [sequential local benchmark](performance.md) uses concurrency one and fresh databases.
+The [sequential local benchmark](../performance.md) uses concurrency one and fresh databases.
 Its numbers are separate from this demo's queued writes and public-network timing.
 
 ## Bounds and deployment
@@ -89,15 +89,16 @@ Engine, gateway and tunnel credentials stay server-side.
 Earlier namespaces remain in the config for storage compatibility; the demo principal can access only `demo_memories`.
 
 To run the isolated backend, build the current source image first.
-Copy `demo/` to a deployment directory and create a private ignored `.env` with
+Copy `archive/browser-demo/` to a deployment directory and create a private ignored `.env` with
 `INSTANTKV_DEMO_TOKEN` and `DEMO_GATEWAY_TOKEN`. Run its Compose project with a separate volume.
 Keep the memory port private. The gateway binds only to host loopback port 8098.
 
 For this website, the existing VPC binding targets that gateway through Cloudflare Tunnel.
 Keep the connector token in private `.tunnel-token`. The tunnel uses QUIC.
 Set the same gateway secret on the Worker, then run `npm run deploy:domain` in `site/`.
-[Website deployment](website.md).
+[Website deployment](../website.md).
 
-Run `cd site && npm test` for gateway, recording-integrity and proxy tests.
+Retained gateway and recording tests: `node --test archive/browser-demo/gateway.test.mjs archive/browser-demo/replay-data.test.mjs`.
+Current Worker routing tests: `cd site && npm test`.
 Before deployment, verify all four tools, combined filters, pagination, cleared context,
 an independent reader, partial retry, expiry errors and mobile layout.

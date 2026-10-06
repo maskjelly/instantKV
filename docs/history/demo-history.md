@@ -1,12 +1,13 @@
 # Historical KV browser demo
 
-**Historical guide.** The public website demo is retired. Use [quick start](quickstart.md) to run the memory service locally.
+**Historical guide.** The public website demo is retired. Use [quick start](../quickstart.md) to run the memory service locally.
 
 
-Archived verification notes. Use [the current memory demo](live-demo.md) for current behavior.
+Archived verification notes. See the [archived memory-demo architecture](live-demo.md) for the later prototype.
+Use [local demos](../demo.md) for current verification.
 
 
-[Read local setup](quickstart.md). No account or model API key is needed.
+[Read local setup](../quickstart.md). No account or model API key is needed.
 The default mode replays recorded Mac KV measurements.
 Live VPS mode writes temporary synthetic records to the Rust service.
 The page counts only acknowledged writes.
@@ -20,7 +21,7 @@ To test live storage:
 5. Open the reader in a new tab to verify independent retrieval.
 
 The reader-tab link contains only a session locator. It does not contain the saved value.
-This demo uses the raw KV API. The [structured-memory benchmark](performance.md) measures the new retrieval API.
+This demo uses the raw KV API. The [structured-memory benchmark](../performance.md) measures the new retrieval API.
 
 ## Recorded Mac replay
 
@@ -28,7 +29,7 @@ The recording uses an Apple M4 Pro with 24 GiB memory.
 Three cache runs stored 100,000 records each; three durable runs stored 10,000 each.
 They completed 330,000 acknowledged writes and 24 exact reads with zero errors.
 Replay selects the median-throughput run for each mode.
-[Raw reports and reproduction](demo-results/2026-10-02-mac/README.md).
+[Raw reports and reproduction](../demo-results/2026-10-02-mac/README.md).
 
 Animation plays at 2× speed. Performance figures use the original measured times.
 During playback, p50/p99 describe the latest batch. At completion, they describe the whole run.
@@ -97,7 +98,7 @@ Every live value is stored and read through instantKV.
 
 Context length counts characters in the content field. The complete JSON record is larger.
 Agent IDs cycle across 64 synthetic workers. Those labels do not provide namespace isolation.
-The [CLI swarm demo](demo.md) tests worker isolation and checkpoint recovery.
+The [CLI swarm demo](../demo.md) tests worker isolation and checkpoint recovery.
 Public-demo timing varies with location, server load and other visitors.
 
 ## Recorded live verification
@@ -105,11 +106,11 @@ Public-demo timing varies with location, server load and other visitors.
 On 2026-10-01, the deployed browser demo wrote **100,000 cache records / 68.25 MiB**
 with zero failed API requests and zero JavaScript/CSP errors. First, middle and
 last exact reads, pause/resume, context clearing, independent-tab recall and
-390px mobile layout passed. [Raw cache verification report](demo-results/2026-10-01-cloudflare-cache.json).
+390px mobile layout passed. [Raw cache verification report](../demo-results/2026-10-01-cloudflare-cache.json).
 
 Durable mode also wrote **10,000 records / 6.82 MiB** with zero failed API requests
 and zero browser errors. After clearing local context, record 9,999 was retrieved
-and exactly verified. [Raw durable verification report](demo-results/2026-10-01-cloudflare-durable.json).
+and exactly verified. [Raw durable verification report](../demo-results/2026-10-01-cloudflare-durable.json).
 
 | Public demo run           | Records |   Payload | End-to-end rate | Backend HTTP PUT p50 / p99 |
 | ------------------------- | ------: | --------: | --------------: | -------------------------: |
@@ -147,12 +148,12 @@ This sandbox is separate from a future managed service.
 ## Reproduce on your own machine
 
 1. Build/package the Rust image using the repository's Docker quick-start.
-2. Copy `demo/` to a dedicated deployment directory. Create an ignored `.env` with
+2. Copy `archive/browser-demo/` to a dedicated deployment directory. Create an ignored `.env` with
    independently generated `INSTANTKV_DEMO_TOKEN` and `DEMO_GATEWAY_TOKEN` secrets.
-3. Run `docker compose -f demo/compose.yaml up -d` from the repository root. The
+3. Run `docker compose -f archive/browser-demo/compose.yaml up -d` from the repository root. The
    image `instantkv:local` must already exist. The demo creates a separate volume.
 4. Create a remotely managed Cloudflare Tunnel, keep its connector token in a
-   private `demo/.tunnel-token` owned by UID 65532, and run Compose with
+   private `archive/browser-demo/.tunnel-token` owned by UID 65532, and run Compose with
    `--profile cloudflare`. Create a Workers VPC HTTP service targeting
    `127.0.0.1:8098` through that tunnel. Set its `service_id` for `DEMO_BACKEND` in
    both Wrangler environments. `DEMO_ORIGIN` supplies the internal Host header;
@@ -172,7 +173,8 @@ This integration is a beta; the self-hosted HTTP API remains separate.
 [Official VPC setup](https://developers.cloudflare.com/workers-vpc/get-started/) ·
 [Tunnel requirements](https://developers.cloudflare.com/workers-vpc/configuration/tunnel/).
 
-Run `cd site && npm test` for coordinator/proxy tests.
+Retained coordinator tests: `node --test archive/browser-demo/gateway.test.mjs`.
+Current Worker routing tests: `cd site && npm test`.
 They cover credentials, limits, exact integrity, invalid indices and partial batch failure/retry.
 Before deployment, test cache/durable writes, pause/resume, cleared context, independent recall, failure states and mobile layout.
 

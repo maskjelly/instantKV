@@ -1,72 +1,66 @@
 # Contributing
 
-Use Rust 1.98 or later. Container checks also need Docker Compose.
-Keep changes focused and explain the resulting behavior.
-For a large storage-format change, start with an issue.
+Keep each change focused on one observable problem.
+Read [repository maintenance](docs/repository.md) for file ownership and documentation rules.
+The engine stays frozen during the [finite benchmark campaign](docs/evaluation-policy.md).
+
+## Set up verification
+
+Use Rust 1.98 or later and Python 3. Site checks need Node 22.12 or later.
+Docker checks need Docker Compose.
+
+From the repository root:
 
 ```sh
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --locked -- -D warnings
-cargo test --workspace --locked
-python3 scripts/test-local-llm.py
-cargo build --workspace --release --locked
-./target/release/instantkv demo
-./target/release/instantkv demo --swarm
-./target/release/instantkv check-config --config config/instantkv.example.toml
-./target/release/instantkv check-config --config config/local-cache.toml
-./target/release/instantkv check-config --config config/swarm.toml
-./target/release/instantkv check-config --config config/local.toml
+python3 -m venv .venv
+.venv/bin/python -m pip install -r eval/requirements-offline.txt
+cd site
+npm ci
+cd ..
+INSTANTKV_TEST_PYTHON="$PWD/.venv/bin/python" ./scripts/check.sh
 ```
 
-## Source map
+Dependency installation and first tokenizer setup may need internet access.
+Verification needs no model, API credential or paid model call.
+Use `--repo`, `--core` or `--site` for a focused change. [Exact scopes](scripts/README.md#verification).
 
-- `crates/instantkv-core/src`: configuration, admission, clocks, tables, transactions.
-- `crates/instantkv/src`: auth, HTTP, client, CLI, MCP, demo and benchmark.
-- `crates/*/tests`: observable invariants and protocol behavior.
-- `config`, `examples`, `docs`, `scripts`: setup, schemas and reproducible checks.
+CI runs the same core and site commands and checks npm advisories at high severity or above.
+Run `npm audit --audit-level=high` in `site/` to repeat that network check. Packaging, portable binaries and container restore checks run separately.
+Before deployment, also verify mobile layout, search, copying and benchmark controls in a browser.
+
+## Preserve contracts
 
 Test externally visible behavior and storage invariants. A regression test must fail with the old behavior.
-Use a fake clock for deterministic expiry tests.
-Do not weaken durability to improve benchmark results.
-Never log tokens or stored memory.
-Document format changes and migration steps before merging.
+Use fake clocks for deterministic expiry checks.
+Preserve transactions, conditional writes, quotas, TTL, checkpoints and namespace grants.
+Never log tokens or stored memory. Do not weaken durability to improve benchmarks.
+Document storage-format changes and migration steps before implementation.
 
-Generate the schemas from the Rust types:
+Regenerate schemas when Rust API types change:
 
 ```sh
 cargo run --locked -p instantkv -- schema > examples/checkpoint.schema.json
 cargo run --locked -p instantkv -- schema --kind memory > examples/memory.schema.json
 ```
 
-Artwork tooling is optional and is not a build dependency.
-To render with Tesseract 0.3.0, use `python3 scripts/render-design.py --tsrct /path/to/tsrct`.
-[Asset sources and licenses](docs/assets/README.md).
+The shared verification command compares these files with generated output.
+Full model campaigns use the separate [evaluation environment](eval/README.md).
+Run storage experiments on temporary databases; preserve published report bytes and hashes.
 
-Use a clear commit message.
-Describe the problem, resulting behavior, validation and known limits in the pull request.
-For deployment changes, run the [container setup](docs/quickstart.md).
+## Write and review
 
-## Website and documentation
+Use short, natural sentences based on ASD-STE100 principles. Exact dictionary compliance is not required.
 
-Edit the Markdown guides to update website documentation.
-For a new guide, add navigation in `site/src/lib/docs.ts`.
-Site work needs Node 22.12 or later.
-Run `npm ci`, `npm run check`, `npm test`, `npm run build` and `npm run verify` in `site/`.
-Before deployment, verify mobile layout, search, copying and benchmark controls.
-[Website operations](docs/website.md).
-
-Benchmark claims must match committed raw reports, hardware, workload and source revision.
-Keep measured results separate from unverified targets.
-Native phone support, model-quality results, managed hosting and replicas remain planned.
-
-## Writing style
-
-Use ASD-STE100 principles with natural software terminology. Full dictionary compliance is not a project requirement.
-
-- Keep most sentences below 25 words and instructions below 20 words.
 - Use active voice, one topic per paragraph and one action per instruction.
-- Use the same term for the same feature. Keep API and configuration names exact.
-- Explain unfamiliar abbreviations at first use. Keep detailed contracts in the guides.
-- Separate source-MVP features, released binaries, measurements and planned work.
+- Keep API names, commands and configuration fields exact.
+- Explain unfamiliar abbreviations once.
+- Distinguish current source, released binaries, measured results and proposals.
+- Link to canonical contracts and reports instead of repeating them.
 
-The [official ASD-STE100 standard](https://www.asd-ste100.org/) provides the writing rules and controlled dictionary.
+Edit Markdown sources for website guides. Register public pages in `site/src/lib/docs.ts`.
+A move must update incoming links and preserve published website routes.
+Artwork is optional; [sources and licenses](docs/assets/README.md) are maintained separately.
+
+Use the issue and PR templates. State the problem, resulting behavior, checks run and material limits.
+Check off only completed work. An incomplete benchmark, unrun CI job or prepared artifact is not a successful release.
+[Active repository plan](docs/project-plan.md) · [Operations](docs/operations.md) · [Website](docs/website.md).

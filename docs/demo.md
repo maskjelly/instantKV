@@ -1,13 +1,6 @@
-# Demo: remember, recall, browse and forget
+# Local storage demos
 
-**Historical guide.** The public website demo is retired. Use [quick start](quickstart.md) to run the memory service locally.
-
-
-[Read local setup](quickstart.md) to use the current memory API.
-Save synthetic memories, clear local context, filter results and delete an exact memory.
-Open a separate reader tab to fetch stored values independently.
-Recorded mode shows saved responses from fresh memory runs.
-[Architecture, bounds and timing](live-demo.md).
+These demos verify storage and tool contracts. Model inference is a separate evaluation.
 
 ## Local memory and a real restart
 
@@ -69,5 +62,5 @@ Model evaluation is separate from the storage demos above.
 [Memory guide](memory-mvp.md) · [MCP setup](agents.md) · [Current benchmarks](benchmarks.md).
 
 The local CLI demo also calls BM25 `search` after restart and verifies the saved
-preference. The browser demo and its archived recordings exercise literal filters.
+preference. The [retired browser demo](history/live-demo.md) exercised literal filters.
 Use `instantkv search "preferred language for local tooling"` to try ranking.

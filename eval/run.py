@@ -18,7 +18,6 @@ import time
 import traceback
 from contextlib import nullcontext
 
-from api import EvaluationAPI
 from budget import BudgetExceeded
 from backend import Backend, sha
 from baselines import make_backend
@@ -92,6 +91,8 @@ def source_files(suite,root):
 
 
 def run(args):
+    from api import EvaluationAPI
+
     config=json.loads(args.config.read_text());destination=args.output;destination.mkdir(parents=True,exist_ok=False)
     api=EvaluationAPI(config,args.key_file,args.budget_file)
     rubrics=Rubrics(args.sources,api)

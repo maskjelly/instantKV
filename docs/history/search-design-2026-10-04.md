@@ -1,7 +1,8 @@
-# Bounded search improvement plan
+# Bounded search design — 4 October 2026
 
-Status: implemented in source. The design below was fixed before the new benchmark run.
-Results and reproduction: [search update](benchmarks/2026-10-04-search/README.md).
+Historical design, implemented before the 4 October search run.
+Use the [roadmap](../roadmap.md) for current status.
+Results and reproduction: [search update](../benchmarks/2026-10-04-search/README.md).
 
 1. Accept up to 16 KiB of query text. Tokenize the whole question. Score at most 64 original terms. For longer queries select terms by corpus rarity and square-root query frequency. Keep a SHA-256 query fingerprint in cursors.
 2. Keep exhaustive sparse scoring for short searches. Use document-at-a-time WAND for larger searches. Use conservative BM25 upper bounds. Bound decoded postings and iterator reads by the existing 20,000 budget. Keep record, byte and output limits. Report term reduction separately from scoring truncation.

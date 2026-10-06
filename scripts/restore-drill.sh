@@ -11,6 +11,8 @@ image="${INSTANTKV_IMAGE:-instantkv:local}"
 drill_name="instantkv-drill-$(date +%s)-$RANDOM"
 volume_name="$drill_name-memory"
 docker volume create "$volume_name" >/dev/null
+# The EXIT trap invokes this function.
+# shellcheck disable=SC2329
 cleanup() {
   docker rm -f "$drill_name" >/dev/null 2>&1 || true
   docker volume rm "$volume_name" >/dev/null 2>&1 || true
@@ -24,7 +26,7 @@ docker run -d --name "$drill_name" --read-only --cap-drop ALL \
   --security-opt no-new-privileges:true --tmpfs /tmp:size=16m,mode=1777 \
   --mount "type=volume,src=$volume_name,dst=/state" \
   "$image" serve --bind 127.0.0.1:8080 >/dev/null
-for attempt in {1..50}; do
+for _attempt in {1..50}; do
   if docker exec "$drill_name" instantkv doctor >/dev/null 2>&1; then
     docker exec "$drill_name" instantkv restore --namespace "$checkpoint_namespace" --id "$checkpoint_id"
     printf '%s\n' 'PASS: known checkpoint restored from an offline backup in an isolated volume.'

@@ -2,9 +2,9 @@ name: Website checks
 
 on:
   push:
-    paths: ['site/**', 'demo/**', 'docs/**', 'examples/**', 'CONTRIBUTING.md', 'SECURITY.md', 'CHANGELOG.md', '.github/workflows/site.yml']
+    paths: ['site/**', 'docs/**', 'examples/**', 'README.md', 'CONTRIBUTING.md', 'scripts/check.sh', 'scripts/check-repo.py', 'scripts/test-check-repo.py', 'SECURITY.md', 'CHANGELOG.md', '.github/workflows/site.yml']
   pull_request:
-    paths: ['site/**', 'demo/**', 'docs/**', 'examples/**', 'CONTRIBUTING.md', 'SECURITY.md', 'CHANGELOG.md', '.github/workflows/site.yml']
+    paths: ['site/**', 'docs/**', 'examples/**', 'README.md', 'CONTRIBUTING.md', 'scripts/check.sh', 'scripts/check-repo.py', 'scripts/test-check-repo.py', 'SECURITY.md', 'CHANGELOG.md', '.github/workflows/site.yml']
 
 permissions:
   contents: read
@@ -24,8 +24,6 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: npm ci
-      - run: npm run check
-      - run: npm test
-      - run: npm run build
-      - run: npm run verify
+      - run: npm audit --audit-level=high
+      - run: ../scripts/check.sh --site
       - run: npx wrangler deploy --dry-run

@@ -5,12 +5,19 @@ body:
     id: problem
     attributes:
       label: Problem or workflow
-      description: What cannot be done with the current keys, checkpoints and tools?
+      description: Describe one workflow and the current limitation.
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: What should change, and how could we check it?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Completion criteria
+      description: State observable behavior, a reproducible check and the affected area. Keep unrelated work separate.
     validations:
       required: true

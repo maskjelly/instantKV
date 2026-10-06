@@ -2,7 +2,7 @@
 
 Recorded: 4 October 2026. Runtime: `fafa202e165f9c467e8de344403437e704f9a24a`.
 Fresh instantKV runs; historical Supermemory local controls from 3 October.
-[Engineering notes](../../memory-benchmark-notes.md) · [Fixed design](../../search-improvement-plan.md).
+[Engineering notes](../../memory-benchmark-notes.md) · [Fixed design](../../history/search-design-2026-10-04.md).
 
 | Workload | Queries | instantKV Recall@10 | Recorded Supermemory local |
 | --- | ---: | ---: | ---: |
