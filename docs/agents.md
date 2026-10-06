@@ -13,12 +13,35 @@ Pass the namespace in every swarm tool call. The single-agent defaults are `know
 ## OpenCode
 
 For a local save → restart → recall showcase, use the
-[OpenCode installer](https://github.com/maskjelly/instantKV/blob/main/docs/opencode-memory-demo.md). It starts the server and MCP adapter
+[OpenCode installer](opencode-memory-demo.md). It starts the server and MCP adapter
 for you and shows each memory tool call.
 
-## MCP stdio
+## Local MCP: one process to start
 
-For clients using a `mcpServers` configuration:
+Install the unreleased source MVP using the [quick start](quickstart.md).
+For clients using a `mcpServers` configuration, use:
+
+```json
+{
+  "mcpServers": {
+    "instantkv": {
+      "command": "/absolute/path/to/instantkv",
+      "args": ["mcp-local", "--dir", "/absolute/path/to/memory"]
+    }
+  }
+}
+```
+
+The directory holds configuration, private credentials and durable records.
+The command initializes a missing directory and starts its own loopback HTTP
+server on a temporary port. No separate server or model API is needed.
+Restart with the same directory to reuse the records.
+The client must call the tools; this does not install automatic memory hooks.
+
+## Shared HTTP server through MCP
+
+Start `instantkv serve` first. This adapter uses the existing server:
+
 
 ```json
 {

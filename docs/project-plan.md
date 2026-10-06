@@ -16,6 +16,7 @@ The engine remains frozen during the [finite evaluation campaign](evaluation-pol
 | Hygiene enforcement | Source layout, accidental private/generated files and Markdown checks | Regression cases reject invalid fixtures |
 | Review workflow | Focused issue/PR templates with completion criteria | Checks, compatibility and scope are recorded |
 | Service website | Installation first; shared themes; task-based docs; report-backed evidence | Built-page checks and browser layout/interaction checks pass |
+| Search and agent discovery | Clear local-AI positioning, structured identity, linked Markdown guides and indexing exclusions | Export, metadata, sitemap and crawler checks; ranking needs external measurement |
 | Private adoption evidence | Local SQLite download snapshots outside Git | Counting and privacy regressions pass; source installs stay unknown |
 
 [Validation record](validation/2026-10-06.md) records local checks and their limits.

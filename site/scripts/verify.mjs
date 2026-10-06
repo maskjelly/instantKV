@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { docs } from '../src/lib/docs.ts';
+import { isIndexable } from '../src/lib/discovery.ts';
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import remarkGfm from 'remark-gfm';
 
 const root = resolve('dist');
 assert(existsSync(root), 'Run npm run build before verification');
@@ -25,9 +30,40 @@ for (const file of htmlFiles) {
     html.includes('Local-first agent memory.'),
     `${page}: local-first product positioning`,
   );
+  const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+  const dataScripts = scripts.filter(([, attrs]) =>
+    /type="application\/ld\+json"/.test(attrs),
+  );
+  assert.equal(dataScripts.length, 1, page + ': one JSON-LD entity graph');
+  for (const [, attrs, body] of scripts) {
+    if (/type="application\/ld\+json"/.test(attrs)) {
+      const graph = JSON.parse(body);
+      assert.equal(graph['@context'], 'https://schema.org');
+      assert(
+        graph['@graph'].some(
+          (entity) => entity['@type'] === 'SoftwareSourceCode',
+        ),
+      );
+      const webPage = graph['@graph'].find((entity) =>
+        entity['@id']?.endsWith('#page'),
+      );
+      assert.equal(webPage.url, 'https://instantkv.com' + page);
+    } else {
+      assert(
+        /\bsrc=/.test(attrs),
+        page + ': executable scripts must be external',
+      );
+      assert.equal(body.trim(), '', page + ': no inline executable content');
+    }
+  }
   assert(
-    !/<script\b(?![^>]*\bsrc=)[^>]*>/i.test(html),
-    `${page}: scripts must be external for the CSP`,
+    html.includes('rel="canonical" href="https://instantkv.com' + page + '"'),
+    page + ': canonical URL',
+  );
+  assert.equal(
+    html.includes('content="noindex, follow"'),
+    !isIndexable(page),
+    page + ': indexing policy',
   );
   for (const match of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
     const value = match[1].replaceAll('&amp;', '&');
@@ -319,4 +355,90 @@ assert(benchPage.includes('85.20') && benchPage.includes('CPU utilization'));
 
 console.log(
   `Verified ${htmlFiles.length} HTML pages, their local links/anchors/assets, current memory and retrieval reports, search and machine-readable docs.`,
+);
+
+// Discovery is a built-output contract, not a ranking assertion.
+const sitemapFiles = files(root).filter((path) =>
+  /sitemap-\d+\.xml$/.test(path),
+);
+const sitemapURLs = sitemapFiles.flatMap((file) =>
+  [...readFileSync(file, 'utf8').matchAll(/<loc>([^<]+)<\/loc>/g)].map(
+    (match) => match[1],
+  ),
+);
+for (const file of htmlFiles) {
+  const page = file.slice(root.length).replace(/index\.html$/, '');
+  assert.equal(
+    sitemapURLs.includes('https://instantkv.com' + page),
+    isIndexable(page),
+    page + ': sitemap matches robots metadata',
+  );
+}
+const parser = unified().use(remarkParse).use(remarkGfm);
+let exportLinks = 0;
+for (const doc of docs) {
+  const pathname = '/docs/' + doc.slug + '/index.md';
+  const markdown = readFileSync(resolve(root, '.' + pathname), 'utf8');
+  const html = readFileSync(
+    resolve(root, 'docs', doc.slug, 'index.html'),
+    'utf8',
+  );
+  assert(
+    html.includes(
+      'rel="alternate" type="text/markdown" href="' + pathname + '"',
+    ),
+    doc.slug + ': discoverable Markdown',
+  );
+  assert(
+    markdown.includes(
+      'Canonical page: https://instantkv.com/docs/' + doc.slug + '/',
+    ),
+  );
+  function visit(node) {
+    if (['link', 'image', 'definition'].includes(node.type) && node.url) {
+      assert(
+        /^[a-z]+:/i.test(node.url),
+        doc.slug + ': absolute export link ' + node.url,
+      );
+      const url = new URL(node.url);
+      if (url.origin === 'https://instantkv.com') {
+        let target = resolve(root, '.' + decodeURIComponent(url.pathname));
+        if (existsSync(target) && statSync(target).isDirectory())
+          target = resolve(target, 'index.html');
+        assert(
+          existsSync(target),
+          doc.slug + ': exported resource exists: ' + node.url,
+        );
+        if (url.hash) {
+          const page = target.endsWith('.md')
+            ? target.replace(/index\.md$/, 'index.html')
+            : target;
+          if (page.endsWith('.html'))
+            assert(
+              readFileSync(page, 'utf8').includes(
+                'id="' + decodeURIComponent(url.hash.slice(1)) + '"',
+              ),
+              doc.slug + ': exported anchor exists ' + node.url,
+            );
+        }
+        exportLinks++;
+      }
+    }
+    for (const child of node.children || []) visit(child);
+  }
+  visit(parser.parse(markdown));
+}
+const index = readFileSync(resolve(root, 'llms.txt'), 'utf8');
+assert(Buffer.byteLength(index) < 6000, 'Agent index must stay bounded');
+assert(index.startsWith('# instantKV\n\n>'));
+assert(index.includes('mcp-local --dir'));
+assert(index.includes('Source MVP, unreleased'));
+console.log(
+  'Discovery verified: ' +
+    docs.length +
+    ' Markdown guides, ' +
+    exportLinks +
+    ' internal export links, ' +
+    sitemapURLs.length +
+    ' indexable pages.',
 );

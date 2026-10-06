@@ -17,6 +17,14 @@ export const docs = [
       'Five memory tools, seven KV/checkpoint tools and checkpoint instructions.',
   },
   {
+    slug: 'opencode-memory-demo',
+    title: 'OpenCode memory setup',
+    group: 'Start here',
+    source: 'docs/opencode-memory-demo.md',
+    description:
+      'Install local MCP memory for OpenCode and run an explicit save, restart and recall demonstration.',
+  },
+  {
     slug: 'memory-mvp',
     title: 'Memory API & local models',
     group: 'Start here',
@@ -158,6 +166,14 @@ export const docs = [
     description: 'Build, verify and deploy this static Cloudflare site.',
   },
   {
+    slug: 'discovery',
+    title: 'Search & agent discovery',
+    group: 'Build with us',
+    source: 'docs/discovery.md',
+    description:
+      'Canonical pages, Markdown exports, crawl checks and evidence-based discoverability.',
+  },
+  {
     slug: 'install-metrics',
     title: 'Private installation reporting',
     group: 'Build with us',
@@ -189,7 +205,7 @@ export const docs = [
   },
   {
     slug: 'choosing-instantkv',
-    title: 'Why instantKV',
+    title: 'Local AI memory: when instantKV fits',
     group: 'Project',
     source: 'docs/choosing-instantkv.md',
     description:

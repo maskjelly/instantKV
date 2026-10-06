@@ -25,6 +25,7 @@ __pycache__/
 /site/public/benchmark-data/
 /site/public/recordings/
 /site/public/examples/
+/site/public/docs/
 /site/public/llms.txt
 /site/public/llms-full.txt
 

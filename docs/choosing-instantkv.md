@@ -1,9 +1,9 @@
-# Why instantKV
+# Local AI memory: when instantKV fits
 
-instantKV stores facts and task state outside the model's context window.
+instantKV is an open-source local AI memory service. It stores facts and task state outside the model's context window.
 After a context reset or restart, your agent can retrieve that state and continue.
 
-Four tools save, find, list and delete structured memories.
+Five tools save, recall, search, browse and delete structured memories.
 Checkpoints preserve the goal and next action before compaction.
 Your runtime selects what to keep. Storage and retrieval need no model call.
 
@@ -66,6 +66,7 @@ all 500 LongMemEval-S questions and all ten LoCoMo histories. Full native QA sco
 These alternatives have not been compared in this suite. Supermemory local is
 measured separately in the [retrieval notes](memory-benchmark-notes.md).
 The results do not establish a speed or cost ranking.
+The evidence does not establish SOTA or a statistically significant retrieval win.
 Semantic search, automatic runtime hooks and replicas remain [planned](roadmap.md).
 
 [Run your own node](quickstart.md) and read the [benchmark limits](performance.md).

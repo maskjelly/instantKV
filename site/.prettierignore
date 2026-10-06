@@ -8,3 +8,4 @@ public/recordings/
 public/examples/
 public/llms*.txt
 package-lock.json
+public/docs/

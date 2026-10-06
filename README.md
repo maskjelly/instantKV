@@ -1,6 +1,6 @@
 # instantKV
 
-**A local memory service you install and run beside your agents.**
+**Open-source local AI memory. Install it and run it beside your agents.**
 
 Save facts, preferences and task checkpoints. Retrieve them after a context reset
 or restart. One Rust engine, with HTTP, CLI, MCP and an embedded core.
@@ -37,7 +37,8 @@ The server binds to `127.0.0.1:8080`. Installation downloads source and dependen
 From a local checkout, use `cargo install --path crates/instantkv --locked`.
 
 [Setup guide](docs/quickstart.md) · [Connect through MCP](docs/agents.md) ·
-[Embedded Rust example](crates/instantkv-core/examples/memory.rs)
+[Embedded Rust example](crates/instantkv-core/examples/memory.rs) ·
+[Agent-readable guides](https://instantkv.com/llms.txt)
 
 ## What works
 

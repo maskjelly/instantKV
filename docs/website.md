@@ -57,7 +57,8 @@ raw reports, local search, the wordmark and canonical metadata.
 - `site/scripts/verify.mjs`: built routes, links, assets, schemas and evidence checks.
 
 Guide content has one Markdown source. The build publishes report files,
-examples, `llms.txt`, `llms-full.txt`, a sitemap and a Pagefind search index.
+examples, per-guide Markdown, `llms.txt`, `llms-full.txt`, a sitemap and a Pagefind search index.
+[Search and agent discovery](discovery.md) defines indexing, export and claim rules.
 Resource exports preserve their process scopes. Model QA keeps its own settings,
 failures and confidence interval. Keep these distinctions visible.
 

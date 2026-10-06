@@ -21,7 +21,11 @@ const { Content, headings } = await render(entry);
 const slug = doc.slug;
 ---
 
-<Base title={doc.title} description={doc.description}>
+<Base
+  title={doc.title}
+  description={doc.description}
+  markdown={'/docs/' + doc.slug + '/index.md'}
+>
   <main id="main" class="shell docs-layout">
     <aside class="docs-sidebar" aria-label="Documentation navigation">
       <a class="docs-search-link" href="/search/">
@@ -66,6 +70,14 @@ const slug = doc.slug;
       </details>
 
       <header class="docs-title">
+        <nav
+          aria-label="Breadcrumb"
+          class="docs-breadcrumb"
+          data-pagefind-ignore
+        >
+          <a href="/">Home</a> / <a href="/docs/">Docs</a> /{' '}
+          <span aria-current="page">{doc.title}</span>
+        </nav>
         <p class="data-label">{doc.group} / single-node · source MVP</p>
         <h1>{doc.title}</h1>
         <p>{doc.description}</p>
@@ -93,6 +105,7 @@ const slug = doc.slug;
       </div>
 
       <div class="docs-bottom">
+        <a href={'/docs/' + doc.slug + '/index.md'}>Read as Markdown ↗</a>
         <a class="text-link" href={`${repository}/blob/main/${doc.source}`}>
           Edit this page on GitHub ↗
         </a>

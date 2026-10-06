@@ -3,13 +3,29 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 import '../styles/docs.css';
+import {
+  isIndexable,
+  projectDescription,
+  serializeStructuredData,
+  structuredData,
+} from '../lib/discovery';
 
 interface Props {
   title: string;
   description: string;
+  markdown?: string;
 }
-const { title, description } = Astro.props;
-const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
+const { title, description, markdown } = Astro.props;
+const pagePath =
+  Astro.url.pathname === '/404/' ? '/404.html' : Astro.url.pathname;
+const canonical = new URL(pagePath, 'https://instantkv.com');
+const pageTitle =
+  title === 'instantKV'
+    ? 'instantKV: Open-source local AI memory for agents'
+    : title + ' · instantKV';
+const schema = serializeStructuredData(
+  structuredData(pagePath, pageTitle, description),
+);
 ---
 
 <!doctype html>
@@ -17,8 +33,9 @@ const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title === 'instantKV' ? 'instantKV · local-first agent memory' : `${title} · instantKV`}</title>
+    <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    {!isIndexable(pagePath) && <meta name="robots" content="noindex, follow" />}
     <meta
       name="theme-color"
       content="#ffffff"
@@ -30,6 +47,9 @@ const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
       media="(prefers-color-scheme: dark)"
     />
     <link rel="canonical" href={canonical} />
+    <link rel="describedby" href="/llms.txt" type="text/plain" />
+    {markdown && <link rel="alternate" type="text/markdown" href={markdown} />}
+    <script type="application/ld+json" set:html={schema} />
     <link rel="icon" type="image/svg+xml" href="/assets/blueprint-mark.svg" />
     <link
       rel="preload"
@@ -39,21 +59,23 @@ const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
       crossorigin
     />
     <meta property="og:type" content="website" />
-    <meta
-      property="og:title"
-      content={
-        title === 'instantKV'
-          ? 'instantKV · local-first agent memory'
-          : `${title} · instantKV`
-      }
-    />
+    <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
+    <meta property="og:site_name" content="instantKV" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image:alt" content={projectDescription} />
     <meta property="og:url" content={canonical} />
     <meta
       property="og:image"
       content="https://instantkv.com/assets/blueprint-social.png"
     />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta
+      name="twitter:image"
+      content="https://instantkv.com/assets/blueprint-social.png"
+    />
   </head>
   <body>
     <Header />

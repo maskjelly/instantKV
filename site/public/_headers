@@ -15,7 +15,13 @@
   Cache-Control: public, max-age=0, must-revalidate
 /llms.txt
   Cache-Control: public, max-age=0, must-revalidate
+  X-Robots-Tag: noindex
 /llms-full.txt
   Cache-Control: public, max-age=0, must-revalidate
+  X-Robots-Tag: noindex
+/docs/:slug/index.md
+  Content-Type: text/markdown; charset=utf-8
+  X-Robots-Tag: noindex
+  Link: <https://instantkv.com/docs/:slug/>; rel="canonical", </llms.txt>; rel="describedby"
 /pagefind/pagefind-entry.json
   Cache-Control: public, max-age=0, must-revalidate
