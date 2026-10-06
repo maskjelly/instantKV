@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import EvidenceChart from '../../components/EvidenceChart.astro';
 import { memoryEvidence } from '../../lib/evidence';
+import '../../styles/evidence.css';
 ---
 
 <Base
@@ -12,26 +13,15 @@ import { memoryEvidence } from '../../lib/evidence';
     <header class="editorial-title">
       <p class="eyebrow">Engineering notes / 04 October 2026</p>
       <h1>
-        Good recall.
-        <br />A small local engine.
+        Memory retrieval.
+        <br />
+        What the tests show.
       </h1>
       <p>
         We ran the full memory retrieval sets. The engine stayed small. The
         results also show where we need to improve.
       </p>
     </header>
-    <figure class="article-photo">
-      <img
-        src="/assets/local-storage.webp"
-        width="1400"
-        height="788"
-        alt="Conceptual image of local persistent storage"
-      />
-      <figcaption>
-        Local storage is the design direction. This image is not benchmark
-        hardware.
-      </figcaption>
-    </figure>
     <div class="prose article-prose">
       <h2>What we measured</h2>
       <p>

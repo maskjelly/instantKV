@@ -231,19 +231,19 @@ const formatted = (n: number | null, unit: string) =>
                   </small>
                 </th>
                 <td data-label="Recall@10">
-                  {row ? percent(row.recall) + '%' : '—'}
+                  {row ? percent(row.recall) + '%' : 'N/A'}
                   {row && highestObserved(row, 'recall') && (
                     <small class="bench-highest">Highest observed</small>
                   )}
                 </td>
                 <td data-label="Sampled RAM">
-                  {row ? mib(row.rss) + ' MiB' : '—'}
+                  {row ? mib(row.rss) + ' MiB' : 'N/A'}
                 </td>
                 <td data-label="Query p95">
-                  {row ? row.latency.p95.toFixed(2) + ' ms' : '—'}
+                  {row ? row.latency.p95.toFixed(2) + ' ms' : 'N/A'}
                 </td>
                 <td data-label="Failed / truncated">
-                  {row ? `${row.failures} / ${row.truncated}` : '—'}
+                  {row ? `${row.failures} / ${row.truncated}` : 'N/A'}
                   {row && row.reduced > 0 && (
                     <small>{row.reduced.toLocaleString('en-US')} reduced</small>
                   )}

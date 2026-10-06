@@ -14,3 +14,11 @@ folder. Website copies use WebP, maximum width 1,400 pixels and quality 82.
 `blueprint-social.svg` is an editable, code-native social card. Its PNG is generated
 from the SVG. Benchmark charts render numeric data from committed reports; imagegen
 does not draw quantitative charts.
+
+The service-site redesign on 6 October 2026 removed the concept photographs from
+the homepage and research article. The files remain as historical artwork.
+The social card now matches the installation-first copy. Rebuild its PNG with:
+
+```sh
+rsvg-convert docs/assets/blueprint-social.svg -o docs/assets/blueprint-social.png
+```

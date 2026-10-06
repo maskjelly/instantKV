@@ -233,6 +233,16 @@ for (const file of htmlFiles) {
 const home = readFileSync(resolve(root, 'index.html'), 'utf8');
 assert(home.includes('95.13') && home.includes('14.34'));
 assert(!home.includes('91.67') && !home.includes('65.28'));
+assert(
+  home.includes(
+    'cargo install --git https://github.com/maskjelly/instantKV --locked instantkv',
+  ),
+);
+assert(home.includes('Source MVP, unreleased.') && home.includes('v0.1.2'));
+assert(
+  home.indexOf('id="install-title"') < home.indexOf('id="evidence-title"'),
+);
+assert(!home.includes('local-devices-hero.webp'));
 
 const resources = JSON.parse(
   readFileSync(

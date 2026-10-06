@@ -1,228 +1,300 @@
 ---
 import Base from '../layouts/Base.astro';
-import EvidenceChart from '../components/EvidenceChart.astro';
-import MemoryFlow from '../components/MemoryFlow.astro';
-import { memoryEvidence, full, percent, mib } from '../lib/evidence';
+import { full, percent, mib } from '../lib/evidence';
 import { report } from '../lib/benchmarks';
 import { repository } from '../lib/docs';
-const install = `cargo install --path crates/instantkv --locked
-instantkv init
-instantkv serve`;
-const memory = `instantkv remember "Prefer Rust for local tools" \\
-  --key preferences/language --topic preferences --tag local
-
-instantkv search "preferred language for local tooling"
-instantkv recall --topic preferences
-instantkv browse --limit 10`;
+import '../styles/home.css';
+const install = [
+  'cargo install --git https://github.com/maskjelly/instantKV --locked instantkv',
+  'mkdir my-local-memory',
+  'cd my-local-memory',
+  'instantkv init',
+  'instantkv serve',
+].join('\n');
+const remember = [
+  'instantkv remember "Prefer Rust for local tools" --key preferences/language',
+  '  --topic preferences',
+].join(' \\' + '\n');
 ---
 
 <Base
   title="instantKV"
-  description="Persistent local memory for AI agents. A small Rust engine with structured recall, bounded BM25 search and full, independently checked retrieval results."
+  description="Install a local memory service for your agents. Structured recall, bounded keyword search and durable checkpoints. Rust, HTTP, CLI and MCP. MIT licensed."
 >
-  <main id="main" class="shell refresh-home" data-pagefind-body>
-    <section class="editorial-hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Local-first memory / Rust / MIT</p>
-        <h1>
-          Small engine.
+  <main id="main" class="shell service-home" data-pagefind-body>
+    <section class="service-hero" aria-labelledby="home-title">
+      <div class="service-intro">
+        <p class="eyebrow">Open-source agent infrastructure</p>
+        <h1 id="home-title">
+          Local memory
           <br />
-          Lasting memory.
+          for your agents.
         </h1>
-        <p class="hero-deck">
-          Give your agent a place to keep facts, preferences and task state.
-          Retrieve them next session. Keep the data on your device.
+        <p class="service-deck">
+          Store facts, preferences and task state. Retrieve them next session.
+          Run the service on your own machine.
         </p>
         <div class="hero-actions">
           <a class="button button--key" href="/docs/quickstart/">
-            Start locally <span aria-hidden="true">→</span>
+            Installation guide <span aria-hidden="true">→</span>
           </a>
-          <a class="hero-source" href={repository}>
+          <a class="text-link" href={repository}>
             Read the source ↗
           </a>
         </div>
-        <p class="hero-meta">
-          Rust core · HTTP · CLI · MCP
-          <br />
-          Source MVP, unreleased. Native phone integration is planned.
-        </p>
       </div>
-      <figure class="hero-photo">
-        <img
-          src="/assets/local-devices-hero.webp"
-          width="1400"
-          height="788"
-          alt="Illustration of a compact desktop computer and a phone on a quiet desk"
-          fetchpriority="high"
-        />
-        <figcaption>
-          Designed for local compute. Device imagery; phone support is planned.
-        </figcaption>
-      </figure>
-    </section>
-    <section class="proof-row" aria-label="Measured evidence">
-      <a href="/benchmarks/#memory">
-        <span>LongMemEval-S · 500 questions</span>
-        <strong>
-          {percent(full.suites['longmemeval-s'].instantkv.recall_at_10)}
-          <small>%</small>
-        </strong>
-        <span>Source-session Recall@10</span>
-      </a>
-      <a href="/benchmarks/#footprint">
-        <span>LongMemEval-S · native server</span>
-        <strong>
-          {mib(
-            full.suites['longmemeval-s'].instantkv.largest_sampled_rss_bytes,
-          )}
-          <small> MiB</small>
-        </strong>
-        <span>Largest sampled RSS on Mac</span>
-      </a>
-      <a href="/benchmarks/#footprint">
-        <span>Measured macOS ARM64 build</span>
-        <strong>
-          {mib(report.binary_bytes)}
-          <small> MiB</small>
-        </strong>
-        <span>One native binary</span>
-      </a>
-    </section>
-    <section class="editorial-section" aria-labelledby="how-title">
-      <div class="section-heading">
-        <p class="eyebrow">01 / Built to sit beside your model</p>
-        <h2 id="how-title">
-          Your runtime thinks.
-          <br />
-          instantKV remembers.
-        </h2>
-        <p>
-          The agent decides what matters. The engine stores it, applies your
-          limits and retrieves useful records. Storage and retrieval need no
-          embedding model or cloud API.
-        </p>
-      </div>
-      <MemoryFlow />
-      <div class="feature-columns">
-        <div>
-          <h3>Save structured memory</h3>
-          <p>
-            Content, topic, tags, event time and your own JSON metadata. Keep
-            facts and checkpoints in private namespaces.
-          </p>
+      <div class="install-panel" aria-labelledby="install-title">
+        <div class="install-heading">
+          <h2 id="install-title">Run it locally</h2>
+          <span>Rust 1.98+</span>
         </div>
-        <div>
-          <h3>Find it with bounded work</h3>
-          <p>
-            Use ordered filters or BM25 ranking with English stemming. Set
-            limits for candidates, bytes, index work and storage.
-          </p>
-        </div>
-        <div>
-          <h3>Keep the pieces consistent</h3>
-          <p>
-            Writes, deletion and expiry update records and indexes in one redb
-            transaction. Restore durable memory after a restart.
-          </p>
-        </div>
-      </div>
-    </section>
-    <section class="editorial-section" aria-labelledby="evidence-title">
-      <div class="section-heading">
-        <p class="eyebrow">02 / Measured, then checked</p>
-        <h2 id="evidence-title">
-          Full questions.
-          <br />
-          Inspectable results.
-        </h2>
-        <p>
-          All 500 LongMemEval-S questions. All ten LoCoMo histories. Five
-          ranking files independently checked against official source labels.
-        </p>
-        <a href="/benchmarks/" class="text-link">
-          See every result and comparison limit ↗
-        </a>
-      </div>
-      <EvidenceChart
-        rows={memoryEvidence}
-        id="home-evidence"
-        title="Finding the source evidence"
-      />
-      <p class="evidence-caveat">
-        Retrieval scores, not end-to-end answer accuracy. Local Supermemory uses
-        its direct embedding path. Full hosted-product performance is not
-        measured.
-      </p>
-    </section>
-    <section
-      class="editorial-section start-section"
-      aria-labelledby="start-title"
-    >
-      <div>
-        <p class="eyebrow">03 / A small, hackable core</p>
-        <h2 id="start-title">Start with three commands.</h2>
-        <p>
-          Build the source MVP with Rust 1.98 or later. Setup creates private
-          credentials; the server binds to loopback.
-        </p>
         <pre><code>{install}</code></pre>
-        <a href="/docs/agents/" class="text-link">
-          Connect your agent through MCP →
-        </a>
-      </div>
-      <div class="terminal-example">
-        <span class="eyebrow">Save, rank, filter, inspect</span>
-        <pre><code>{memory}</code></pre>
         <p>
-          Five memory tools: remember, recall, search, browse and forget. Embed
-          the Rust core to use it without HTTP.
+          <strong>Source MVP, unreleased.</strong> Published v0.1.2 archives
+          contain the earlier KV/checkpoint tools. Build from source for
+          structured memory.
         </p>
-        <a href="/docs/memory-mvp/">Read the API and query limits ↗</a>
+        <a href="/docs/agents/">Connect your agent through MCP →</a>
       </div>
     </section>
-    <section
-      class="editorial-section future-section"
-      aria-labelledby="next-title"
-    >
-      <div class="section-heading">
-        <p class="eyebrow">04 / Where we go next</p>
-        <h2 id="next-title">
-          Quality first.
-          <br />
-          Local by design.
-        </h2>
+    <dl class="service-facts" aria-label="Service defaults">
+      <div>
+        <dt>Runs on</dt>
+        <dd>Your machine</dd>
+      </div>
+      <div>
+        <dt>Default address</dt>
+        <dd>
+          <code>127.0.0.1:8080</code>
+        </dd>
+      </div>
+      <div>
+        <dt>Local data</dt>
+        <dd>
+          <code>.instantkv/data</code>
+        </dd>
+      </div>
+      <div>
+        <dt>License</dt>
+        <dd>MIT</dd>
+      </div>
+    </dl>
+    <section class="service-section" aria-labelledby="workflow-title">
+      <header class="section-heading">
+        <h2 id="workflow-title">Save once. Find it next session.</h2>
         <p>
-          Better paraphrase recall, reliable multi-hop retrieval, native mobile
-          integration and real device tests. Each step must earn its CPU, RAM
-          and storage cost.
+          Your app chooses what to save and what to add to context. instantKV
+          keeps the records and indexes consistent.
         </p>
-        <a href="/docs/roadmap/" class="text-link">
-          Read the roadmap →
+      </header>
+      <div class="memory-workflow">
+        <div class="workflow-code">
+          <h3>Save a preference</h3>
+          <pre><code>{remember}</code></pre>
+          <h3>Retrieve it later</h3>
+          <pre><code>instantkv recall --topic preferences</code></pre>
+          <p>
+            Run these commands in another terminal, from the same memory
+            directory. Credentials load automatically.
+          </p>
+        </div>
+        <div class="memory-record">
+          <div class="record-heading">
+            <h3>What you keep</h3>
+            <code>preferences/language</code>
+          </div>
+          <blockquote>Prefer Rust for local tools</blockquote>
+          <dl>
+            <div>
+              <dt>Topic</dt>
+              <dd>preferences</dd>
+            </div>
+            <div>
+              <dt>Also supported</dt>
+              <dd>Tags, event time, custom JSON metadata</dd>
+            </div>
+            <div>
+              <dt>Storage</dt>
+              <dd>Record and indexes in one redb transaction</dd>
+            </div>
+          </dl>
+          <a class="text-link" href="/docs/memory-mvp/">
+            Read the memory contract →
+          </a>
+        </div>
+      </div>
+    </section>
+    <section class="service-section" aria-labelledby="interfaces-title">
+      <header class="section-heading">
+        <h2 id="interfaces-title">Use the interface that fits.</h2>
+        <p>
+          One storage engine. Run it as a local service or embed the Rust core.
+        </p>
+      </header>
+      <div class="interface-list">
+        <a href="/docs/agents/">
+          <span>MCP</span>
+          <div>
+            <h3>Connect an agent</h3>
+            <p>
+              Five memory tools, plus KV and checkpoint tools. Native stdio or
+              an HTTP-backed bridge.
+            </p>
+          </div>
+          <span aria-hidden="true">↗</span>
+        </a>
+        <a href="/docs/cli/">
+          <span>CLI</span>
+          <div>
+            <h3>Work from your terminal</h3>
+            <p>
+              Remember, recall, search, browse and forget. Inspect health and
+              restore task checkpoints.
+            </p>
+          </div>
+          <span aria-hidden="true">↗</span>
+        </a>
+        <a href="/docs/http/">
+          <span>HTTP</span>
+          <div>
+            <h3>Use a scoped API</h3>
+            <p>
+              Namespace permissions, revision checks, TTL and bounded requests.
+            </p>
+          </div>
+          <span aria-hidden="true">↗</span>
+        </a>
+        <a href="/docs/local-first/">
+          <span>Rust</span>
+          <div>
+            <h3>Embed the core</h3>
+            <p>
+              Use the engine in process. Keep storage and retrieval beside your
+              runtime.
+            </p>
+          </div>
+          <span aria-hidden="true">↗</span>
         </a>
       </div>
-      <div class="photo-pair">
-        <figure>
-          <img
-            src="/assets/local-storage.webp"
-            width="1400"
-            height="788"
-            loading="lazy"
-            alt="Conceptual image of a small local solid state drive"
-          />
-          <figcaption>Persistent local storage. Concept image.</figcaption>
-        </figure>
-        <figure>
-          <img
-            src="/assets/arm-board.webp"
-            width="1400"
-            height="788"
-            loading="lazy"
-            alt="Conceptual image of a small ARM board"
-          />
-          <figcaption>
-            ARM boards and phones: device tests still ahead.
-          </figcaption>
-        </figure>
+    </section>
+    <section class="service-section" aria-labelledby="boundaries-title">
+      <header class="section-heading">
+        <h2 id="boundaries-title">Know what you are installing.</h2>
+      </header>
+      <div class="service-boundaries">
+        <div>
+          <h3>Local by default</h3>
+          <p>
+            Private credentials. Loopback binding. Configurable cache, quotas
+            and query budgets. Storage and retrieval need no cloud API or
+            embedding model.
+          </p>
+          <a class="text-link" href="/docs/configuration/">
+            Configuration →
+          </a>
+        </div>
+        <div>
+          <h3>Explicit retrieval</h3>
+          <p>
+            <code>search</code> uses bounded BM25 with English stemming. Literal
+            filters use topics, tags and time. Inspect <code>truncated</code>{' '}
+            and <code>query_reduced</code>.
+          </p>
+          <a class="text-link" href="/docs/memory-mvp/">
+            Query limits →
+          </a>
+        </div>
+        <div>
+          <h3>Your runtime stays in control</h3>
+          <p>
+            Your app extracts facts and decides when to restore context. Native
+            phone bindings, device benchmarks and real local-agent continuation
+            tests remain planned.
+          </p>
+          <a class="text-link" href="/docs/roadmap/">
+            Current scope and roadmap →
+          </a>
+        </div>
+        <div>
+          <h3>Operate your own node</h3>
+          <p>
+            Keep the data directory across upgrades. Back up the database while
+            the server is stopped. Logical quotas do not cap total disk or
+            process memory.
+          </p>
+          <a class="text-link" href="/docs/operations/">
+            Backups and upgrades →
+          </a>
+        </div>
+      </div>
+    </section>
+    <section class="service-section" aria-labelledby="evidence-title">
+      <header class="section-heading">
+        <h2 id="evidence-title">Evidence, with its conditions.</h2>
+        <p>
+          Published runs measure retrieval, model answers and storage
+          separately. Small score gaps do not establish a significant win.
+        </p>
+      </header>
+      <div class="service-evidence">
+        <a href="/benchmarks/#memory">
+          <strong>
+            {percent(full.suites['longmemeval-s'].instantkv.recall_at_10)}
+            <small>%</small>
+          </strong>
+          <span>Source-session Recall@10</span>
+          <p>
+            All 500 LongMemEval-S questions. Retrieval score, separate from
+            answer accuracy.
+          </p>
+        </a>
+        <a href="/benchmarks/#footprint">
+          <strong>
+            {mib(
+              full.suites['longmemeval-s'].instantkv.largest_sampled_rss_bytes,
+            )}
+            <small> MiB</small>
+          </strong>
+          <span>Largest sampled server RSS</span>
+          <p>
+            LongMemEval-S on Apple M4 Pro. Sampled process memory; peak RAM was
+            not measured.
+          </p>
+        </a>
+        <a href="/benchmarks/#footprint">
+          <strong>
+            {mib(report.binary_bytes)}
+            <small> MiB</small>
+          </strong>
+          <span>Recorded native binary</span>
+          <p>
+            macOS ARM64 release build. Physical ARM-board and phone tests remain
+            pending.
+          </p>
+        </a>
+      </div>
+      <div class="evidence-links">
+        <a class="text-link" href="/benchmarks/">
+          Benchmarks and raw data →
+        </a>
+        <a class="text-link" href="/blog/lightweight-memory-benchmarks/">
+          Read the engineering notes →
+        </a>
+      </div>
+    </section>
+    <section class="service-next" aria-labelledby="next-title">
+      <h2 id="next-title">Make it part of your runtime.</h2>
+      <p>
+        Start with the local profile. Save a record, connect your agent, and
+        check the query limits.
+      </p>
+      <div class="button-row">
+        <a class="button button--key" href="/docs/quickstart/">
+          Start locally →
+        </a>
+        <a class="text-link" href="/docs/contributing/">
+          Build with us ↗
+        </a>
       </div>
     </section>
   </main>

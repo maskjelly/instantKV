@@ -9,6 +9,7 @@ if [ "$#" -gt 1 ]; then echo 'Use one verification mode.' >&2; exit 2; fi
 test_python="${INSTANTKV_TEST_PYTHON:-python3}"
 "$test_python" scripts/check-repo.py
 "$test_python" scripts/test-check-repo.py
+"$test_python" scripts/test-install-metrics.py
 if [ "$mode" = --repo ]; then exit 0; fi
 if [ "$mode" = --all ] || [ "$mode" = --core ]; then
   if ! "$test_python" -c 'import tiktoken' >/dev/null 2>&1; then

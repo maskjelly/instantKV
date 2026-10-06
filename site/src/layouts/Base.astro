@@ -2,6 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
+import '../styles/docs.css';
 
 interface Props {
   title: string;
@@ -18,7 +19,16 @@ const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title === 'instantKV' ? 'instantKV · local-first agent memory' : `${title} · instantKV`}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#ffffff" />
+    <meta
+      name="theme-color"
+      content="#ffffff"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#111820"
+      media="(prefers-color-scheme: dark)"
+    />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/assets/blueprint-mark.svg" />
     <link
@@ -57,6 +67,7 @@ const canonical = new URL(Astro.url.pathname, 'https://instantkv.com');
         button.className = 'copy-code';
         button.textContent = 'Copy';
         button.type = 'button';
+        button.setAttribute('aria-live', 'polite');
         button.setAttribute('aria-label', 'Copy code');
         button.addEventListener('click', async () => {
           try {

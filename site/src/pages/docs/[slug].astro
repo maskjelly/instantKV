@@ -6,6 +6,7 @@ import SwarmDiagram from '../../components/diagrams/SwarmDiagram.astro';
 import LifecycleDiagram from '../../components/diagrams/LifecycleDiagram.astro';
 import ArchitectureDiagram from '../../components/diagrams/ArchitectureDiagram.astro';
 import ConsolidationDiagram from '../../components/diagrams/ConsolidationDiagram.astro';
+import '../../styles/diagrams.css';
 
 export function getStaticPaths() {
   return docs.map((doc) => ({ params: { slug: doc.slug }, props: { doc } }));
@@ -44,11 +45,23 @@ const slug = doc.slug;
     </aside>
 
     <article data-pagefind-body>
-      <details class="mobile-docs-nav">
+      <details class="mobile-docs-nav" data-pagefind-ignore>
         <summary>Documentation menu / search</summary>
         <a href="/search/">Search documentation →</a>
-        {docs.map((d) => (
-          <a href={`/docs/${d.slug}/`}>{d.title}</a>
+        {groups.map((group) => (
+          <section>
+            <h2>{group}</h2>
+            {docs
+              .filter((d) => d.group === group)
+              .map((d) => (
+                <a
+                  href={`/docs/${d.slug}/`}
+                  aria-current={doc.slug === d.slug ? 'page' : undefined}
+                >
+                  {d.title}
+                </a>
+              ))}
+          </section>
         ))}
       </details>
 

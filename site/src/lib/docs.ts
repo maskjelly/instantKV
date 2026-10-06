@@ -158,6 +158,14 @@ export const docs = [
     description: 'Build, verify and deploy this static Cloudflare site.',
   },
   {
+    slug: 'install-metrics',
+    title: 'Private installation reporting',
+    group: 'Build with us',
+    source: 'docs/install-metrics.md',
+    description:
+      'Keep download evidence in a private local ledger. Counting and privacy limits.',
+  },
+  {
     slug: 'inspirations',
     title: 'Engineering references',
     group: 'Build with us',

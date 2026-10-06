@@ -1,0 +1,315 @@
+.service-hero {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 64px;
+  align-items: center;
+  padding: 72px 0 64px;
+}
+.service-intro h1 {
+  font-size: clamp(42px, 4.5vw, 62px);
+  line-height: 1.08;
+  margin: 18px 0 24px;
+}
+.service-deck {
+  font-size: 18px;
+  line-height: 1.65;
+  max-width: 38ch;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  margin-top: 28px;
+  font-size: 14px;
+}
+.install-panel {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  padding: 26px;
+}
+.install-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.install-heading h2 {
+  font-size: 19px;
+}
+.install-heading span {
+  color: var(--ink-2);
+  font: 12px var(--font-mono);
+}
+.install-panel pre {
+  background: var(--paper) !important;
+  font-size: 12px;
+  margin: 20px -10px;
+  padding-inline: 14px;
+}
+.install-panel p {
+  font-size: 13px;
+  line-height: 1.65;
+}
+.install-panel > a {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--link);
+  margin-top: 18px;
+  text-underline-offset: 4px;
+}
+.install-panel > a:hover {
+  text-decoration: underline;
+}
+.service-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  padding: 24px 0;
+  border-block: 1px solid var(--line);
+}
+.service-facts dt {
+  font-size: 12px;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+}
+.service-facts dd {
+  font-size: 14px;
+  font-weight: 550;
+}
+.service-facts code {
+  background: none;
+  padding: 0;
+  color: var(--ink);
+}
+.service-section {
+  padding: 64px 0;
+  border-bottom: 1px solid var(--line);
+}
+.section-heading {
+  max-width: 690px;
+  margin-bottom: 32px;
+}
+.section-heading h2 {
+  font-size: clamp(28px, 3vw, 36px);
+  margin-bottom: 16px;
+}
+.memory-workflow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+.workflow-code,
+.memory-record {
+  min-width: 0;
+}
+.workflow-code h3 {
+  font-size: 15px;
+}
+.workflow-code pre {
+  margin: 12px 0 24px;
+}
+.workflow-code p {
+  font-size: 13px;
+}
+.memory-record {
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  padding: 28px;
+}
+.record-heading h3 {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.record-heading code {
+  font-size: 12px;
+  background: none;
+  padding: 0;
+  color: var(--ink-2);
+}
+.memory-record blockquote {
+  font-size: 23px;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+  margin: 28px 0;
+}
+.memory-record dl {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.memory-record dt {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.memory-record dd {
+  font-size: 14px;
+  margin-top: 3px;
+}
+.memory-record .text-link {
+  font-size: 13px;
+}
+.interface-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 48px;
+}
+.interface-list > a {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 16px;
+  gap: 20px;
+  padding: 22px 0;
+  align-items: baseline;
+}
+.interface-list > a > span {
+  font: 12px var(--font-mono);
+  color: var(--link);
+}
+.interface-list h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+.interface-list p {
+  font-size: 14px;
+}
+.interface-list a:hover h3 {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.service-boundaries {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 36px 64px;
+}
+.service-boundaries h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+.service-boundaries p {
+  font-size: 14px;
+}
+.service-boundaries a {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+}
+.service-evidence {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+  font-variant-numeric: tabular-nums;
+}
+.service-evidence strong {
+  display: block;
+  font-size: 42px;
+  font-weight: 550;
+  letter-spacing: -0.045em;
+  line-height: 1.25;
+}
+.service-evidence strong small {
+  font-size: 19px;
+}
+.service-evidence span {
+  display: block;
+  font-size: 14px;
+  margin: 10px 0;
+}
+.service-evidence p {
+  font-size: 12px;
+}
+.service-evidence a:hover span {
+  color: var(--link);
+}
+.evidence-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin-top: 32px;
+  font-size: 14px;
+}
+.service-next {
+  padding: 64px 0;
+}
+.service-next h2 {
+  font-size: 30px;
+  margin-bottom: 16px;
+}
+.service-next p {
+  max-width: 55ch;
+}
+@media (max-width: 1000px) {
+  .service-hero {
+    gap: 32px;
+  }
+  .install-panel {
+    padding: 22px;
+  }
+}
+@media (max-width: 760px) {
+  .service-hero {
+    grid-template-columns: 1fr;
+    padding: 40px 0 32px;
+    gap: 32px;
+  }
+  .service-intro h1 {
+    font-size: clamp(40px, 8vw, 58px);
+  }
+  .service-deck {
+    font-size: 17px;
+  }
+  .service-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .service-section {
+    padding: 40px 0;
+  }
+  .memory-workflow,
+  .interface-list,
+  .service-boundaries {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .interface-list {
+    gap: 0;
+  }
+  .interface-list > a {
+    gap: 16px;
+  }
+  .service-evidence {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .service-evidence a {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 6px 20px;
+  }
+  .service-evidence strong {
+    grid-row: 1 / 3;
+    font-size: 33px;
+    align-self: center;
+  }
+  .service-evidence strong small {
+    font-size: 14px;
+  }
+  .service-evidence span {
+    margin: 0;
+  }
+  .service-next {
+    padding: 40px 0;
+  }
+}
+@media (max-width: 380px) {
+  .hero-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .memory-record {
+    padding: 20px;
+  }
+}

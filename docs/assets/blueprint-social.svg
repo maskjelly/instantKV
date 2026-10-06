@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#fafafa"/><path d="M60 130H1140M60 510H1140" stroke="#ddd"/><text x="60" y="96" font-family="Arial,sans-serif" font-size="30" fill="#171717">instantKV / local-first agent memory</text><text x="60" y="242" font-family="Arial,sans-serif" font-size="76" letter-spacing="-3" fill="#171717">Small engine.</text><text x="60" y="329" font-family="Arial,sans-serif" font-size="76" letter-spacing="-3" fill="#171717">Lasting memory.</text><text x="60" y="423" font-family="Arial,sans-serif" font-size="25" fill="#555">Rust · structured recall · bounded BM25 · no cloud dependency</text><text x="60" y="564" font-family="Arial,sans-serif" font-size="22" fill="#555">Full retrieval evidence: 500 LongMemEval-S questions. Source MVP.</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" role="img" aria-labelledby="title description">
+  <title id="title">instantKV: local memory for your agents</title>
+  <desc id="description">Install and run a local memory service. Rust, HTTP, CLI and MCP. Open source under MIT.</desc>
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <path d="M60 130H1140M60 510H1140" stroke="#e0e6ed"/>
+  <text x="60" y="96" font-family="Arial,sans-serif" font-size="30" fill="#18212b">instantKV / open-source agent infrastructure</text>
+  <text x="60" y="242" font-family="Arial,sans-serif" font-size="76" letter-spacing="-3" fill="#18212b">Local memory.</text>
+  <text x="60" y="329" font-family="Arial,sans-serif" font-size="76" letter-spacing="-3" fill="#18212b">For your agents.</text>
+  <text x="60" y="423" font-family="Arial,sans-serif" font-size="27" fill="#4e5b69">Install it. Run it on your machine. Keep your data.</text>
+  <text x="60" y="564" font-family="Arial,sans-serif" font-size="24" fill="#185a9d">Rust · HTTP · CLI · MCP · MIT</text>
+  <text x="1140" y="564" text-anchor="end" font-family="Arial,sans-serif" font-size="22" fill="#4e5b69">Source memory MVP, unreleased</text>
+</svg>

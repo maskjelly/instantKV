@@ -18,14 +18,14 @@ Chrome reflections appear only on the mark.
 The original diagrams use graphite surfaces, silver text, square geometry and fine borders.
 
 The metal identity replaced an earlier desktop theme.
-The current website uses a minimal white design.
+The current website uses a minimal light/dark design.
 The retained social preview and lifecycle diagram remain available as assets.
 The live-demo diagram documents the retired browser prototype.
 
 The current [split-K mark](blueprint-mark.svg) is black.
 The [social preview](blueprint-social.svg) uses white surfaces, black type and neutral accents.
 A [PNG export](blueprint-social.png) is available.
-Web diagrams use native components styled by `site/src/styles/global.css`.
+Web diagrams use native components styled by `site/src/styles/diagrams.css`.
 [Website guide](../website.md).
 
 Tesseract files contain editable shapes and text.

@@ -1,20 +1,21 @@
 # instantKV
 
-**Local memory and durable task checkpoints for AI agents.**
+**A local memory service you install and run beside your agents.**
 
-One Rust engine. Save facts, preferences and task state. Retrieve them after a
-context reset or restart. Storage and retrieval need no cloud API or embedding model.
-Your app decides what to save and how to use it.
+Save facts, preferences and task checkpoints. Retrieve them after a context reset
+or restart. One Rust engine, with HTTP, CLI, MCP and an embedded core.
+Your app decides what to save and how to use it. Storage and retrieval run locally
+without a cloud API or embedding model. MIT licensed.
 
 **Source MVP, unreleased.** Older release archives lack the structured-memory tools.
 Use a source build for the commands below. Native phone support is planned.
 
 ## Start locally
 
-From this checkout, with Rust 1.98 or later:
+With Rust 1.98 or later:
 
 ```sh
-cargo install --path crates/instantkv --locked
+cargo install --git https://github.com/maskjelly/instantKV --locked instantkv
 mkdir my-local-memory
 cd my-local-memory
 instantkv init
@@ -32,7 +33,8 @@ instantkv forget preferences/language
 ```
 
 Setup creates private credentials and stores data in `.instantkv/data`.
-The server binds to `127.0.0.1:8080`. Installation may download dependencies.
+The server binds to `127.0.0.1:8080`. Installation downloads source and dependencies.
+From a local checkout, use `cargo install --path crates/instantkv --locked`.
 
 [Setup guide](docs/quickstart.md) · [Connect through MCP](docs/agents.md) ·
 [Embedded Rust example](crates/instantkv-core/examples/memory.rs)
@@ -54,8 +56,9 @@ The service does not extract facts automatically or resume a model by itself.
 ## Evidence and limits
 
 Published reports cover full LongMemEval-S and LoCoMo retrieval, model QA,
-local storage timings and restart recovery. Retrieval scores and model answer
-accuracy are separate. No statistically significant retrieval win is established.
+local storage timings and restart recovery. LongMemEval-S source-session
+Recall@10 is **95.13%**. Separate GPT-6 Luna answer accuracy is **85.20%** (426/500).
+These measure different paths. No statistically significant retrieval win is established.
 Real local-agent continuation, physical ARM-board measurements and phone bindings
 remain pending. Logical quotas do not cap total disk or process memory.
 

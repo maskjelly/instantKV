@@ -26,4 +26,4 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: ../scripts/check.sh --site
-      - run: npx wrangler deploy --dry-run
+      - run: npx wrangler deploy --env production --dry-run

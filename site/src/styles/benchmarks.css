@@ -1,7 +1,7 @@
 /* One overview, one comparison, then supporting evidence. */
 .benchmark-page {
-  --bench-accent: #1457a6;
-  --bench-tint: #f0f6fd;
+  --bench-accent: var(--link);
+  --bench-tint: var(--accent-tint);
   padding-bottom: 80px;
   font-variant-numeric: tabular-nums;
 }
@@ -185,7 +185,7 @@
   margin: 4px 0 0;
 }
 .bench-overview .bench-limited {
-  color: #8d510c;
+  color: var(--ink-2);
 }
 .bench-note {
   color: var(--ink-2);
@@ -215,7 +215,7 @@
 }
 .bench-suite-nav a[aria-current] {
   background: var(--ink);
-  color: white;
+  color: var(--paper);
   border-color: var(--ink);
 }
 .bench-comparison {
@@ -287,14 +287,15 @@
 }
 .bench-bar-track {
   height: 14px;
-  background: var(--surface-2);
+  background: transparent;
   border-radius: 2px;
   overflow: hidden;
 }
 .bench-bar-track > span {
   display: block;
-  height: 100%;
-  background: #a6a6a6;
+  height: 3px;
+  margin-top: 5px;
+  background: var(--ink-3);
 }
 .bench-bar-native .bench-bar-track > span {
   background: var(--bench-accent);
@@ -728,7 +729,7 @@
   color: var(--bench-accent);
 }
 .bench-overview td.bench-limited {
-  color: #8d510c;
+  color: var(--ink-2);
 }
 .bench-overview td:not(:last-child) small {
   display: inline;

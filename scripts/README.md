@@ -30,6 +30,10 @@ Use the [quick start](../docs/quickstart.md) and [operations guide](../docs/oper
 
 ## Experiments and evidence
 
+`install-metrics.py` saves GitHub binary-download snapshots in a private local
+SQLite database. It reports download proxies, not verified installations.
+[Collection, privacy and interpretation](../docs/install-metrics.md).
+
 - `memory-bench.py`, `local-smoke.py`: local storage, resource samples and restart checks.
 - `ranked-bench.py`, `retrieval-suite.py`, `compare-supermemory.py`: retrieval measurements.
 - `prepare-retrieval-suite.py`: dataset normalization.
