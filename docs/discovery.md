@@ -49,6 +49,15 @@ content types and no login or challenge page. A spoofed user agent is only a
 smoke test; check verified crawler traffic and Cloudflare controls separately.
 The origin's robots file cannot override an edge firewall or crawler block.
 
+Cloudflare Browser Integrity Check can reject generic HTTP clients, including
+Python's default user agent. Use an identified client user agent for diagnostics.
+For public read-only documentation, an owner can make a narrow configuration-rule
+exception for Browser Integrity Check while retaining other protections.
+Disable automatic Web Analytics injection for this site in the dashboard or
+with a configuration rule using disable_rum. The source CSP blocks its external
+beacon. These settings need zone configuration access; Workers deployment access
+alone is insufficient. See [Cloudflare configuration settings](https://developers.cloudflare.com/rules/configuration-rules/settings/).
+
 Use an authenticated owner account to verify `instantkv.com` in Google Search
 Console and Bing Webmaster Tools. Submit `/sitemap-index.xml`. Inspect the home,
 quick-start and MCP pages. Record selected canonical URLs and indexing failures.

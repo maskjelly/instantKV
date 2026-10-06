@@ -89,6 +89,10 @@ it does not publish it. The Worker serves static assets. Old demo pages redirect
 to quick start. Requests under `/api/demo` return HTTP 410.
 There is no hosted memory backend or installation-reporting endpoint in this site.
 
-The site loads its scripts, font and search index from its own origin. It uses no
-visitor analytics script. Private download snapshots are never copied into static
+The checked-in site loads scripts, fonts and search from its own origin and contains
+no visitor analytics script. Cloudflare domain settings can inject a Web Analytics
+beacon after deployment; inspect public responses as well as build output.
+The source CSP blocks that external script. Remove automatic injection in the
+Cloudflare dashboard to avoid a blocked request.
+Private download snapshots are never copied into static
 assets. Retained historical artwork has provenance in [the asset guide](assets/README.md).
