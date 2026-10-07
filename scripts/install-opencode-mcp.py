@@ -9,6 +9,7 @@ import runpy
 import shutil
 import subprocess
 import tempfile
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 BEGIN = '\n<instantkv-memory-policy>\n'
@@ -31,8 +32,18 @@ def main():
     # Parse before editing or copying anything. JSONC remains the user's file.
     if config_path.with_suffix('.jsonc').exists():
         parser.error('An opencode.jsonc file exists. Use --config with a separate JSON config and merge it explicitly.')
-    if not binary.exists():
+    opencode = shutil.which('opencode')
+    if opencode:
+        version = subprocess.run([opencode, '--version'], capture_output=True, text=True, check=False)
+        match = re.search(r'\b(\d+)\.\d+(?:\.\d+)?\b', version.stdout)
+        if match and int(match.group(1)) >= 2:
+            parser.error('This installer supports OpenCode V1 only. Use the OpenCode V2 MCP config in docs/agents.md.')
+    if isinstance(config.get('mcp'), dict) and 'servers' in config['mcp']:
+        parser.error('OpenCode V2 MCP config detected. Use the OpenCode V2 MCP config in docs/agents.md.')
+    if binary == (ROOT / 'target/release/instantkv').resolve():
         subprocess.run(['cargo', 'build', '--release', '--locked', '-p', 'instantkv'], cwd=ROOT, check=True)
+    elif not binary.exists():
+        parser.error(f'Binary not found: {binary}')
     help_result = subprocess.run([str(binary), 'mcp-local', '--help'], capture_output=True, text=True)
     if help_result.returncode:
         parser.error('Build the current binary first: cargo build --release --locked -p instantkv')

@@ -9,12 +9,7 @@ const install = [
   '  --git https://github.com/maskjelly/instantKV \\',
   '  --locked instantkv',
 ].join('\n');
-const start = [
-  'mkdir my-local-memory',
-  'cd my-local-memory',
-  'instantkv init',
-  'instantkv serve',
-].join('\n');
+const start = 'instantkv start --dir my-local-memory';
 const remember = [
   'instantkv remember "Prefer Rust for local tools" --key preferences/language',
   '  --topic preferences',
@@ -58,7 +53,7 @@ const remember = [
         </div>
         <div class="install-step">
           <h3>Start a memory service</h3>
-          <pre aria-label="Initialize and start a local memory service"><code>{start}</code></pre>
+          <pre aria-label="Start a local memory service"><code>{start}</code></pre>
         </div>
         <footer class="local-install-footer">
           <a class="text-link" href="/docs/agents/">
@@ -108,8 +103,8 @@ const remember = [
           <h3>Retrieve it later</h3>
           <pre><code>instantkv recall --topic preferences</code></pre>
           <p>
-            Run these commands in another terminal, from the same memory
-            directory. Credentials load automatically.
+            In another terminal, run <code>cd my-local-memory</code> first.
+            Credentials load automatically.
           </p>
         </div>
         <div class="memory-record">
@@ -308,6 +303,9 @@ const remember = [
         </a>
         <a class="text-link" href="/docs/contributing/">
           Build with us ↗
+        </a>
+        <a class="text-link" href="/blog/agent-memory-you-can-host/">
+          Read the hosting guide →
         </a>
       </div>
     </section>

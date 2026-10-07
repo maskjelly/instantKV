@@ -1,6 +1,6 @@
 # Memory for local LLMs
 
-Status: source MVP, unreleased. Updated: 2026-10-03.
+Status: source MVP, unreleased. Updated: 2026-10-07.
 
 Build from this checkout to use these commands. Earlier release archives do not contain them.
 
@@ -29,19 +29,17 @@ Ordinary records do not become structured memories automatically.
 
 Run these commands from the repository. You need Rust 1.98 or later.
 
-Run the commands after `instantkv serve` in another terminal, in the same memory directory.
+Start the server, then run the memory commands from its directory in another terminal.
 
 ```sh
 cargo install --path crates/instantkv --locked
-mkdir my-local-memory
-cd my-local-memory
-instantkv init
-instantkv serve
+instantkv start --dir my-local-memory
 ```
 
-In another terminal, in the same directory:
+In another terminal:
 
 ```sh
+cd my-local-memory
 instantkv remember "Prefer Rust for local tools" \
   --key preferences/language --topic preferences --tag local \
   --metadata '{"source":"user","app":{"confidence":0.9}}'

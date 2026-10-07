@@ -1,4 +1,4 @@
-# Private installation reporting
+# Private product measurement
 
 Keep adoption evidence on the maintainer's machine. Do not publish a counter.
 The website and installed memory service send no installation events.
@@ -22,7 +22,18 @@ python3 scripts/install-metrics.py
 ```
 
 Use `--database /private/path/install-metrics.sqlite3` for another local path.
-Collection is manual. No background task is installed.
+If you own the GitHub repository, add its recent clone and page-view traffic:
+
+```sh
+gh auth status
+python3 scripts/install-metrics.py --refresh --traffic
+```
+
+The GitHub CLI needs repository access. The script stores only aggregate daily
+counts and the totals GitHub returns for its recent traffic window. It does
+not store visitor identities. Run this once a week. GitHub traffic has a short
+history, so missed weeks cannot be rebuilt from this source. Collection is
+manual. No background task is installed.
 Back up the database as private maintainer state, outside Git and the site build.
 
 ## Interpret the counts
@@ -33,12 +44,29 @@ Back up the database as private maintainer state, outside Git and the site build
 - Checksum files and GitHub source archives are excluded. Only known native binary archive names count.
 - The first snapshot is a baseline. Later snapshots show each asset's change from the previous observation.
 - Deleted assets are listed separately. Decreased counters remain negative and flagged; the script does not invent installs.
+- Clone traffic includes automated clones, repeat clones and CI. Page views do not prove installation.
+- `window_uniques` is GitHub's count for its traffic window. Daily unique counts cannot be added to get weekly unique people.
+- Compare `last_7_days_count` with `previous_7_days_count` only as a direction signal. The window can include missing or partial days. Do not call the difference user growth.
 
 The collector saves only release tags, asset IDs, platforms, public download counts
 and observation time. It stores no visitor, account, IP or device identifiers.
-Each complete snapshot is one SQLite transaction. Failed API pages do not create
-partial snapshots. GitHub's public API can rate-limit requests; failed refreshes
-leave the previous report available.
+Each complete snapshot is one SQLite transaction. Failed API pages or traffic
+requests do not create partial snapshots. GitHub can rate-limit requests;
+failed refreshes leave the previous report available.
+
+## What to review each week
+
+| Question | Signal | Limit |
+| --- | --- | --- |
+| Are people finding the project? | Repository views and website search reports | Views include repeat visits; search reports need site-owner access |
+| Are people trying it? | Binary downloads, source clone trend and setup feedback | No source-install count; clones can be automated |
+| Do people keep using it? | Repeated outside issues, examples, integrations and opt-in user reports | The local service sends no usage events |
+| Is setup getting easier? | Fresh-install and harness smoke tests; reported setup failures | Tests prove the path tested, not market adoption |
+
+Record the review date and any known campaign or release beside the private
+ledger. Report each signal by its name. Do not add downloads and clones into
+one installation count. Do not publish a growth percentage without a stable
+time window and a baseline.
 
 If verified install counts become necessary, define an explicit opt-in reporting
 contract first. Do not rename download counts as installs.

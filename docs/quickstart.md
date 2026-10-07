@@ -21,10 +21,7 @@ From this checkout, with Rust 1.98+:
 
 ```sh
 cargo install --path crates/instantkv --locked
-mkdir my-local-memory
-cd my-local-memory
-instantkv init
-instantkv serve
+instantkv start --dir my-local-memory
 ```
 
 To install directly from GitHub, run:
@@ -32,9 +29,10 @@ To install directly from GitHub, run:
 
 Source installation can download dependencies. Local storage and retrieval run offline afterward.
 
-In another terminal in the same directory:
+In another terminal:
 
 ```sh
+cd my-local-memory
 instantkv remember "Prefer Rust for local tools" --topic preferences --tag local
 instantkv recall --topic preferences --query Rust
 instantkv search "preferred language for local tooling"
@@ -42,30 +40,19 @@ instantkv browse --limit 10
 instantkv doctor
 ```
 
-`init` creates `instantkv.toml` and private credentials in `.instantkv/credentials.env`.
+`start` creates the directory, `instantkv.toml` and private credentials in
+`.instantkv/credentials.env` on first use. Later starts reuse them.
 The server and CLI load that credentials file automatically.
 The default local profile uses smaller limits and listens on `127.0.0.1:8080`.
 Data remains in `.instantkv/data`; keep this directory across upgrades.
-Setup does not overwrite existing files.
+Setup does not overwrite existing files. Use `instantkv init` and `instantkv serve`
+when you need to review or edit configuration before starting the server.
 
 Use `init --profile agent` for larger quotas.
 [Local memory and device support](local-first.md).
 
-## Checksummed release binary
-
-Published Linux x86_64 and Apple Silicon macOS archives need no compiler:
-
-```sh
-git clone https://github.com/maskjelly/instantKV.git
-cd instantKV
-./scripts/install.sh "$HOME/.local/bin"
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-The installer verifies SHA-256 checksums.
-Linux ARM64 CI and packaging passed, but its archive has not been published in a release.
-Earlier release binaries do not contain the structured-memory MVP.
-For the new tools, use the source build above.
+Published binaries contain only the earlier KV and checkpoint tools.
+Use the source build above for structured memory.
 [Platform status](local-first.md#arm-means-a-processor-family-not-one-operating-system).
 
 ## Docker is optional

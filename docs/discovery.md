@@ -1,6 +1,6 @@
 # Search and agent discovery
 
-Audience: maintainers. Updated 6 October 2026.
+Audience: maintainers. Updated 8 October 2026.
 Keep instantKV easy to find, understand, install and cite.
 The current positioning is **open-source local AI memory for agents**.
 The structured-memory source MVP is unreleased.
@@ -30,6 +30,11 @@ The registry in `site/src/lib/docs.ts` owns guide routes.
 `site/src/lib/repository-links.mjs` resolves links for HTML and Markdown.
 `site/scripts/agent-content.mjs` generates agent exports.
 Update the source guide when behavior changes. Do not hand-edit generated files.
+The generated `/llms.txt` points coding agents to the roadmap, project plan,
+repository rules, contributor checks and `AGENTS.md`. Keep those links working.
+An agent can use one acceptance check as its task, make a focused change, run
+the relevant checks and report remaining limits. Discovery text does not grant
+permission to publish a release or run model evaluations.
 
 Run:
 

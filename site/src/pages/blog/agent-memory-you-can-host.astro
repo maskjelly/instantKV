@@ -1,0 +1,198 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/evidence.css';
+---
+
+<Base
+  title="The best agent memory is one you can keep"
+  description="Build instantKV from source, host memory on your own machine, and connect an agent. No memory service fee or model API is needed for storage and retrieval."
+>
+  <main id="main" class="shell article-page" data-pagefind-body>
+    <article>
+      <header class="editorial-title">
+        <p class="eyebrow">Field guide / 07 October 2026</p>
+        <h1>The best agent memory is one you can keep.</h1>
+        <p>
+          An agent can do useful work today and forget it tomorrow. Save what
+          matters outside its prompt. Keep it on a machine you control.
+        </p>
+      </header>
+
+      <div class="prose article-prose">
+        <p>
+          A long chat history is a poor place to keep a fact you need next week.
+          It can leave the model's context window, and a new session may never
+          see it. Task state has the same problem. The goal, the last decision,
+          and the next action must survive a restart.
+        </p>
+        <p>
+          <a href="/docs/choosing-instantkv/">instantKV</a> gives an agent a
+          local place for facts and task checkpoints. You can inspect the
+          records. You can choose what the agent may read or write. The service
+          does not need an account, an embedding model, or a cloud memory API.
+        </p>
+
+        <h2>What the service does</h2>
+        <p>
+          An agent can save a preference, a project decision, or an observation.
+          Each memory can include a topic, tags, an event time, and app-defined
+          JSON data. The agent can find it by those fields or rank matching text
+          with keyword search. It can also delete a memory when it is no longer
+          useful.
+        </p>
+        <p>
+          A checkpoint saves the goal, decisions, open tasks, and next action.
+          The agent can load it after a context reset. instantKV stores durable
+          records and their search indexes together in one database transaction.
+          This keeps a saved memory and its indexes in step.
+        </p>
+        <p>
+          The agent decides what to save and what to put back into its model
+          context. instantKV does not extract facts from chats by itself. It
+          does not resume a model by itself. This clear boundary helps you see
+          each save and each recall.
+        </p>
+
+        <h2>Run it on your own machine</h2>
+        <p>
+          The structured-memory tools are in the current source MVP. They are
+          not in the older release archives. Install Rust 1.98 or later, then
+          run these commands in a terminal:
+        </p>
+        <pre><code>git clone https://github.com/maskjelly/instantKV.git
+cd instantKV
+cargo install --path crates/instantkv --locked
+instantkv start --dir my-local-memory</code></pre>
+        <p>
+          The first start creates the directory, a local configuration file, and
+          private credentials. Later starts reuse them. The server listens on{' '}
+          <code>127.0.0.1:8080</code>. Your records stay in
+          <code>my-local-memory/.instantkv/data</code>.
+        </p>
+        <p>
+          Open a second terminal in the <code>instantKV</code> directory:
+        </p>
+        <pre><code>cd my-local-memory
+instantkv remember "Prefer Rust for local tools" --key preferences/language --topic preferences
+instantkv search "Rust local tools"
+instantkv recall --topic preferences</code></pre>
+        <p>
+          Close the server and run{' '}
+          <code>instantkv start --dir my-local-memory</code>
+          again from the repository directory. The saved memory is still there.
+          The source build may download Rust packages. Storage and retrieval
+          work offline after installation. See the{' '}
+          <a href="/docs/quickstart/">setup guide</a>
+          for Docker, backups, and a remote server.
+        </p>
+
+        <h2>Use Docker if you do not have Rust</h2>
+        <p>
+          Docker can build the current source inside a container. Run these
+          commands on your own computer or a Linux host:
+        </p>
+        <pre><code>git clone https://github.com/maskjelly/instantKV.git
+cd instantKV
+INSTANTKV_BUILD_SOURCE=source-build ./scripts/quickstart.sh
+./scripts/kv.sh remember "Prefer Rust for local tools" --topic preferences
+./scripts/kv.sh search "Rust local tools"</code></pre>
+        <p>
+          Docker keeps the data in a named volume. The host port binds to
+          <code>127.0.0.1</code>. For a remote Linux host, connect through an
+          SSH tunnel. The{' '}
+          <a href="/docs/quickstart/#remote-server">remote setup</a>
+          shows the tunnel and credential steps. The first image build needs
+          internet access.
+        </p>
+
+        <h2>Give an agent the memory tools</h2>
+        <p>
+          instantKV also speaks the Model Context Protocol, or MCP. An MCP
+          client can start a local memory process when the agent needs it. You
+          do not need to run a separate server for that path.
+        </p>
+        <p>For OpenCode, run this from the source checkout:</p>
+        <pre><code>python3 scripts/install-opencode-mcp.py</code></pre>
+        <p>
+          The installer builds the current source and adds the local MCP tool to
+          OpenCode V1. It backs up the existing OpenCode settings. Restart
+          OpenCode, then run <code>opencode mcp list</code> to check the
+          connection. For OpenCode V2, Codex, Claude Code, or Cursor, use the{' '}
+          <a href="/docs/agents/">harness setup guide</a>. The{' '}
+          <a href="/docs/opencode-memory-demo/">OpenCode guide</a> shows a save,
+          a restart, and a recall.
+        </p>
+
+        <h2>Start it and let it run beside your agent</h2>
+        <p>
+          Your MCP client starts <code>mcp-local</code> when it connects. The
+          process opens the database and a private loopback listener. It closes
+          when the client closes its MCP input. The records stay on disk, so the
+          next session can use the same directory. You do not need to manage a
+          second server for one harness.
+        </p>
+        <p>
+          Keep one active process per data directory. If two harnesses need the
+          same records at the same time, run one <code>instantkv start</code>
+          service and connect each harness through <code>instantkv mcp</code>.
+          If each harness needs its own memory, use a different directory for
+          each one. The <a href="/docs/operations/">operations guide</a> shows
+          how to check errors, back up the data, and test a restore.
+        </p>
+        <p>
+          An MCP connection makes tools available. It does not make an agent
+          save good facts, recall them at the right time, or survive a failed
+          disk. Give the agent a short memory rule, check one save and recall,
+          and keep a private backup. We are testing real agent continuation and
+          storage faults before calling this a set-and-forget release.
+        </p>
+
+        <h2>What “almost free” means</h2>
+        <p>
+          instantKV is open source under the MIT license. It has no memory
+          subscription and no charge per save or search. The memory service
+          makes no model API calls. You still pay for your computer, power,
+          storage, and backups. A rented server also has a bill. A model
+          provider can charge for the agent's own work. If the agent uses a
+          remote model, that model receives any saved text the agent adds to its
+          prompt.
+        </p>
+
+        <h2>What we have tested</h2>
+        <p>
+          On an Apple M4 Pro, three fresh local databases held 10,000 memories
+          each. We found all 30,000 records after abrupt server restarts. In a
+          separate LongMemEval-S test, the first ten results contained 95.13% of
+          labelled source sessions across 500 questions. That is a retrieval
+          score, not an agent success rate. The tests do not establish a general
+          quality lead over other memory systems.
+        </p>
+        <p>
+          Read the <a href="/docs/performance/">conditions and limits</a> and
+          the <a href="/docs/full-retrieval/">full retrieval report</a>. Real
+          local-agent continuation tests and phone bindings remain planned.
+        </p>
+
+        <h2>Start with one useful fact</h2>
+        <p>
+          Save one fact your agent will need after a restart. Check that it can
+          find the fact and use it correctly. Then add more memories. The
+          <a href="/docs/memory-mvp/">memory guide</a> explains the tools and
+          query limits. The <a href="/docs/agent-memory/">checkpoint guide</a>
+          shows how to keep a task moving after a context reset.
+        </p>
+
+        <h2>What we will make simpler</h2>
+        <p>
+          The next release needs tested binaries and checksums, a fresh-install
+          check, and a clear upgrade path. We also plan harness setup checks
+          that prove save, restart, and recall with each supported client. A
+          portable export, restore checks, and better storage-health signals are
+          still work to do. The <a href="/docs/roadmap/">roadmap</a> lists
+          acceptance checks so contributors and agents can take on one task at a
+          time.
+        </p>
+      </div>
+    </article>
+  </main>
+</Base>

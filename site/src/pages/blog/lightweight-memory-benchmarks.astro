@@ -103,6 +103,16 @@ import '../../styles/evidence.css';
         Keep every change accountable for CPU, RAM, storage and correctness.
       </p>
       <p>
+        Retrieval quality is one part of useful memory. We are also testing a
+        simple path from install to MCP connection, save, restart and recall.
+        The local MCP process must open its data before it offers tools. One
+        process owns each database; concurrent harnesses need one shared HTTP
+        server. The <a href="/docs/agents/">harness guide</a> gives setup steps,
+        and the <a href="/docs/operations/">operations guide</a> covers backup
+        and failure checks. Packaged releases and real harness tests remain
+        planned.
+      </p>
+      <p>
         Full native GPT-6 Luna QA is complete: 426/500 correct, or 85.20%, with
         zero API failures and a 95% interval of 82.0–88.2%. The first parallel
         runs hit API rate limits; their failures remain recorded. The completed

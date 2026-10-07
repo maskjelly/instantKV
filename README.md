@@ -16,15 +16,13 @@ With Rust 1.98 or later:
 
 ```sh
 cargo install --git https://github.com/maskjelly/instantKV --locked instantkv
-mkdir my-local-memory
-cd my-local-memory
-instantkv init
-instantkv serve
+instantkv start --dir my-local-memory
 ```
 
-In another terminal, from the same memory directory:
+In another terminal:
 
 ```sh
+cd my-local-memory
 instantkv remember "Prefer Rust for local tools" --key preferences/language --topic preferences
 instantkv search "preferred language for local tooling" --limit 10
 instantkv recall --topic preferences
@@ -32,7 +30,8 @@ instantkv browse --limit 10
 instantkv forget preferences/language
 ```
 
-Setup creates private credentials and stores data in `.instantkv/data`.
+`start` creates the directory and private credentials on first use. It reuses
+them on later starts. Data stays in `my-local-memory/.instantkv/data`.
 The server binds to `127.0.0.1:8080`. Installation downloads source and dependencies.
 From a local checkout, use `cargo install --path crates/instantkv --locked`.
 

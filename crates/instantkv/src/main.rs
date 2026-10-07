@@ -79,6 +79,14 @@ enum Command {
         #[arg(long, value_enum, default_value = "local")]
         profile: Profile,
     },
+    /// Create private local state on first use, then start the memory server.
+    Start {
+        /// Directory for config, credentials and durable memory.
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        bind: Option<SocketAddr>,
+    },
     /// Start the memory server with persistent knowledge and disposable scratch.
     Serve {
         #[arg(short, long, default_value = "instantkv.toml")]
@@ -254,6 +262,27 @@ async fn main() -> std::process::ExitCode {
 async fn run(cli: Cli) -> Result<()> {
     match cli.command {
         Command::Init { dir, profile } => init(&dir, profile),
+        Command::Start { dir, bind } => {
+            let config_path = dir.join("instantkv.toml");
+            let secrets_path = dir.join(".instantkv/credentials.env");
+            if !config_path.exists() && !secrets_path.exists() {
+                initialize(&dir, Profile::Local, true)?;
+            }
+            let dir = fs::canonicalize(&dir)?;
+            let mut config = load_config(&config_path)?;
+            if config.storage.data_dir.is_relative() {
+                config.storage.data_dir = dir.join(&config.storage.data_dir);
+            }
+            if let Some(bind) = bind {
+                config.server.bind = bind;
+            }
+            config.validate().map_err(anyhow::Error::msg)?;
+            println!("Memory directory: {}", dir.display());
+            println!(
+                "In another terminal, from that directory: instantkv remember \"A fact to keep\""
+            );
+            server::serve(config, &secrets_path).await
+        }
         Command::McpLocal { dir } => {
             let config_path = dir.join("instantkv.toml");
             let secrets_path = dir.join(".instantkv/credentials.env");
@@ -276,9 +305,17 @@ async fn run(cli: Cli) -> Result<()> {
                     "local MCP requires INSTANTKV_APP_TOKEN in its credentials file or environment",
                 )?;
             let client = Client::new(&format!("http://{}", config.server.bind), Some(token))?;
+            let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
+            let server =
+                server::serve_with_listener_ready(config, &secrets_path, listener, Some(ready_tx));
+            tokio::pin!(server);
+            tokio::select! {
+                result = &mut server => return result,
+                result = ready_rx => result.context("local MCP server exited before it was ready")?,
+            }
             // Both transports share one process. EOF closes the local server too.
             tokio::select! {
-                result = server::serve_with_listener(config, &secrets_path, listener) => result,
+                result = &mut server => result,
                 result = instantkv::mcp::serve(client) => result,
             }
         }

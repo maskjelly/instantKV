@@ -31,7 +31,8 @@ Use the [quick start](../docs/quickstart.md) and [operations guide](../docs/oper
 ## Experiments and evidence
 
 `install-metrics.py` saves GitHub binary-download snapshots in a private local
-SQLite database. It reports download proxies, not verified installations.
+SQLite database. With `--traffic`, it also saves recent aggregate clones and
+views. These signals do not count verified installations or active users.
 [Collection, privacy and interpretation](../docs/install-metrics.md).
 
 - `memory-bench.py`, `local-smoke.py`: local storage, resource samples and restart checks.

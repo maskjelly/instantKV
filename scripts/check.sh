@@ -10,6 +10,7 @@ test_python="${INSTANTKV_TEST_PYTHON:-python3}"
 "$test_python" scripts/check-repo.py
 "$test_python" scripts/test-check-repo.py
 "$test_python" scripts/test-install-metrics.py
+"$test_python" scripts/test-install-opencode-mcp.py
 if [ "$mode" = --repo ]; then exit 0; fi
 if [ "$mode" = --all ] || [ "$mode" = --core ]; then
   if ! "$test_python" -c 'import tiktoken' >/dev/null 2>&1; then
@@ -26,6 +27,7 @@ if [ "$mode" = --all ] || [ "$mode" = --core ]; then
   cargo build --workspace --release --locked
   ./target/release/instantkv demo
   ./target/release/instantkv demo --swarm
+  "$test_python" scripts/test-start.py
   "$test_python" scripts/test-mcp-local.py
   for config in config/instantkv.example.toml config/local.toml config/local-cache.toml config/swarm.toml; do
     ./target/release/instantkv check-config --config "$config"

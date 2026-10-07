@@ -3,11 +3,11 @@
 Install the MCP from the instantKV checkout:
 
 ```sh
-cargo build --release --locked -p instantkv
 python3 scripts/install-opencode-mcp.py
 ```
 
-You need Python 3 for installation, OpenCode, and a connected model provider.
+You need Rust 1.98+, Python 3 for installation, OpenCode, and a connected model provider.
+The installer builds the current source before it changes OpenCode settings.
 The installed MCP is a Rust binary; Python is not used when it runs.
 The installer keeps other settings, backs up your global OpenCode config, and
 adds the memory rules to the normal `build` agent. It leaves your default model

@@ -20,15 +20,23 @@ The [cleanup and release plan](project-plan.md) defines the work order and accep
 
 | Order | Work | Acceptance |
 | --- | --- | --- |
-| 1 | Clear onboarding and documentation | One working source path; generated site and links pass |
+| 1 | Clear onboarding and harness setup | One working source path; Codex, Claude Code and OpenCode setup examples; generated site and links pass |
 | 2 | Real local-agent continuation | Actual model saves, resets, restores and continues; complete traces and failure cases |
-| 3 | Storage and upgrade hardening | Disk-full/commit faults, writer compatibility and restore drills |
-| 4 | Memory MVP release | Matching tested binaries, checksums and fresh-install tests |
+| 3 | Storage and upgrade hardening | Disk-full/commit faults, single-writer diagnostics, binary compatibility and restore drills |
+| 4 | Memory MVP release | Matching tested binaries, checksums, fresh-install and upgrade tests on named platforms |
 | 5 | Retrieval improvements | Held-out task gains after the frozen campaign, with measured resource costs |
+
+For each supported harness, the release check must start from a clean config,
+connect MCP, save one fact, stop, restart and recall that fact. Run the shared
+server case with two concurrent adapters. Keep commands and expected results
+in [Connect an agent](agents.md) and failure steps in [Operating one node](operations.md).
 
 Retired-session cleanup, migration tools and observability need separate implementation work.
 Native phone support and physical ARM-board measurements remain pending.
 [Performance and device targets](performance.md).
+Use the [private measurement guide](install-metrics.md) to track release
+downloads and recent GitHub traffic. Actual source installations and active
+local users remain unknown without an explicit opt-in signal.
 
 ## Evaluation status
 

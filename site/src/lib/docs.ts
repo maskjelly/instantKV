@@ -175,11 +175,11 @@ export const docs = [
   },
   {
     slug: 'install-metrics',
-    title: 'Private installation reporting',
+    title: 'Private product measurement',
     group: 'Build with us',
     source: 'docs/install-metrics.md',
     description:
-      'Keep download evidence in a private local ledger. Counting and privacy limits.',
+      'Track release downloads and recent GitHub traffic in a private ledger. Counting and privacy limits.',
   },
   {
     slug: 'inspirations',

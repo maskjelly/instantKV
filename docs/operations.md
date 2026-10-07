@@ -1,5 +1,31 @@
 # Operating one node
 
+## Local agent lifecycle
+
+For one agent harness, configure `instantkv mcp-local --dir /absolute/path/memory`.
+The harness starts the process when it connects. The process opens a loopback
+HTTP listener and closes it when the MCP input stream ends. The data directory
+stays on disk. Restart the harness with the same directory to use its records.
+You do not need a separate background daemon for this mode.
+
+One data directory has one active database owner. Do not point two running
+`mcp-local` processes, or `instantkv start` and `mcp-local`, at the same
+directory. For concurrent harnesses, run one `instantkv start` service and
+connect each harness through `instantkv mcp`. See [Connect an agent](agents.md).
+
+For the default local profile, stop the harness before a backup. Copy the whole
+memory directory to a private location, including `instantkv.toml` and
+`.instantkv/credentials.env`. If `storage.data_dir` points outside that
+directory, back up that path too. Start the harness and fetch one known memory
+to check the copy did not interrupt normal use. Test restores in an isolated
+directory with the same binary version. Protect credentials and backup copies.
+
+If tools do not connect, check the absolute binary and data paths, the harness
+MCP status, and stderr from its MCP process. If the database is busy, stop the
+other owner or use the shared server mode. If a write fails, check free disk
+space and permissions before retrying. The local MCP process does not restart a
+crashed harness; the harness controls its lifecycle.
+
 ## Docker setup and health
 
 `./scripts/quickstart.sh` builds an image, initializes a new volume and starts the service with health checks.

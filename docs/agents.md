@@ -2,7 +2,8 @@
 
 The Model Context Protocol (MCP) lets an agent call instantKV tools.
 Use `instantkv mcp-local --dir /absolute/path/memory` for a self-contained
-local MCP server. OpenCode starts it for you with the setup below.
+local MCP server. Your agent client starts and stops this process.
+The records stay on disk between sessions.
 For a shared HTTP server, start `instantkv serve` and use `instantkv mcp`.
 That adapter connects to an existing server; it does not start one.
 Its credential controls namespace and operation access.
@@ -12,9 +13,10 @@ Pass the namespace in every swarm tool call. The single-agent defaults are `know
 
 ## OpenCode
 
-For a local save → restart → recall showcase, use the
-[OpenCode installer](opencode-memory-demo.md). It starts the server and MCP adapter
-for you and shows each memory tool call.
+For a local save → restart → recall showcase with OpenCode V1, use the
+[OpenCode installer](opencode-memory-demo.md). It installs the local MCP
+command and shows each memory tool call. The installer does not support
+OpenCode V2 configuration. Use the V2 example below.
 
 ## Local MCP: one process to start
 
@@ -37,6 +39,63 @@ The command initializes a missing directory and starts its own loopback HTTP
 server on a temporary port. No separate server or model API is needed.
 Restart with the same directory to reuse the records.
 The client must call the tools; this does not install automatic memory hooks.
+Use one `mcp-local` process per data directory at a time. For two active
+harnesses that need the same memories, run one HTTP server and give each
+harness an `instantkv mcp` adapter with scoped credentials. The adapters do
+not open the database. For separate memories, give each harness its own directory.
+
+## Add it to a harness
+
+Install the [current source build](quickstart.md) first. Replace each example
+path with an absolute path on your machine. Use a separate data directory if
+another local process already owns the database.
+
+### Codex CLI
+
+```sh
+codex mcp add instantkv -- /absolute/path/to/instantkv mcp-local --dir /absolute/path/to/memory
+codex mcp list
+```
+
+The Codex CLI and IDE extension share MCP configuration.
+[Codex MCP documentation](https://developers.openai.com/codex/mcp).
+
+### Claude Code
+
+```sh
+claude mcp add --scope user --transport stdio instantkv -- /absolute/path/to/instantkv mcp-local --dir /absolute/path/to/memory
+claude mcp list
+```
+
+Use `/mcp` inside Claude Code to check the connection.
+[Claude Code MCP documentation](https://code.claude.com/docs/en/mcp).
+
+### OpenCode V2
+
+Add this entry to `~/.config/opencode/opencode.json`. OpenCode V2 uses
+`mcp.servers`; its V1 layout uses `mcp.instantKV`.
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "instantkv": {
+        "type": "local",
+        "command": ["/absolute/path/to/instantkv", "mcp-local", "--dir", "/absolute/path/to/memory"]
+      }
+    }
+  }
+}
+```
+
+Run `opencode mcp list` after you restart OpenCode.
+[OpenCode V2 MCP documentation](https://opencode.ai/v2/docs/mcp-servers).
+
+### Cursor and other `mcpServers` clients
+
+For Cursor, put the local MCP JSON below in `~/.cursor/mcp.json` and restart
+Cursor. For another client, use its documented `mcpServers` location.
+[Cursor MCP setup](https://developers.openai.com/resources/docs-mcp).
 
 ## Shared HTTP server through MCP
 

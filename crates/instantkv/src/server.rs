@@ -25,7 +25,7 @@ use std::{
     },
     time::Duration,
 };
-use tokio::sync::{OwnedSemaphorePermit, Semaphore};
+use tokio::sync::{OwnedSemaphorePermit, Semaphore, oneshot};
 
 type Permit = Arc<OwnedSemaphorePermit>;
 
@@ -550,6 +550,16 @@ pub async fn serve_with_listener(
     secrets_path: &FilePath,
     listener: tokio::net::TcpListener,
 ) -> anyhow::Result<()> {
+    serve_with_listener_ready(config, secrets_path, listener, None).await
+}
+
+/// Signal when the database, credentials and HTTP router are ready to serve.
+pub async fn serve_with_listener_ready(
+    config: Config,
+    secrets_path: &FilePath,
+    listener: tokio::net::TcpListener,
+    ready: Option<oneshot::Sender<()>>,
+) -> anyhow::Result<()> {
     let secrets = read_secrets(secrets_path)?;
     let auth = Auth::load(&config, &secrets)?;
     let bind = listener.local_addr()?;
@@ -575,8 +585,12 @@ pub async fn serve_with_listener(
             }
         }
     });
+    let router = router(app);
     tracing::info!(address = %bind, "instantKV ready");
-    let result = axum::serve(listener, router(app))
+    if let Some(ready) = ready {
+        let _ = ready.send(());
+    }
+    let result = axum::serve(listener, router)
         .with_graceful_shutdown(shutdown())
         .await;
     cleanup.abort();

@@ -54,6 +54,7 @@ instantkv --url http://127.0.0.1:8095 --secrets-file /private/credentials.env ge
 
 | Command                                                    | Behavior                                                           |
 | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| `start [--dir PATH] [--bind IP:PORT]`                    | Creates local setup on first use, then starts the server            |
 | `init [--dir PATH] [--profile local\|agent\|swarm]`        | Creates config and unique private credentials; refuses overwrites  |
 | `serve [--config PATH] [--bind IP:PORT] [--data-dir PATH]` | Runs the server; validates configuration and credentials           |
 | `check-config --config PATH`                               | Validates TOML policies without opening storage or reading secrets |

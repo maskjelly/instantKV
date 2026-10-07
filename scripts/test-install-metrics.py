@@ -5,6 +5,8 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from unittest.mock import patch
+import json
 
 spec = importlib.util.spec_from_file_location('metrics', Path(__file__).with_name('install-metrics.py'))
 metrics = importlib.util.module_from_spec(spec)
@@ -19,6 +21,21 @@ def release(count=4):
 
 
 class MetricsTests(unittest.TestCase):
+    def test_owner_traffic_is_aggregate_and_validated(self):
+        def run(command, **_):
+            kind = command[-1].split('/')[-1]
+            return type('Result', (), {'returncode': 0, 'stdout': json.dumps({
+                'count': 3, 'uniques': 2,
+                kind: [{'timestamp': '2026-10-01T00:00:00Z', 'count': 3, 'uniques': 2}],
+            })})()
+        with patch.object(metrics.subprocess, 'run', side_effect=run):
+            traffic = metrics.github_traffic()
+        self.assertEqual(traffic['clones'], (3, 2, [('2026-10-01', 3, 2)]))
+        with tempfile.TemporaryDirectory() as tmp:
+            with metrics.private_database(Path(tmp) / 'metrics.sqlite3') as db:
+                metrics.save_snapshot(db, [], 'now', traffic)
+                self.assertEqual(metrics.report(db)['github_traffic']['clones']['window_count'], 3)
+
     def test_only_binary_archives_are_counted(self):
         draft = release(); draft['draft'] = True
         assets = metrics.fetch_assets(lambda page: [release(), draft])

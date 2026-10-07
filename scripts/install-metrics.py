@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import sqlite3
+import subprocess
 import sys
 from urllib.request import Request, urlopen
 
@@ -54,6 +55,37 @@ def github_page(page):
         return json.load(response)
 
 
+def github_traffic():
+    """Read owner-only aggregate traffic through the user's GitHub CLI login."""
+    traffic = {}
+    for kind in ('clones', 'views'):
+        result = subprocess.run(
+            ['gh', 'api', f'repos/{REPOSITORY}/traffic/{kind}'],
+            capture_output=True, text=True, check=False, timeout=30,
+        )
+        if result.returncode:
+            raise RuntimeError(f'Cannot read GitHub {kind} traffic. Check gh auth status and repository access.')
+        data = json.loads(result.stdout)
+        days = data.get(kind)
+        if not isinstance(days, list) or type(data.get('count')) is not int or type(data.get('uniques')) is not int:
+            raise ValueError(f'Invalid GitHub {kind} traffic response')
+        if data['count'] < 0 or not 0 <= data['uniques'] <= data['count']:
+            raise ValueError(f'Invalid GitHub {kind} traffic totals')
+        seen = set()
+        parsed = []
+        for day in days:
+            date = day['timestamp'][:10]
+            count, uniques = day['count'], day['uniques']
+            if (not re.fullmatch(r'\d{4}-\d{2}-\d{2}', date) or date in seen
+                    or type(count) is not int or type(uniques) is not int
+                    or count < 0 or not 0 <= uniques <= count):
+                raise ValueError(f'Invalid GitHub {kind} daily traffic')
+            seen.add(date)
+            parsed.append((date, count, uniques))
+        traffic[kind] = (data['count'], data['uniques'], sorted(parsed))
+    return traffic
+
+
 def private_database(path):
     path = path.expanduser().resolve()
     if path == ROOT or ROOT in path.parents:
@@ -72,15 +104,30 @@ def private_database(path):
         asset_id INTEGER NOT NULL, release TEXT NOT NULL, name TEXT NOT NULL,
         platform TEXT NOT NULL, count INTEGER NOT NULL CHECK(count >= 0),
         PRIMARY KEY(snapshot_id, asset_id));
+      CREATE TABLE IF NOT EXISTS traffic_totals (
+        snapshot_id INTEGER NOT NULL REFERENCES snapshots(id),
+        kind TEXT NOT NULL, count INTEGER NOT NULL, uniques INTEGER NOT NULL,
+        PRIMARY KEY(snapshot_id, kind));
+      CREATE TABLE IF NOT EXISTS traffic_daily (
+        snapshot_id INTEGER NOT NULL REFERENCES snapshots(id),
+        kind TEXT NOT NULL, day TEXT NOT NULL,
+        count INTEGER NOT NULL, uniques INTEGER NOT NULL,
+        PRIMARY KEY(snapshot_id, kind, day));
     ''')
     return db
 
 
-def save_snapshot(db, assets, observed_at):
+def save_snapshot(db, assets, observed_at, traffic=None):
     with db:
         snapshot = db.execute('INSERT INTO snapshots(observed_at) VALUES (?)', (observed_at,)).lastrowid
         db.executemany('INSERT INTO downloads VALUES (?, ?, ?, ?, ?, ?)',
                        [(snapshot, *asset) for asset in assets])
+        if traffic:
+            db.executemany('INSERT INTO traffic_totals VALUES (?, ?, ?, ?)',
+                           [(snapshot, kind, total, unique) for kind, (total, unique, _) in traffic.items()])
+            db.executemany('INSERT INTO traffic_daily VALUES (?, ?, ?, ?, ?)',
+                           [(snapshot, kind, day, count, unique)
+                            for kind, (_, _, days) in traffic.items() for day, count, unique in days])
     return snapshot
 
 
@@ -97,24 +144,45 @@ def report(db):
                      'downloads': count, 'change_since_previous': delta,
                      'counter_decreased': delta is not None and delta < 0})
     removed = sorted(set(old) - {row['asset_id'] for row in rows})
+    traffic = {}
+    traffic_snapshot = db.execute('SELECT snapshot_id FROM traffic_totals ORDER BY snapshot_id DESC LIMIT 1').fetchone()
+    if traffic_snapshot:
+        observed = db.execute('SELECT observed_at FROM snapshots WHERE id = ?', traffic_snapshot).fetchone()[0]
+        for kind, count, uniques in db.execute(
+                'SELECT kind, count, uniques FROM traffic_totals WHERE snapshot_id = ?', traffic_snapshot):
+            days = list(db.execute(
+                'SELECT day, count FROM traffic_daily WHERE snapshot_id = ? AND kind = ? ORDER BY day',
+                (traffic_snapshot[0], kind)))
+            traffic[kind] = {
+                'observed_at': observed, 'window_start': days[0][0] if days else None,
+                'window_end': days[-1][0] if days else None,
+                'window_count': count, 'window_uniques': uniques,
+                'last_7_days_count': sum(day_count for _, day_count in days[-7:]),
+                'previous_7_days_count': sum(day_count for _, day_count in days[-14:-7]),
+            }
     return {'repository': REPOSITORY, 'observed_at': latest[1],
             'metric': 'GitHub binary archive downloads; not verified installs or unique users',
             'source_installs': 'Unknown; source builds do not report installation events',
             'structured_memory_release': 'Unreleased; existing v0.1.2 downloads are legacy KV/checkpoint tools',
             'listed_asset_downloads': sum(row['downloads'] for row in rows),
-            'removed_asset_ids_since_previous': removed, 'assets': rows}
+            'removed_asset_ids_since_previous': removed, 'assets': rows,
+            'github_traffic': traffic}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--database', type=Path, default=Path.home() / '.local/state/instantkv-maintainer/install-metrics.sqlite3')
     parser.add_argument('--refresh', action='store_true', help='Read the public GitHub release API; otherwise report offline')
+    parser.add_argument('--traffic', action='store_true', help='With --refresh, read owner-only GitHub clones and views via gh')
     args = parser.parse_args()
+    if args.traffic and not args.refresh:
+        parser.error('--traffic requires --refresh')
     # Complete the fetch before opening/writing the ledger.
     assets = fetch_assets(github_page) if args.refresh else None
+    traffic = github_traffic() if args.traffic else None
     with private_database(args.database) as db:
         if assets is not None:
-            save_snapshot(db, assets, datetime.now(timezone.utc).isoformat())
+            save_snapshot(db, assets, datetime.now(timezone.utc).isoformat(), traffic)
         print(json.dumps(report(db), indent=2))
 
 
