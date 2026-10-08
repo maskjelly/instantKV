@@ -51,6 +51,10 @@ From a local checkout, use `cargo install --path crates/instantkv --locked`.
 Inspect `query_reduced` and `truncated`; bounded search may return incomplete rankings.
 The service does not extract facts automatically or resume a model by itself.
 
+The optional source [memory controller](docs/memory-controller.md) adds reviewed
+local extraction, corrections, provenance and live profiles beside the node.
+It uses the existing API; native tools retain their current contracts.
+
 [Memory contract and limits](docs/memory-mvp.md) · [Checkpoint contract](docs/agent-memory.md)
 
 ## Evidence and limits

@@ -19,6 +19,12 @@ The checker uses Git's file list, including new non-ignored files; it does not s
 It checks local Markdown files and headings, not external URLs or every embedded command.
 No model is installed and no paid model API is called by verification.
 
+Core verification includes two focused controller/extraction checks and one
+real-node [memory workflow](memory-product-smoke.py). Run that scenario alone
+with `python3 scripts/memory-product-smoke.py --binary target/debug/instantkv`
+after building the node. It checks the optional [controller](../docs/memory-controller.md),
+not an installed model's memory quality.
+
 ## Setup and operations
 
 - `install.sh`, `quickstart.sh`, `kv.sh`: release installation and Docker use.

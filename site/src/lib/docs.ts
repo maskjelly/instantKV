@@ -40,6 +40,14 @@ export const docs = [
     description: 'What to save before compaction and how to load it afterward.',
   },
   {
+    slug: 'memory-controller',
+    title: 'Memory lifecycle controller',
+    group: 'Use the service',
+    source: 'docs/memory-controller.md',
+    description:
+      'Optional local integration for reviewed facts, corrections, profiles and forgetting.',
+  },
+  {
     slug: 'cloud-agents',
     title: 'Local agents & swarms',
     group: 'Use the service',

@@ -9,6 +9,8 @@ Start with one path. Reference pages explain contracts; evidence pages explain m
 3. [Memory guide](memory-mvp.md): filters, ranking, pagination and limits.
 
 For task continuation, read the [checkpoint contract](agent-memory.md).
+For reviewed facts, corrections and profiles, use the optional
+[memory controller](memory-controller.md).
 For in-process use, run the [Rust example](../crates/instantkv-core/examples/memory.rs).
 
 ## Reference and operations
@@ -36,6 +38,5 @@ For in-process use, run the [Rust example](../crates/instantkv-core/examples/mem
 - [Website](website.md): site structure, design decisions and publication checks.
 - [Private installation reporting](install-metrics.md): local download snapshots and counting limits.
 
-The [memory controller contract](proposals/memory-controller.md) defines the next
-product implementation batch. The [distributed proposal](proposals/distributed-memory.md)
-is future design work.
+The [memory controller design](memory-controller-design.md) describes the optional
+source adapter. The [distributed proposal](proposals/distributed-memory.md) is future work.

@@ -12,6 +12,8 @@ The [cleanup and release plan](project-plan.md) defines the work order and accep
 - Atomic checkpoint/latest-pointer commits and bounded restore.
 - Embedded Rust core, authenticated HTTP, CLI and scoped MCP tools.
 - Local profile, shared/private namespace setup, backup and restart tests.
+- Optional source-only Python controller for reviewed proposals, corrections,
+  conflicts, provenance, live profiles and content-free forgetting.
 
 [Memory contract](memory-mvp.md) · [Checkpoint contract](agent-memory.md) ·
 [Verification history](history/checkpoints.md)
@@ -51,20 +53,22 @@ Real local-agent tests and storage smoke experiments do not substitute for full 
 
 ## Memory product tasks
 
-The next controller milestone follows [this implementation contract](proposals/memory-controller.md).
+The controller follows [this implementation contract](memory-controller-design.md).
 It adds an optional local integration while keeping the Rust engine frozen.
-These tasks are pending until implementation and verification are committed.
+M1-M4 are implemented in source. [Validation](validation/2026-10-09-memory-controller.md)
+records the combined real-node workflow and limits. [Use the controller](memory-controller.md).
 
 | ID | Task | Completion check | Dependency |
 | --- | --- | --- | --- |
-| M1 | Deterministic lifecycle and HTTP adapter | Create, retry, conflict, correction, expiry and content-free forgetting survive restart; writes remain revision-protected | Current API |
-| M2 | Optional local extraction and interactive agent | Bounded, grounded proposals; preview before writes; context before answering; clear model/memory failures | M1 interface |
-| M3 | Usable CLI and operator guide | First-use path, inspect/profile/context/correction/forget commands and a real-server restart scenario | M1 interface, M2 extraction |
-| M4 | Integration and product review | Combined scenario passes; permissions and budgets hold; each completed task has a commit and validation evidence | M1-M3 |
+| M1 | Completed: deterministic lifecycle and HTTP adapter | Five focused lifecycle/HTTP scenarios and combined real-node restart workflow pass | Current API |
+| M2 | Completed in source: optional extraction and interactive agent | Six fake-model/transport/harness scenarios pass; installed-model quality remains M5 | M1 interface |
+| M3 | Completed: CLI and operator guide | Saved-preview retry, inspection, correction, profile/context, permissions and forgetting pass through the real CLI | M1 interface, M2 extraction |
+| M4 | Completed: integration and product review | Combined workflow, repository checks and site checks pass; changes committed | M1-M3 |
 | M5 | Installed-model product trial | Real conversation retains a preference, corrects it and forgets it; record errors, friction and runtime cost | M4 and an installed model |
-| M6 | Broader memory quality | Evaluate temporal facts, ambiguous entities and paraphrases on separate development cases before proposing semantic retrieval or graph reasoning | M5 |
+| M6 | Long-term use and normal agent integration | Design safe archival/compaction, explicit restoration after forget, and one coding-agent adapter; exercise sustained use beyond current per-slot limits | M5 feedback |
+| M7 | Broader memory quality | Evaluate temporal facts, ambiguous entities and paraphrases on separate development cases before proposing semantic retrieval or graph reasoning | M5-M6 |
 
-M1-M4 are the current implementation batch. M5-M6 are subsequent gates, not
+M1-M4 are the completed implementation batch. M5-M7 are subsequent gates, not
 claims that fake-model tests establish agent quality. No automatic cloud calls.
 
 ## Later proposals

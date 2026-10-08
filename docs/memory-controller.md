@@ -219,6 +219,17 @@ plus freshly read profile/context. It does not retain or replay a conversation
 transcript. Capture is opt-in and requires review; limited memory history is not
 a replacement for chat history.
 
+From `examples/`, connect the harness to the same node:
+
+```sh
+python3 local-memory-chat.py --model YOUR_INSTALLED_MODEL \
+  --secrets-file "$controller_secrets" --scope personal --capture
+```
+
+Use `/profile`, `/inspect user response_style` and `/forget user response_style`
+for management. Forget shows the current record and requires a typed confirmation.
+Use the deterministic CLI for corrections and exact saved-proposal retries.
+
 ## Limits and recovery
 
 Input files and stdin accept at most 65,536 bytes for `apply`, and 16,384 UTF-8
@@ -237,6 +248,11 @@ non-finite numbers are rejected. `--file -` also reads stdin.
 Aggregate metadata can fill before the item counts. Full history, conflicts or
 receipts fail instead of dropping provenance or retry protection. Inspect the
 slot; there is no automatic compaction or supported limit-reset operation.
+Repeated identical values add a receipt, without filling history. They advance
+the last-confirmed time while retaining the original source quote. Conflicted
+slots reserve room for correction to existing evidence; a larger new correction
+can still exceed the metadata limit. Forgotten records retain identity hashes,
+revision data and generic native metadata, without raw identity labels or facts.
 Profile/context work and output are bounded; they can return `truncated: true`.
 Context uses the node's BM25 search, not embeddings or semantic graph retrieval.
 `--max-bytes` must be between 128 and 65,536 bytes.
@@ -262,8 +278,7 @@ grants; apply and forget are denied. There is no client-side permissions bypass.
 
 ## Verify and stop
 
-From the repository root, after building the node and combining the controller
-files:
+From the repository root, after building the node:
 
 ```sh
 python3 scripts/memory-product-smoke.py --binary target/release/instantkv

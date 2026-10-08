@@ -136,6 +136,18 @@ Framework parsing errors can be plain text; service errors use a JSON object.
 One process must own each data file.
 [Backup and upgrades](operations.md).
 
+## Optional memory controller
+
+The source-only Python [controller](memory-controller.md) uses the existing HTTP
+API. It owns fact interpretation, provenance, conflicts, profiles and forgetting.
+Each slot commits its current content and lifecycle metadata in one native
+structured-memory transaction. Local-model extraction proposes assertions for
+explicit review; the Rust node makes no model calls.
+
+The [controller design](memory-controller-design.md) defines retries, temporal
+ordering, tombstones and finite bounds. It requires a durable namespace without
+native TTL. It does not add multi-fact transactions or consistent read snapshots.
+
 ## Future proposals
 
 1. Connect a real runtime's compaction hooks and evaluate task continuation.

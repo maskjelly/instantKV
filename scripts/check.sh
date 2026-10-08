@@ -21,6 +21,8 @@ if [ "$mode" = --all ] || [ "$mode" = --core ]; then
   cargo clippy --workspace --all-targets --locked -- -D warnings
   cargo test --workspace --locked
   "$test_python" scripts/test-local-llm.py
+  "$test_python" scripts/test-memory-controller.py
+  "$test_python" scripts/test-memory-extraction.py
   "$test_python" scripts/test-retrieval-suite.py
   "$test_python" scripts/test-compare-supermemory.py
   "$test_python" -m unittest discover -s eval -p 'test_*.py'
@@ -29,6 +31,7 @@ if [ "$mode" = --all ] || [ "$mode" = --core ]; then
   ./target/release/instantkv demo --swarm
   "$test_python" scripts/test-start.py
   "$test_python" scripts/test-mcp-local.py
+  "$test_python" scripts/memory-product-smoke.py
   for config in config/instantkv.example.toml config/local.toml config/local-cache.toml config/swarm.toml; do
     ./target/release/instantkv check-config --config "$config"
   done

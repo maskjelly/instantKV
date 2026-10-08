@@ -1,7 +1,9 @@
 # Memory controller: first product milestone
 
-Status: implementation contract, not shipped. Updated: 2026-10-09.
-Audience: implementers. Product tasks live in [the roadmap](../roadmap.md).
+Status: implemented as an optional source adapter, unreleased. Updated: 2026-10-09.
+Audience: implementers. Product tasks live in [the roadmap](roadmap.md).
+The [user guide](memory-controller.md) documents current commands and limits;
+[validation](validation/2026-10-09-memory-controller.md) records completed checks.
 
 ## Outcome
 
@@ -141,6 +143,18 @@ memory is available. Neither commands nor traces leak credentials.
 not awkward escaped shell strings. Shared options: `--url`, `--secrets-file`,
 `--namespace`, `--scope`. Capture shows proposals unless explicitly applied.
 CLI errors explain the next action and use a nonzero exit code.
+`apply` also accepts the exact saved capture-preview envelope. It validates the
+whole bounded batch before writing, then reports each fact's independent result.
+An identical saved file retry makes no model call. Capture supplies current time
+once per invocation unless the caller gives an explicit historical timestamp.
+
+Duplicate values consume a receipt and advance last-confirmed time, without
+adding redundant history. Conflicted records reserve room to resolve to existing
+evidence before accepting more observations. Larger corrections can still hit
+the metadata cap. Tombstones keep identity hashes and revision data only; inspect
+uses caller-supplied identity labels. History archival and explicit restoration
+remain future work. Chat uses the current turn and live memory, without transcript
+history; conversational follow-up quality has not been established.
 
 ## Acceptance and limits
 
