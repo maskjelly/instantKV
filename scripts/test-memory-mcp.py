@@ -17,7 +17,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "examples"))
 from memory_controller import MemoryController, StoreError  # noqa: E402
-from memory_controller.mcp import MCPServer, MAX_MESSAGE_BYTES  # noqa: E402
+from memory_controller.mcp import MCPServer, MAX_MESSAGE_BYTES, STARTUP_TIMEOUT_SECONDS  # noqa: E402
 
 # Reuse the existing fake native CAS contract, not another lifecycle implementation.
 fixtures = runpy.run_path(str(ROOT / "scripts/test-memory-controller.py"))
@@ -148,7 +148,7 @@ def executable(path, contents):
 
 
 def wait_for(path):
-    deadline = time.monotonic() + 5
+    deadline = time.monotonic() + STARTUP_TIMEOUT_SECONDS + 4
     while time.monotonic() < deadline:
         if path.exists():
             return
@@ -173,7 +173,10 @@ class ManagedTests(unittest.TestCase):
                     child.stdin.flush()
                     wait_for(state / "fake.pid")
                     native_pid = int((state / "fake.pid").read_text())
-                    readable, _, _ = select.select([child.stdout], [], [], 5)
+                    # The bridge permits eight seconds for startup. A five-second
+                    # test deadline incorrectly failed a permitted slower start.
+                    readable, _, _ = select.select(
+                        [child.stdout], [], [], STARTUP_TIMEOUT_SECONDS + 4)
                     self.assertTrue(readable, "MCP initialization deadline")
                     self.assertIn("serverInfo", json.loads(child.stdout.readline())["result"])
                     other = subprocess.run(command, input=b"", capture_output=True, env=environment, timeout=12)
@@ -194,8 +197,15 @@ class ManagedTests(unittest.TestCase):
                         os.kill(native_pid, 0)
                 finally:
                     if child.poll() is None:
-                        child.kill()
-                        child.wait()
+                        child.terminate()
+                        try:
+                            child.wait(timeout=8)
+                        except subprocess.TimeoutExpired:
+                            child.kill()
+                            child.wait()
+                    for stream in (child.stdin, child.stdout, child.stderr):
+                        if stream is not None:
+                            stream.close()
 
 
 class InstallerTests(unittest.TestCase):

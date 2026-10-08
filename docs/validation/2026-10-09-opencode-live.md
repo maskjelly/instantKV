@@ -72,6 +72,14 @@ instead of copying the canonical `mc/...` key. Retrieved values and revisions we
 correct. Agent presentation still needs review; this does not establish perfect
 citations or capture quality.
 
+The first source CI run passed both Linux runners but failed the macOS managed
+bridge check. Its test waited five seconds for initialization, shorter than the
+bridge's eight-second startup allowance. The test now derives its deadline from
+that allowance plus a bounded scheduling margin and closes pipes/terminates the
+bridge on failure. The existing five checks pass locally. An additional ad hoc
+run delayed native HTTP readiness by 5.5 seconds and verified EOF/SIGTERM cleanup
+and competing-owner rejection. The bridge's startup allowance is unchanged.
+
 The trial covers one synthetic preference and one cloud provider. It does not
 establish offline inference, ambiguous-entity handling, paraphrase recall, sustained
 use, large profiles or concurrent shared-server agent quality. Ollama extraction

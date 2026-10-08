@@ -23,6 +23,7 @@ from .store import _constant, _object, json_bytes
 
 MAX_MESSAGE_BYTES = 65536
 MAX_RESPONSE_BYTES = 262144
+STARTUP_TIMEOUT_SECONDS = 8
 VERSIONS = ("2024-11-05", "2025-03-26", "2025-06-18")
 
 
@@ -222,7 +223,7 @@ class ManagedNode:
             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             env=environment)
         credentials = self.directory / ".instantkv/credentials.env"
-        deadline = time.monotonic() + 8
+        deadline = time.monotonic() + STARTUP_TIMEOUT_SECONDS
         while time.monotonic() < deadline:
             if not self.alive():
                 raise RuntimeError("native startup failed; check data ownership and config")
