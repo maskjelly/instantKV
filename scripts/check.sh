@@ -23,6 +23,7 @@ if [ "$mode" = --all ] || [ "$mode" = --core ]; then
   "$test_python" scripts/test-local-llm.py
   "$test_python" scripts/test-memory-controller.py
   "$test_python" scripts/test-memory-extraction.py
+  "$test_python" scripts/test-memory-mcp.py
   "$test_python" scripts/test-retrieval-suite.py
   "$test_python" scripts/test-compare-supermemory.py
   "$test_python" -m unittest discover -s eval -p 'test_*.py'

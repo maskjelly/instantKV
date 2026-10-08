@@ -9,6 +9,10 @@ Among these CLI commands, only `capture` calls a model, after you explicitly
 select an already installed local Ollama model. The adapter uses the Python
 standard library. It retains structured facts and bounded history, not transcripts.
 
+For normal coding-agent use, [connect OpenCode](opencode-controller.md). It uses
+OpenCode's existing provider and the same deterministic lifecycle. It needs no
+Ollama installation. Provider inference and memory storage are separate choices.
+
 ## Start from source
 
 From this repository, build and start a separate local node:

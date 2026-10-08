@@ -1,5 +1,9 @@
 # Try memory in OpenCode
 
+For source quotes, conflicts, live profiles and forgetting with replay protection,
+use the [memory controller integration](opencode-controller.md). This page covers
+the native storage/checkpoint tools.
+
 Install the MCP from the instantKV checkout:
 
 ```sh

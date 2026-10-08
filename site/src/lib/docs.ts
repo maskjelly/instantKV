@@ -18,11 +18,19 @@ export const docs = [
   },
   {
     slug: 'opencode-memory-demo',
-    title: 'OpenCode memory setup',
+    title: 'OpenCode native memory',
     group: 'Start here',
     source: 'docs/opencode-memory-demo.md',
     description:
       'Install local MCP memory for OpenCode and run an explicit save, restart and recall demonstration.',
+  },
+  {
+    slug: 'opencode-controller',
+    title: 'OpenCode memory controller',
+    group: 'Start here',
+    source: 'docs/opencode-controller.md',
+    description:
+      'Connect the lifecycle controller to OpenCode with your existing model provider.',
   },
   {
     slug: 'memory-mvp',

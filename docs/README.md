@@ -11,6 +11,7 @@ Start with one path. Reference pages explain contracts; evidence pages explain m
 For task continuation, read the [checkpoint contract](agent-memory.md).
 For reviewed facts, corrections and profiles, use the optional
 [memory controller](memory-controller.md).
+For a coding-agent workflow, [use it in OpenCode](opencode-controller.md).
 For in-process use, run the [Rust example](../crates/instantkv-core/examples/memory.rs).
 
 ## Reference and operations

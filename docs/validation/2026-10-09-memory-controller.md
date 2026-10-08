@@ -51,9 +51,10 @@ Saved previews provide an exact retry path without another model call.
 
 ## Limits and next gate
 
-No Ollama executable/model is installed in this environment. No real model was
-called or downloaded. A quote's presence does not establish correct interpretation.
-An installed-model trial is still required before claiming agent usefulness.
+No Ollama executable/model was installed for these checks. Extraction checks use
+fake output; a quote's presence does not establish correct interpretation.
+The subsequent [OpenCode trial](2026-10-09-opencode-live.md) exercised a connected
+model through six fresh sessions. It does not validate Ollama extraction quality.
 
 History and receipts are finite. The controller has no archival, compaction or
 explicit restoration command. It does not provide multi-fact transactions or

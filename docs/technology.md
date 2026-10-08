@@ -17,7 +17,7 @@ separate static documentation deployment.
 | 2 | Memory lifecycle | Identity, observations, current truth, historical evidence, contradictions and explicit corrections are different things. | [Controller](../examples/memory_controller/lifecycle.py), [design](memory-controller-design.md) |
 | 3 | Revision checks and retries | Compare-and-swap prevents lost updates. Per-slot receipts make identical retries safe. A timeout can follow a committed write. | [Controller guide](memory-controller.md), [HTTP contract](http.md) |
 | 4 | Retrieval | Inverted indexes, BM25 scoring, stemming, WAND skipping, filters, cursors and bounded work determine what reaches the model. | [Search](../crates/instantkv-core/src/search.rs), [memory guide](memory-mvp.md) |
-| 5 | Agent integration | MCP exposes tools; the agent chooses when to call them. Prompts and tool schemas affect capture and recall quality. | [MCP setup](agents.md), [OpenCode setup](opencode-memory-demo.md) |
+| 5 | Agent integration | MCP exposes tools; the agent chooses when to call them. Prompts and tool schemas affect capture and recall quality. | [MCP setup](agents.md), [OpenCode controller](opencode-controller.md) |
 | 6 | Operating a product | Private credentials, namespace grants, backups, upgrades, failure messages and finite capacity matter during daily use. | [Operations](operations.md), [configuration](configuration.md) |
 
 ## Rust service

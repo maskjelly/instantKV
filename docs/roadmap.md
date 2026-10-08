@@ -57,6 +57,8 @@ The controller follows [this implementation contract](memory-controller-design.m
 It adds an optional local integration while keeping the Rust engine frozen.
 M1-M4 are implemented in source. [Validation](validation/2026-10-09-memory-controller.md)
 records the combined real-node workflow and limits. [Use the controller](memory-controller.md).
+The [OpenCode integration](opencode-controller.md) also passed a
+[six-session model trial](validation/2026-10-09-opencode-live.md).
 
 | ID | Task | Completion check | Dependency |
 | --- | --- | --- | --- |
@@ -64,12 +66,13 @@ records the combined real-node workflow and limits. [Use the controller](memory-
 | M2 | Completed in source: optional extraction and interactive agent | Six fake-model/transport/harness scenarios pass; installed-model quality remains M5 | M1 interface |
 | M3 | Completed: CLI and operator guide | Saved-preview retry, inspection, correction, profile/context, permissions and forgetting pass through the real CLI | M1 interface, M2 extraction |
 | M4 | Completed: integration and product review | Combined workflow, repository checks and site checks pass; changes committed | M1-M3 |
-| M5 | Installed-model product trial | Real conversation retains a preference, corrects it and forgets it; record errors, friction and runtime cost | M4 and an installed model |
-| M6 | Long-term use and normal agent integration | Design safe archival/compaction, explicit restoration after forget, and one coding-agent adapter; exercise sustained use beyond current per-slot limits | M5 feedback |
+| M5 | Completed: connected-model product trial | Six fresh OpenCode sessions save, recall, correct and forget one synthetic preference; traces, presentation friction and cost recorded | M4 and a connected provider |
+| M6 | Partly complete: normal agent integration; long-term use pending | OpenCode lifecycle adapter installed and connected; safe archival/compaction, explicit restoration after forget and sustained use beyond per-slot limits remain open | M5 feedback |
 | M7 | Broader memory quality | Evaluate temporal facts, ambiguous entities and paraphrases on separate development cases before proposing semantic retrieval or graph reasoning | M5-M6 |
 
-M1-M4 are the completed implementation batch. M5-M7 are subsequent gates, not
-claims that fake-model tests establish agent quality. No automatic cloud calls.
+M1-M5 cover implementation and one small product trial. M6-M7 remain broader
+product gates. Model calls stay in the optional agent runtime; storage and lifecycle
+validation remain model-free.
 
 ## Later proposals
 
