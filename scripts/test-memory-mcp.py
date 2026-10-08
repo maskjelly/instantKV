@@ -117,6 +117,7 @@ FAKE_NATIVE = '''#!/usr/bin/env python3
 import argparse, json, os
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import TCPServer
 p = argparse.ArgumentParser()
 p.add_argument('command')
 p.add_argument('--dir', type=Path)
@@ -137,7 +138,11 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(b'{}')
     def log_message(self, *_): pass
 host, port = a.bind.split(':')
-HTTPServer((host, int(port)), Handler).serve_forever()
+class LocalHTTPServer(HTTPServer):
+    def server_bind(self):
+        TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
+LocalHTTPServer((host, int(port)), Handler).serve_forever()
 '''
 
 

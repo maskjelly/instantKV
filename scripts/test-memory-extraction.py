@@ -12,6 +12,7 @@ import io
 import json
 from pathlib import Path
 import socket
+from socketserver import TCPServer
 import sys
 import threading
 import time
@@ -38,6 +39,13 @@ def fake_response(content):
 
 @contextmanager
 def ollama_server():
+    class LocalHTTPServer(ThreadingHTTPServer):
+        def server_bind(self):
+            # Numeric loopback needs no reverse DNS. HTTPServer's default
+            # getfqdn can stall independently of the model request deadline.
+            TCPServer.server_bind(self)
+            self.server_name, self.server_port = self.server_address[:2]
+
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             self.reply({"models": self.server.models})
@@ -88,7 +96,7 @@ def ollama_server():
         def log_message(self, *_):
             pass
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    server = LocalHTTPServer(("127.0.0.1", 0), Handler)
     server.mode, server.content, server.calls = "valid", json.dumps({"proposals": [FACT]}), []
     server.models = [{"name": "local:latest"}]
     thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)

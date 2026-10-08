@@ -72,13 +72,19 @@ instead of copying the canonical `mc/...` key. Retrieved values and revisions we
 correct. Agent presentation still needs review; this does not establish perfect
 citations or capture quality.
 
-The first source CI run passed both Linux runners but failed the macOS managed
-bridge check. Its test waited five seconds for initialization, shorter than the
-bridge's eight-second startup allowance. The test now derives its deadline from
-that allowance plus a bounded scheduling margin and closes pipes/terminates the
-bridge on failure. The existing five checks pass locally. An additional ad hoc
-run delayed native HTTP readiness by 5.5 seconds and verified EOF/SIGTERM cleanup
-and competing-owner rejection. The bridge's startup allowance is unchanged.
+CI passed both Linux runners but exposed a macOS fixture startup failure.
+Python's default HTTPServer binding calls `socket.getfqdn`, which performs reverse
+DNS. Fake model setup also took about 95 seconds on that runner, while the actual
+model request checks passed. The fake native server wrote its PID before that
+lookup and could not listen within the bridge's startup allowance. The fixtures
+now bind literal loopback addresses through TCPServer and set their numeric
+server identity without DNS. The Rust server and bridge allowance are unchanged.
+
+The test also derives its wait from the eight-second bridge allowance plus a
+bounded scheduling margin and cleans up subprocesses/pipes on failure. Existing
+checks pass locally. Ad hoc checks delayed HTTP readiness by 5.5 seconds and
+blocked reverse DNS while exercising the fixtures. The full local core verifier
+passed, including schemas, offline evaluation, demos and restart.
 
 The trial covers one synthetic preference and one cloud provider. It does not
 establish offline inference, ambiguous-entity handling, paraphrase recall, sustained
