@@ -31,6 +31,7 @@ For in-process use, run the [Rust example](../crates/instantkv-core/examples/mem
 ## Maintain the project
 
 - [Contributor guide](../CONTRIBUTING.md), [repository maintenance](repository.md) and [architecture](architecture.md).
+- [Technology and learning map](technology.md): the stack, important concepts and practical exercises.
 - [Cleanup and release plan](project-plan.md): ordered work and acceptance gates.
 - [Roadmap](roadmap.md): current scope and deferred work.
 - [Validation record](validation/2026-10-06.md): checks and local experiments for this cleanup.

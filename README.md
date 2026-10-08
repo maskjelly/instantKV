@@ -72,6 +72,7 @@ remain pending. Logical quotas do not cap total disk or process memory.
 
 - **Use it:** [documentation map](docs/README.md), [configuration](docs/configuration.md), [backups](docs/operations.md).
 - **Build it:** [contributing](CONTRIBUTING.md), [repository maintenance](docs/repository.md), [architecture](docs/architecture.md), [security](SECURITY.md).
+- **Understand it:** [technology and learning map](docs/technology.md).
 - **Improve it:** [cleanup and release plan](docs/project-plan.md), [roadmap](docs/roadmap.md).
 
 Rust + Tokio + Axum + redb. MIT license.

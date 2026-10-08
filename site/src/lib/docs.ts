@@ -143,6 +143,14 @@ export const docs = [
       'Rust, the bounded engine, redb transactions and storage schema.',
   },
   {
+    slug: 'technology',
+    title: 'Technology & learning map',
+    group: 'Build with us',
+    source: 'docs/technology.md',
+    description:
+      'Understand the service, memory lifecycle, agent runtime and website stack.',
+  },
+  {
     slug: 'repository',
     title: 'Repository maintenance',
     group: 'Build with us',
