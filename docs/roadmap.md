@@ -49,6 +49,24 @@ Keep the engine frozen during the finite campaign. Preserve failed and interrupt
 Real local-agent tests and storage smoke experiments do not substitute for full suites.
 [Full results](benchmarks/2026-10-04-full-retrieval/README.md) · [Evaluation policy](evaluation-policy.md).
 
+## Memory product tasks
+
+The next controller milestone follows [this implementation contract](proposals/memory-controller.md).
+It adds an optional local integration while keeping the Rust engine frozen.
+These tasks are pending until implementation and verification are committed.
+
+| ID | Task | Completion check | Dependency |
+| --- | --- | --- | --- |
+| M1 | Deterministic lifecycle and HTTP adapter | Create, retry, conflict, correction, expiry and content-free forgetting survive restart; writes remain revision-protected | Current API |
+| M2 | Optional local extraction and interactive agent | Bounded, grounded proposals; preview before writes; context before answering; clear model/memory failures | M1 interface |
+| M3 | Usable CLI and operator guide | First-use path, inspect/profile/context/correction/forget commands and a real-server restart scenario | M1 interface, M2 extraction |
+| M4 | Integration and product review | Combined scenario passes; permissions and budgets hold; each completed task has a commit and validation evidence | M1-M3 |
+| M5 | Installed-model product trial | Real conversation retains a preference, corrects it and forgets it; record errors, friction and runtime cost | M4 and an installed model |
+| M6 | Broader memory quality | Evaluate temporal facts, ambiguous entities and paraphrases on separate development cases before proposing semantic retrieval or graph reasoning | M5 |
+
+M1-M4 are the current implementation batch. M5-M6 are subsequent gates, not
+claims that fake-model tests establish agent quality. No automatic cloud calls.
+
 ## Later proposals
 
 Portable export/import comes before multi-device synchronization.
