@@ -109,6 +109,19 @@ silently dropping provenance or replay protection. No unbounded JSON accumulatio
 Semantic expiry uses `valid_until_ms`; controller reads exclude expired facts.
 The native APIs remain general-purpose and do not enforce controller semantics.
 
+Initial bounds: 128 UTF-8 bytes per identity field, 1,024 bytes per value,
+512 bytes per source quote and 256 bytes per source ID. Keep at most eight
+history entries, eight conflicts and 24 retry receipts per slot. The existing
+8 KiB aggregate metadata limit can exhaust sooner. Output accepts at most
+64 KiB; query input at most 16 KiB. These are adapter limits, not new node limits.
+
+Use a durable namespace without default or required native TTL. The HTTP API
+cannot inspect this configuration or disable inherited TTL. The controller
+rejects expiring managed records and checks each write response, but discovering
+TTL in a write response means the write already committed. Report that clearly.
+The default `knowledge` namespace in `config/local.toml` meets the prerequisite.
+Keep source reuse checks per slot, since a turn can provide several facts.
+
 ## Extraction and agent experience
 
 `extraction.py` exposes `extract_proposals(text, source_id, occurred_at_ms, model,
